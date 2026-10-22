@@ -6,22 +6,22 @@ Es un solo archivo HTML, sin servidor ni cuentas. Los datos se guardan en el nav
 
 ## Qué hace
 
-- **Onboarding de 4 pasos**: bienvenida, cómo funciona, datos de la cocina (nombre, moneda, tarifa por hora, margen) y elección entre torta de ejemplo o empezar de cero.
-- **Ingredientes (despensa)**: cada ingrediente se carga como se compra (paquete de 1 kg, 200 g, 1 docena, 1 litro…) con su precio. La app calcula el precio por kg, litro o unidad. El precio se edita directo en la lista, y las tortas que lo usan se recalculan solas.
-- **Calculadora de tortas** en 4 pasos:
-  1. Ingredientes con cantidad y unidad (g/kg, ml/l, unidades/docenas, con conversión automática).
-  2. Extras: caja, base, decoración, velas, topper, envío…
-  3. Horas de trabajo × tarifa por hora, más gas, luz y otros gastos.
-  4. Margen de ganancia → precio sugerido (redondeado), precio propio, ganancia, margen real, precio y costo por porción.
-- **Avisos**: tortas vendidas por debajo del costo, margen bajo, ingredientes sin precio y precios con más de 30 días sin actualizar.
-- **Ventas**: registro de cada torta vendida con lo cobrado y lo que costó; resumen mensual de ingresos, costos y ganancia.
+- **Onboarding de 4 pasos**: qué hace la app, datos de la cocina (nombre, moneda, valor de la hora, margen), precios de los 10 ingredientes más comunes y elegir entre armar la primera torta o ver un ejemplo.
+- **Armar torta (interactivo)**: la torta se dibuja en pantalla y crece con cada ingrediente (bizcocho, relleno, cobertura, decoración). Los extras también se ven: velas, topper, caja, bandeja y perlas. Los colores cambian según los ingredientes (cacao, dulce de leche, frutillas…). Es una ilustración orientativa.
+- **Agregar ingrediente paso a paso**: eliges de tu lista o de los comunes, ves de dónde sale el precio ("Compras 1 kg a $1.200"), y pones cuánto usas con botones rápidos (50 g, 100 g, 250 g…). Muestra cuánto suma en la torta antes de agregarlo.
+- **Precio de venta**: selector "Sugerido / Mi precio". El sugerido sale del margen que elijas con un deslizador; "Mi precio" te deja poner el tuyo y ver al instante cuánto ganas, el margen real y el precio por porción.
+- **¿De dónde sale el precio?**: barra con ingredientes, extras, tu trabajo, gastos y ganancia, más los tres ingredientes que más pesan.
+- **Tu lista de ingredientes**: tabla con lo que compras, lo que pagaste y a cuánto te sale (por kg, litro o unidad). El precio se edita directo y las tortas se recalculan solas. Los precios de ejemplo quedan marcados en amarillo.
+- **Avisos**: tortas por debajo del costo, precios de ejemplo, precios con más de 30 días y respaldo pendiente.
+- **Ventas**: registro de cada torta vendida y resumen mensual de ganancia, ingresos y costos.
 - **Respaldo**:
   - Descargar un archivo `.json` con todos los datos y restaurarlo después.
   - Copiar/pegar el respaldo como texto (útil en el teléfono: se pega en una nota o mail).
   - Copias automáticas: una por día de uso (últimas 7) y otra antes de restaurar o borrar.
   - Recordatorio en el inicio si pasaron más de 7 días sin descargar un respaldo.
+- **Menú**: barra de botones fija abajo en el celular (siempre visible) y menú lateral en escritorio.
 - **Instalable y sin conexión** (PWA) cuando se publica en un sitio con `https`.
-- Responsive (móvil, tablet, escritorio), modo claro y oscuro automático, navegable con teclado.
+- Responsive, modo claro y oscuro automático, navegable con teclado.
 
 ## Archivos
 
