@@ -21,7 +21,7 @@ Es un solo archivo HTML, sin servidor ni cuentas. Los datos se guardan en el nav
   - Recordatorio en el inicio si pasaron más de 7 días sin descargar un respaldo.
 - **Menú**: barra de botones fija abajo en el celular (siempre visible) y menú lateral en escritorio.
 - **Instalable y sin conexión** (PWA) cuando se publica en un sitio con `https`.
-- Responsive, modo claro y oscuro automático, navegable con teclado.
+- Estética clara en blanco y rosa (igual en todos los dispositivos), responsive y navegable con teclado.
 
 ## Archivos
 
@@ -44,7 +44,7 @@ Cualquier hosting estático sirve:
 
 ## Personalizar
 
-- **Colores**: están como variables al principio del `<style>` en `index.html` (`--accent`, `--frosting`, `--bg`…), con su versión oscura justo debajo.
+- **Colores**: están como variables al principio del `<style>` en `index.html` (`--accent`, `--frosting`, `--bg`…).
 - **Tipografías**: Bagel Fat One (títulos) y DM Sans (texto), desde Google Fonts.
 - **Nombre**: busca "Dulce Cuenta" en `index.html` y `manifest.webmanifest`.
 - **Monedas**: lista `CURRENCIES` en el script.

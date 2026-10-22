@@ -13,31 +13,32 @@
 <style>
 /* Layout: glaseado rosa arriba con festón; menú lateral en escritorio y barra de botones fija abajo en móvil.
    En "Armar torta" la torta y el precio van a la izquierda (fijos en escritorio) y la receta se arma a la derecha. */
+/* Estética clara: blanco con rosa, sin modo oscuro (se ve igual en cualquier dispositivo). */
 :root {
-  --bg: #FFF7F5;
+  --bg: #FFFFFF;
   --surface: #FFFFFF;
-  --frosting: #FADCE3;
-  --surface-2: #FDEEF0;
-  --stage: #FCE7EB;
-  --ink: #3B2420;
-  --ink-soft: #7C5D57;
-  --ink-faint: #A88C86;
-  --line: #EFD6D8;
-  --accent: #C2345D;
+  --frosting: #FFE6EE;
+  --surface-2: #FFF4F7;
+  --stage: #FFF1F5;
+  --ink: #3A2228;
+  --ink-soft: #85636B;
+  --ink-faint: #B99AA2;
+  --line: #F7DDE5;
+  --accent: #D63C72;
   --accent-ink: #FFFFFF;
-  --accent-soft: #FBE0E7;
-  --plate: #EBD3D6;
-  --box: #F6C9D4;
-  --pistachio: #4F7F41;
-  --pistachio-soft: #E2EFD8;
+  --accent-soft: #FFE5EE;
+  --plate: #F8DCE5;
+  --box: #FFD6E3;
+  --pistachio: #3F8452;
+  --pistachio-soft: #E5F4E8;
   --butter: #9A6A0C;
-  --butter-soft: #FBEFCC;
-  --cherry: #B3261E;
-  --cherry-soft: #FADAD6;
-  --cocoa: #8A5A44;
-  --sponge: #E9C287;
-  --shadow: 0 1px 2px rgba(59, 36, 32, .06), 0 12px 32px rgba(59, 36, 32, .09);
-  --backdrop: rgba(59, 36, 32, .38);
+  --butter-soft: #FFF3D6;
+  --cherry: #C0292F;
+  --cherry-soft: #FFE3E3;
+  --cocoa: #A0705C;
+  --sponge: #F0CB93;
+  --shadow: 0 1px 2px rgba(214, 60, 114, .06), 0 12px 32px rgba(214, 60, 114, .10);
+  --backdrop: rgba(58, 34, 40, .32);
   --font-display: "Bagel Fat One", "Cooper Black", "Arial Rounded MT Bold", Georgia, serif;
   --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --r-sm: 10px;
@@ -45,24 +46,7 @@
   --r-lg: 20px;
   --nav-h: 64px;
   --mini-h: 62px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1B1211; --surface: #261A18; --frosting: #3A2229; --surface-2: #2F201E; --stage: #2E1D20;
-    --ink: #F8EAE5; --ink-soft: #C4A59D; --ink-faint: #8E716A; --line: #463029;
-    --accent: #FF7FA1; --accent-ink: #2B0E17; --accent-soft: #4A2331; --plate: #4A3330; --box: #5A2E3B;
-    --pistachio: #9ECB8B; --pistachio-soft: #23321E; --butter: #F0C566; --butter-soft: #3A2D13; --cherry: #FF8A80; --cherry-soft: #44201C;
-    --cocoa: #D9A58C; --sponge: #C99A5B; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35); --backdrop: rgba(0,0,0,.6);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #1B1211; --surface: #261A18; --frosting: #3A2229; --surface-2: #2F201E; --stage: #2E1D20;
-  --ink: #F8EAE5; --ink-soft: #C4A59D; --ink-faint: #8E716A; --line: #463029;
-  --accent: #FF7FA1; --accent-ink: #2B0E17; --accent-soft: #4A2331; --plate: #4A3330; --box: #5A2E3B;
-  --pistachio: #9ECB8B; --pistachio-soft: #23321E; --butter: #F0C566; --butter-soft: #3A2D13; --cherry: #FF8A80; --cherry-soft: #44201C;
-  --cocoa: #D9A58C; --sponge: #C99A5B; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35); --backdrop: rgba(0,0,0,.6);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -242,10 +226,10 @@ input[type="number"] { font-variant-numeric: tabular-nums; }
 .mini-stat b { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .mini-stat small { color: var(--ink-soft); font-size: .8rem; }
 .notices { display: grid; gap: 10px; }
-.notice { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--butter-soft); border-radius: var(--r-md); padding: 12px 14px; }
-.notice svg { width: 20px; height: 20px; color: var(--butter); flex: none; }
+.notice { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; }
+.notice svg { width: 20px; height: 20px; color: var(--accent); flex: none; }
 .notice p { flex: 1 1 220px; min-width: 0; font-size: .92rem; }
-.notice.pink { background: var(--cherry-soft); }
+.notice.pink { background: var(--cherry-soft); border-color: transparent; }
 .notice.pink svg { color: var(--cherry); }
 
 /* ---------- Tarjetas de tortas ---------- */
@@ -571,7 +555,7 @@ fieldset.fs legend { font-weight: 700; padding: 0; margin-bottom: 10px; font-siz
 <!-- artifact:head-end -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#FADCE3">
+<meta name="theme-color" content="#FFE6EE">
 </head>
 <body>
 <!-- artifact:body-start -->
