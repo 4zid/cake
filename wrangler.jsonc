@@ -1,7 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "dulce-cuenta",
+  "name": "cake",
   "compatibility_date": "2026-10-01",
+  "workers_dev": true,
   "assets": {
     "directory": "./public"
   },
