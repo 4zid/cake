@@ -27,10 +27,11 @@ Es un solo archivo HTML, sin servidor ni cuentas. Los datos se guardan en el nav
 
 | Archivo | Para qué |
 | --- | --- |
-| `index.html` | La app completa (HTML, CSS y JS en un archivo). |
-| `manifest.webmanifest` | Permite "Agregar a pantalla de inicio" como app. |
-| `sw.js` | Modo sin conexión. Opcional. |
-| `icon.svg` | Ícono de la app. |
+| `public/index.html` | La app completa (HTML, CSS y JS en un archivo). |
+| `public/manifest.webmanifest` | Permite "Agregar a pantalla de inicio" como app. |
+| `public/sw.js` | Modo sin conexión. Opcional. |
+| `public/icon.svg` | Ícono de la app. |
+| `wrangler.jsonc` | Configuración para publicar en Cloudflare. |
 
 `index.html` funciona solo, incluso abriéndolo con doble clic. Los otros tres archivos suman la instalación como app y el uso sin conexión cuando está publicado en un dominio.
 
@@ -38,15 +39,16 @@ Es un solo archivo HTML, sin servidor ni cuentas. Los datos se guardan en el nav
 
 Cualquier hosting estático sirve:
 
+- **Cloudflare** (Workers con assets estáticos): `npx wrangler deploy`, o conecta el repo en Workers & Pages → Create → Import a repository (sin build command; deploy command `npx wrangler deploy`).
 - **Netlify Drop**: arrastra la carpeta a https://app.netlify.com/drop.
 - **Vercel** o **GitHub Pages**: publica la carpeta tal cual, sin build.
 - **Framer / Webflow**: publica la app en un hosting estático y embébela con un `iframe`, o enlaza a ella desde tu landing de venta. Los datos de cada clienta quedan en su navegador, asociados al dominio donde está publicada la app; si cambias el dominio, tendrán que usar el respaldo para pasar sus datos.
 
 ## Personalizar
 
-- **Colores**: están como variables al principio del `<style>` en `index.html` (`--accent`, `--frosting`, `--bg`…).
+- **Colores**: están como variables al principio del `<style>` en `public/index.html` (`--accent`, `--frosting`, `--bg`…).
 - **Tipografías**: Bagel Fat One (títulos) y DM Sans (texto), desde Google Fonts.
-- **Nombre**: busca "Dulce Cuenta" en `index.html` y `manifest.webmanifest`.
+- **Nombre**: busca "Dulce Cuenta" en `public/index.html` y `public/manifest.webmanifest`.
 - **Monedas**: lista `CURRENCIES` en el script.
 
 ## Cómo calcula

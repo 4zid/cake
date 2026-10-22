@@ -1,1 +1,3 @@
 promo/.frames/
+node_modules/
+.wrangler/
