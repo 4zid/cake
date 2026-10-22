@@ -1,0 +1,14 @@
+{
+  "name": "Dulce Cuenta",
+  "short_name": "Dulce Cuenta",
+  "description": "Calculadora de costos y ganancias para quienes venden tortas.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF7F5",
+  "theme_color": "#FADCE3",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

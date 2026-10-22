@@ -1,0 +1,1795 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- artifact:head-start -->
+<title>Dulce Cuenta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Calculadora de costos y ganancias para quienes venden tortas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+/* Layout: glaseado rosa arriba con borde festoneado, navegación lateral en escritorio y barra inferior en móvil; la calculadora usa una columna de pasos + resumen fijo. */
+:root {
+  --bg: #FFF7F5;
+  --surface: #FFFFFF;
+  --frosting: #FADCE3;
+  --surface-2: #FDEEF0;
+  --ink: #3B2420;
+  --ink-soft: #7C5D57;
+  --line: #EFD6D8;
+  --accent: #C2345D;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #FBE0E7;
+  --sponge: #F0C489;
+  --pistachio: #4F7F41;
+  --pistachio-soft: #E2EFD8;
+  --butter: #9A6A0C;
+  --butter-soft: #FBEFCC;
+  --cherry: #B3261E;
+  --cherry-soft: #FADAD6;
+  --cocoa: #8A5A44;
+  --shadow: 0 1px 2px rgba(59, 36, 32, .06), 0 10px 30px rgba(59, 36, 32, .08);
+  --backdrop: rgba(59, 36, 32, .38);
+  --font-display: "Bagel Fat One", "Cooper Black", "Arial Rounded MT Bold", Georgia, serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1B1211; --surface: #261A18; --frosting: #3A2229; --surface-2: #2F201E; --ink: #F8EAE5; --ink-soft: #C4A59D;
+    --line: #463029; --accent: #FF7FA1; --accent-ink: #2B0E17; --accent-soft: #4A2331; --sponge: #C99A5B;
+    --pistachio: #9ECB8B; --pistachio-soft: #23321E; --butter: #F0C566; --butter-soft: #3A2D13; --cherry: #FF8A80; --cherry-soft: #44201C;
+    --cocoa: #D9A58C; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35); --backdrop: rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1B1211; --surface: #261A18; --frosting: #3A2229; --surface-2: #2F201E; --ink: #F8EAE5; --ink-soft: #C4A59D;
+  --line: #463029; --accent: #FF7FA1; --accent-ink: #2B0E17; --accent-soft: #4A2331; --sponge: #C99A5B;
+  --pistachio: #9ECB8B; --pistachio-soft: #23321E; --butter: #F0C566; --butter-soft: #3A2D13; --cherry: #FF8A80; --cherry-soft: #44201C;
+  --cocoa: #D9A58C; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35); --backdrop: rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 40;
+  background: var(--frosting);
+}
+h1, h2, h3 { margin: 0; text-wrap: balance; line-height: 1.15; }
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+[tabindex="-1"]:focus { outline: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Topbar con festón ---------- */
+.topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 30;
+  background: var(--frosting);
+}
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 100%;
+  height: 10px;
+  background: radial-gradient(circle at 10px 0, var(--frosting) 9.5px, transparent 10.5px) 0 0 / 20px 10px repeat-x;
+  pointer-events: none;
+}
+.topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; background: none; border: 0; padding: 0; }
+.brand svg { width: 38px; height: 38px; flex: none; }
+.brand-name { font-family: var(--font-display); font-size: 1.45rem; letter-spacing: .01em; color: var(--accent); line-height: 1; }
+.brand-sub { display: block; font-size: .78rem; color: var(--ink-soft); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-text { min-width: 0; text-align: left; }
+.save-state { margin-left: auto; font-size: .8rem; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.save-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pistachio); }
+.save-state.is-saving .save-dot { background: var(--butter); }
+.save-state.is-error .save-dot { background: var(--cherry); }
+.save-state.is-error { color: var(--cherry); }
+
+/* ---------- Shell ---------- */
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 26px;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 24px;
+}
+main { min-width: 0; }
+.nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 25;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding-top: 6px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(8px, env(safe-area-inset-left, 0px));
+  padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 0; background: none; padding: 6px 2px; border-radius: var(--r-sm);
+  color: var(--ink-soft); font-size: .72rem; font-weight: 600;
+}
+.nav-btn svg { width: 22px; height: 22px; }
+.nav-btn[aria-current="page"] { color: var(--accent); }
+.nav-btn[aria-current="page"] svg { fill: var(--accent-soft); }
+@media (min-width: 900px) {
+  .shell { grid-template-columns: 200px minmax(0, 1fr); padding-bottom: 48px; gap: 32px; }
+  .nav {
+    position: sticky; top: calc(env(safe-area-inset-top, 0px) + 92px);
+    align-self: start;
+    display: flex; flex-direction: column; gap: 4px;
+    background: none; border: 0; padding: 0;
+  }
+  .nav-btn { flex-direction: row; gap: 12px; font-size: .95rem; padding: 10px 14px; justify-content: flex-start; }
+  .nav-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-btn[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+}
+
+/* ---------- Tipografía y bloques ---------- */
+.page { display: grid; gap: 22px; }
+.page-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; }
+.page-title { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.8rem, 4vw, 2.4rem); color: var(--ink); letter-spacing: .005em; }
+.page-lead { color: var(--ink-soft); margin-top: 6px; max-width: 60ch; }
+.eyebrow { font-size: .74rem; letter-spacing: .09em; text-transform: uppercase; font-weight: 700; color: var(--ink-soft); }
+.section-title { font-size: 1.08rem; font-weight: 700; }
+.hint { color: var(--ink-soft); font-size: .86rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; }
+.stack { display: grid; gap: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.spacer { flex: 1; }
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1.5px solid transparent; border-radius: 12px;
+  padding: 10px 16px; font-weight: 600; font-size: .95rem; line-height: 1.2;
+  background: var(--surface-2); color: var(--ink); text-decoration: none;
+  transition: transform .12s ease, background-color .15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-ghost { background: transparent; border-color: var(--line); }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-danger { background: var(--cherry); color: var(--surface); }
+.btn-text { background: none; border: 0; padding: 6px 4px; color: var(--accent); font-weight: 600; }
+.btn-sm { padding: 7px 12px; font-size: .86rem; border-radius: 10px; }
+.btn-block { width: 100%; }
+.icon-btn {
+  width: 38px; height: 38px; display: inline-grid; place-items: center;
+  border-radius: 10px; border: 0; background: transparent; color: var(--ink-soft);
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn.danger:hover { color: var(--cherry); background: var(--cherry-soft); }
+
+/* ---------- Formularios ---------- */
+.field { display: grid; gap: 6px; min-width: 0; }
+.field > span, .label { font-size: .84rem; font-weight: 600; color: var(--ink-soft); }
+.input, .field input, .field select, .field textarea, .line select, .line input, .extra input, .ing-price input {
+  width: 100%; min-width: 0;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r-sm);
+  padding: 10px 12px; font-size: 1rem;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.field textarea { resize: vertical; min-height: 84px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+input[type="number"] { font-variant-numeric: tabular-nums; }
+.money { position: relative; display: block; }
+.money > .cur { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); font-weight: 600; pointer-events: none; font-size: .95rem; }
+.money > input { padding-left: calc(18px + var(--cur-w, 1ch)); }
+.grid-2 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-btn {
+  border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 6px 12px; font-size: .86rem; font-weight: 600; color: var(--ink);
+}
+.chip-btn:hover { border-color: var(--accent); }
+.chip-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* ---------- Chips de estado ---------- */
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.chip.ok { background: var(--pistachio-soft); color: var(--pistachio); }
+.chip.low { background: var(--butter-soft); color: var(--butter); }
+.chip.loss { background: var(--cherry-soft); color: var(--cherry); }
+.chip.empty { background: var(--surface-2); color: var(--ink-soft); }
+.tag { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; background: var(--butter-soft); color: var(--butter); }
+.neg { color: var(--cherry); }
+.pos { color: var(--pistachio); }
+
+/* ---------- Inicio ---------- */
+.hello { display: grid; gap: 16px; grid-template-columns: 1fr; align-items: center; }
+.hello-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.stats { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 720px) { .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.stat b { font-size: clamp(1.15rem, 3vw, 1.45rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.stat small { color: var(--ink-soft); font-size: .8rem; }
+.notice {
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  background: var(--butter-soft); color: var(--ink); border-radius: var(--r-md); padding: 14px 16px;
+}
+.notice svg { width: 22px; height: 22px; color: var(--butter); flex: none; }
+.notice p { flex: 1 1 220px; min-width: 0; }
+.notice.pink { background: var(--accent-soft); }
+.notice.pink svg { color: var(--accent); }
+
+/* ---------- Tarjetas de tortas ---------- */
+.rgrid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.rcard {
+  text-align: left; display: grid; gap: 12px; align-content: start;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 16px 18px; transition: border-color .15s ease, transform .15s ease;
+}
+.rcard:hover { border-color: var(--accent); transform: translateY(-2px); }
+.rcard-top { display: flex; gap: 10px; align-items: start; justify-content: space-between; }
+.rcard-name { font-weight: 700; font-size: 1.05rem; line-height: 1.25; overflow-wrap: anywhere; }
+.rcard-meta { color: var(--ink-soft); font-size: .84rem; }
+.rcard-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.rcard-nums span { display: grid; gap: 2px; min-width: 0; }
+.rcard-nums small { color: var(--ink-soft); font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.rcard-nums b { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; font-size: .98rem; }
+.empty-state { text-align: center; display: grid; justify-items: center; gap: 12px; padding: 36px 20px; }
+.empty-state svg { width: 84px; height: 84px; }
+.empty-state p { max-width: 42ch; color: var(--ink-soft); }
+.search { max-width: 340px; width: 100%; }
+
+/* ---------- Editor ---------- */
+.editor-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.editor { display: grid; gap: 18px; align-items: start; }
+.editor-main { display: grid; gap: 16px; min-width: 0; }
+@media (min-width: 1040px) {
+  .editor { grid-template-columns: minmax(0, 1fr) 340px; }
+  .summary { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 86px); }
+}
+.title-card { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) 120px; }
+.title-input { font-weight: 700; font-size: 1.15rem !important; }
+.step-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.step-head .eyebrow { color: var(--accent); }
+.step-total { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lines { display: grid; gap: 10px; }
+.line {
+  display: grid; gap: 8px; align-items: center;
+  grid-template-columns: minmax(0, 1fr) 92px 96px 96px 38px;
+  grid-template-areas: "ing qty unit cost rm";
+}
+.line .l-ing { grid-area: ing; } .line .l-qty { grid-area: qty; } .line .l-unit { grid-area: unit; }
+.line .l-cost { grid-area: cost; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.line .l-rm { grid-area: rm; }
+.line-head { font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.l-cost.warn { color: var(--butter); font-size: .8rem; }
+@media (max-width: 640px) {
+  .line {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(84px, auto);
+    grid-template-areas: "ing ing rm" "qty unit cost";
+    padding-bottom: 10px; border-bottom: 1px dashed var(--line);
+  }
+  .line .l-cost { text-align: right; }
+  .line .l-rm { justify-self: end; }
+  .line.extra { grid-template-areas: "ing ing rm" "qty qty cost"; }
+  .line-head { display: none; }
+  .title-card { grid-template-columns: 1fr; }
+}
+.line.extra { grid-template-columns: minmax(0, 1fr) 140px 38px; grid-template-areas: "ing qty rm"; }
+@media (max-width: 640px) { .line.extra { grid-template-columns: minmax(0, 1fr) 130px 38px; grid-template-areas: "ing qty rm"; border: 0; padding: 0; } }
+.add-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.rate-box { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); align-items: end; }
+.calc-out { background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---------- Resumen ---------- */
+.summary {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--shadow); padding: 20px; display: grid; gap: 16px; min-width: 0;
+}
+.sum-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sum-cost { display: grid; gap: 2px; }
+.sum-cost b { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.bar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--surface-2); }
+.bar span { height: 100%; transition: width .3s ease; }
+.seg-ing { background: var(--accent); }
+.seg-ext { background: var(--sponge); }
+.seg-lab { background: var(--cocoa); }
+.seg-ovh { background: var(--ink-soft); opacity: .55; }
+.seg-pro { background: var(--pistachio); }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: .9rem; }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.legend b { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
+.divider { border: 0; border-top: 1px dashed var(--line); margin: 0; }
+.margin-ctl { display: grid; grid-template-columns: minmax(0, 1fr) 84px; gap: 12px; align-items: center; }
+.margin-ctl .pct { position: relative; }
+.margin-ctl .pct input { padding-right: 26px; }
+.margin-ctl .pct::after { content: "%"; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); font-weight: 600; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.suggest {
+  background: var(--accent-soft); border-radius: var(--r-md); padding: 14px 16px;
+  display: grid; gap: 4px;
+}
+.suggest .big { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; color: var(--accent); line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.suggest .row { justify-content: space-between; }
+.result { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.result div { background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.result small { color: var(--ink-soft); font-size: .76rem; font-weight: 600; }
+.result b { font-variant-numeric: tabular-nums; font-size: 1.05rem; overflow-wrap: anywhere; }
+.result .wide { grid-column: 1 / -1; }
+.minibar { display: none; }
+@media (max-width: 1039px) {
+  body.in-editor .nav { display: none; }
+  body.in-editor .minibar {
+    display: flex; align-items: center; gap: 12px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 26;
+    background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(0,0,0,.06);
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .minibar div { display: grid; min-width: 0; }
+  .minibar small { font-size: .72rem; color: var(--ink-soft); font-weight: 600; }
+  .minibar b { font-variant-numeric: tabular-nums; font-size: 1.02rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .minibar .btn { margin-left: auto; flex: none; }
+}
+
+/* ---------- Ingredientes ---------- */
+.ing-list { display: grid; gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.ing-row {
+  display: grid; gap: 6px 14px; align-items: center;
+  grid-template-columns: minmax(0, 1fr) 150px 130px;
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
+}
+.ing-row:last-child { border-bottom: 0; }
+.ing-main { text-align: left; background: none; border: 0; padding: 4px 0; display: grid; gap: 2px; min-width: 0; }
+.ing-name { font-weight: 700; overflow-wrap: anywhere; }
+.ing-meta { font-size: .82rem; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.ing-main:hover .ing-name { color: var(--accent); }
+.ing-unitcost { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: .92rem; }
+.ing-unitcost small { display: block; font-weight: 500; color: var(--ink-soft); font-size: .76rem; }
+@media (max-width: 600px) {
+  .ing-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "main main" "price unit"; }
+  .ing-main { grid-area: main; }
+  .ing-price { grid-area: price; }
+  .ing-unitcost { grid-area: unit; }
+}
+
+/* ---------- Ventas ---------- */
+.month-nav { display: flex; align-items: center; gap: 6px; }
+.month-label { font-weight: 700; min-width: 150px; text-align: center; text-transform: capitalize; }
+.sale-list { display: grid; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.sale-row { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto 38px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.sale-row:last-child { border-bottom: 0; }
+.sale-date { text-align: center; background: var(--surface-2); border-radius: var(--r-sm); padding: 6px 4px; line-height: 1.1; }
+.sale-date b { display: block; font-size: 1.15rem; }
+.sale-date small { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); font-weight: 700; }
+.sale-info { min-width: 0; display: grid; gap: 2px; }
+.sale-info b { overflow-wrap: anywhere; }
+.sale-info small { color: var(--ink-soft); }
+.sale-nums { text-align: right; font-variant-numeric: tabular-nums; display: grid; gap: 2px; }
+.sale-nums small { font-size: .8rem; }
+
+/* ---------- Ajustes ---------- */
+.settings { display: grid; gap: 16px; max-width: 760px; }
+.snap-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.snap-list li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; background: var(--surface-2); border-radius: var(--r-sm); }
+.snap-list li span { flex: 1 1 180px; min-width: 0; }
+.snap-list small { color: var(--ink-soft); display: block; }
+
+/* ---------- Modal ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 60; background: var(--backdrop);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  animation: fade .18s ease;
+}
+.modal {
+  background: var(--surface); width: 100%; max-width: 520px; max-height: calc(100% - 8px);
+  border-radius: var(--r-lg) var(--r-lg) 0 0; display: flex; flex-direction: column;
+  box-shadow: var(--shadow); animation: rise .22s ease;
+}
+.modal-head { display: flex; align-items: center; gap: 8px; padding: 18px 18px 8px max(18px, env(safe-area-inset-left, 0px)); }
+.modal-head h2 { font-size: 1.2rem; flex: 1; }
+.modal-body { padding: 8px 18px 18px; overflow: auto; display: grid; gap: 14px; }
+.modal-foot {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end;
+  padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+}
+.modal-foot .left { margin-right: auto; }
+@media (min-width: 640px) {
+  .overlay { align-items: center; padding: 24px; }
+  .modal { border-radius: var(--r-lg); max-height: calc(100% - 48px); }
+  .modal-foot { padding-bottom: 14px; }
+}
+@keyframes fade { from { opacity: 0; } }
+@keyframes rise { from { transform: translateY(16px); opacity: .6; } }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 80;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px;
+  font-weight: 600; font-size: .92rem; box-shadow: var(--shadow); max-width: calc(100% - 32px);
+  animation: rise .2s ease;
+}
+@media (min-width: 900px) { .toast { bottom: 28px; } }
+
+/* ---------- Onboarding ---------- */
+.onb {
+  position: fixed; inset: 0; z-index: 70; overflow: auto;
+  background:
+    radial-gradient(circle at 14px 0, var(--frosting) 13px, transparent 14px) 0 calc(env(safe-area-inset-top, 0px) + 14px) / 28px 16px repeat-x,
+    linear-gradient(var(--frosting), var(--frosting)) 0 0 / 100% calc(env(safe-area-inset-top, 0px) + 14px) no-repeat,
+    var(--bg);
+  padding-top: calc(36px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; place-items: center;
+}
+.onb-card { width: 100%; max-width: 540px; display: grid; gap: 22px; }
+.onb-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 8px; height: 8px; border-radius: 999px; background: var(--line); transition: width .2s ease, background-color .2s ease; }
+.dots i.on { width: 24px; background: var(--accent); }
+.onb-hero { display: grid; justify-items: center; text-align: center; gap: 14px; }
+.onb-hero svg { width: 132px; height: 132px; }
+.onb-title { font-family: var(--font-display); font-weight: 400; font-size: clamp(2rem, 7vw, 2.8rem); color: var(--accent); }
+.onb-h { font-size: 1.5rem; font-weight: 700; }
+.onb-lead { color: var(--ink-soft); font-size: 1.05rem; max-width: 44ch; }
+.how { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: how; }
+.how li { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; }
+.how li::before {
+  counter-increment: how; content: counter(how);
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent); font-family: var(--font-display); font-size: 1.2rem;
+}
+.how b { display: block; margin-bottom: 2px; }
+.how span { color: var(--ink-soft); font-size: .93rem; }
+.onb-actions { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.choice { display: grid; gap: 10px; }
+.choice button {
+  text-align: left; display: grid; gap: 2px; padding: 14px 16px; border-radius: var(--r-md);
+  border: 1.5px solid var(--line); background: var(--surface);
+}
+.choice button:hover { border-color: var(--accent); }
+.choice b { font-size: 1rem; }
+.choice span { color: var(--ink-soft); font-size: .9rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+<!-- artifact:head-end -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#FADCE3">
+</head>
+<body>
+<!-- artifact:body-start -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="brand" data-go="home" aria-label="Ir al inicio">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#cake-art"></use></svg>
+      <span class="brand-text">
+        <span class="brand-name">Dulce Cuenta</span>
+        <span class="brand-sub" id="brand-sub">Costos y ganancias de tus tortas</span>
+      </span>
+    </button>
+    <div class="save-state" id="save-state" role="status" aria-live="polite"><span class="save-dot"></span><span id="save-text">Guardado</span></div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="nav" aria-label="Secciones">
+    <button class="nav-btn" data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+    <button class="nav-btn" data-go="recipes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7z"/><path d="M5 16c1.5 1.3 3 1.3 4.5 0s3-1.3 4.5 0 3 1.3 5 0M3 21h18M12 12V8.5"/><path d="M12 6.5c1-.9 1-2 0-3-1 1-1 2.1 0 3z"/></svg>Tortas</button>
+    <button class="nav-btn" data-go="ingredients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8M7 6h10l1 2.5V19a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8.5z"/><path d="M9 12.5h6M9 16h4"/></svg>Ingredientes</button>
+    <button class="nav-btn" data-go="sales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Ventas</button>
+    <button class="nav-btn" data-go="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Ajustes</button>
+  </nav>
+  <main id="view" tabindex="-1"></main>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="cake-art">
+      <ellipse cx="32" cy="57" rx="27" ry="4" fill="var(--line)"/>
+      <rect x="9" y="34" width="46" height="21" rx="5" fill="var(--sponge)"/>
+      <rect x="9" y="42" width="46" height="3" fill="var(--cocoa)" opacity=".55"/>
+      <path d="M9 39a5 5 0 0 1 5-5h36a5 5 0 0 1 5 5v1.5c0 2-3 2-3 0v-.5c0 3.5-4 3.5-4 0 0 2-3 2-3 0v1c0 4-4.5 4-4.5 0v-1c0 2-3 2-3 0 0 3-4 3-4 0 0 2-3 2-3 0v1.5c0 4-4.5 4-4.5 0v-1.5c0 2-3 2-3 0 0 2.5-4 2.5-4 0z" fill="var(--accent)"/>
+      <rect x="17" y="21" width="30" height="15" rx="4" fill="var(--sponge)"/>
+      <path d="M17 25a4 4 0 0 1 4-4h22a4 4 0 0 1 4 4v1c0 2-3 2-3 0 0 3-4 3-4 0 0 1.6-3 1.6-3 0 0 3.5-4 3.5-4 0 0 1.6-3 1.6-3 0 0 3-4 3-4 0z" fill="var(--frosting)" stroke="var(--accent)" stroke-width="1.2"/>
+      <path d="M32 15c1-4 4-6.5 7-7" stroke="var(--pistachio)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="32" cy="16.5" r="5" fill="var(--cherry)"/>
+      <circle cx="30.3" cy="15" r="1.4" fill="#fff" opacity=".7"/>
+    </g>
+  </defs>
+</svg>
+<!-- artifact:body-end -->
+
+<script>
+(() => {
+  'use strict';
+
+  /* ======================= Constantes ======================= */
+  const KEY = 'dulce-cuenta:data';
+  const SNAP_KEY = 'dulce-cuenta:snapshots';
+  const MAX_SNAPS = 7;
+  const UNITS = {
+    g:   { type: 'mass', f: 1,    label: 'g' },
+    kg:  { type: 'mass', f: 1000, label: 'kg' },
+    ml:  { type: 'vol',  f: 1,    label: 'ml' },
+    l:   { type: 'vol',  f: 1000, label: 'litros' },
+    u:   { type: 'unit', f: 1,    label: 'unidades' },
+    doc: { type: 'unit', f: 12,   label: 'docenas' }
+  };
+  const BY_TYPE = { mass: ['g', 'kg'], vol: ['ml', 'l'], unit: ['u', 'doc'] };
+  const PER = { mass: { f: 1000, label: 'kg' }, vol: { f: 1000, label: 'litro' }, unit: { f: 1, label: 'unidad' } };
+  const CURRENCIES = [
+    ['ARS', 'Peso argentino', 'es-AR'], ['MXN', 'Peso mexicano', 'es-MX'], ['CLP', 'Peso chileno', 'es-CL'],
+    ['COP', 'Peso colombiano', 'es-CO'], ['PEN', 'Sol peruano', 'es-PE'], ['UYU', 'Peso uruguayo', 'es-UY'],
+    ['BOB', 'Boliviano', 'es-BO'], ['PYG', 'Guaraní', 'es-PY'], ['GTQ', 'Quetzal', 'es-GT'],
+    ['CRC', 'Colón costarricense', 'es-CR'], ['DOP', 'Peso dominicano', 'es-DO'], ['VES', 'Bolívar', 'es-VE'],
+    ['USD', 'Dólar estadounidense', 'es-US'], ['EUR', 'Euro', 'es-ES']
+  ];
+  const EXTRA_PRESETS = ['Caja', 'Base o bandeja', 'Decoración', 'Velas', 'Topper', 'Envío'];
+  const DAY = 86400000;
+
+  /* ======================= Utilidades ======================= */
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; };
+  const numOrNull = (v) => (v === '' || v == null ? null : num(v));
+  const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  const sum = (arr, fn) => arr.reduce((a, x) => a + (fn ? fn(x) : x), 0);
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+  function locale() {
+    const c = CURRENCIES.find((x) => x[0] === state.settings.currency);
+    return c ? c[2] : 'es';
+  }
+  const fmtCache = new Map();
+  function money(n) {
+    if (!isFinite(n)) n = 0;
+    const cur = state.settings.currency || 'ARS';
+    const abs = Math.abs(n);
+    const digits = abs >= 100 || abs === 0 ? 0 : 2;
+    const k = cur + digits;
+    if (!fmtCache.has(k)) {
+      try {
+        fmtCache.set(k, new Intl.NumberFormat(locale(), { style: 'currency', currency: cur, minimumFractionDigits: 0, maximumFractionDigits: digits }));
+      } catch (e) {
+        fmtCache.set(k, { format: (x) => '$' + x.toFixed(digits) });
+      }
+    }
+    return fmtCache.get(k).format(n);
+  }
+  function curSymbol() {
+    try {
+      const p = new Intl.NumberFormat(locale(), { style: 'currency', currency: state.settings.currency }).formatToParts(1);
+      return (p.find((x) => x.type === 'currency') || {}).value || '$';
+    } catch (e) { return '$'; }
+  }
+  const pct = (x) => `${Math.round(x * 100)}%`;
+  function fmtQty(n) { return new Intl.NumberFormat('es', { maximumFractionDigits: 2 }).format(n); }
+  function ago(ts) {
+    if (!ts) return 'sin fecha';
+    const d = Math.floor((Date.now() - ts) / DAY);
+    if (d <= 0) return 'hoy';
+    if (d === 1) return 'ayer';
+    if (d < 30) return `hace ${d} días`;
+    const m = Math.floor(d / 30);
+    return m === 1 ? 'hace 1 mes' : `hace ${m} meses`;
+  }
+  function fmtDate(ts, opts) { return new Intl.DateTimeFormat('es', opts).format(new Date(ts)); }
+  function roundNice(x) {
+    if (!(x > 0)) return 0;
+    const step = x < 100 ? 1 : x < 1000 ? 10 : x < 10000 ? 50 : x < 100000 ? 100 : 500;
+    return Math.ceil(x / step) * step;
+  }
+
+  /* ======================= Estado y guardado ======================= */
+  let storageOK = true;
+  function defaults() {
+    return {
+      app: 'dulce-cuenta', version: 1,
+      settings: { business: '', currency: 'ARS', hourlyRate: 0, margin: 40, overhead: 0, onboarded: false, lastExport: null },
+      ingredients: [], recipes: [], sales: []
+    };
+  }
+  function normalize(d) {
+    const base = defaults();
+    d = d && typeof d === 'object' ? d : {};
+    const arr = (x) => (Array.isArray(x) ? x : []);
+    return {
+      ...base,
+      settings: { ...base.settings, ...(d.settings || {}) },
+      ingredients: arr(d.ingredients).map((i) => ({ id: i.id || uid(), name: i.name || 'Ingrediente', packQty: num(i.packQty) || 1, packUnit: UNITS[i.packUnit] ? i.packUnit : 'u', price: num(i.price), type: UNITS[i.packUnit] ? UNITS[i.packUnit].type : 'unit', updatedAt: i.updatedAt || Date.now(), sample: !!i.sample })),
+      recipes: arr(d.recipes).map((r) => ({
+        id: r.id || uid(), name: r.name || '', portions: num(r.portions) || 1,
+        items: arr(r.items).map((l) => ({ id: l.id || uid(), ingId: l.ingId || '', qty: l.qty ?? '', unit: UNITS[l.unit] ? l.unit : 'g' })),
+        extras: arr(r.extras).map((x) => ({ id: x.id || uid(), name: x.name || '', cost: x.cost ?? '' })),
+        hours: r.hours ?? '', overhead: r.overhead ?? '', margin: r.margin ?? base.settings.margin, price: r.price ?? null,
+        notes: r.notes || '', sample: !!r.sample, createdAt: r.createdAt || Date.now(), updatedAt: r.updatedAt || Date.now()
+      })),
+      sales: arr(d.sales).map((s) => ({ id: s.id || uid(), date: /^\d{4}-\d{2}-\d{2}$/.test(s.date) ? s.date : todayISO(), recipeId: s.recipeId || '', title: s.title || 'Venta', client: s.client || '', price: num(s.price), cost: num(s.cost) }))
+    };
+  }
+  function load() {
+    try {
+      const t = '__dc_test';
+      localStorage.setItem(t, '1'); localStorage.removeItem(t);
+      const raw = localStorage.getItem(KEY);
+      if (raw) return normalize(JSON.parse(raw));
+    } catch (e) { storageOK = false; }
+    return defaults();
+  }
+  let state = load();
+
+  let saveTimer = null;
+  function save() {
+    setSaveState('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persist, 300);
+  }
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      setSaveState('saved');
+    } catch (e) {
+      setSaveState('error');
+    }
+  }
+  function setSaveState(s) {
+    const el = $('#save-state'), tx = $('#save-text');
+    if (!el) return;
+    el.classList.toggle('is-saving', s === 'saving');
+    el.classList.toggle('is-error', s === 'error');
+    tx.textContent = s === 'saving' ? 'Guardando…' : s === 'error' ? 'No se pudo guardar' : 'Guardado';
+  }
+  window.addEventListener('beforeunload', () => { if (saveTimer) persist(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && saveTimer) persist(); });
+
+  /* Copias automáticas: una por día de uso, con lo que había al abrir la app. */
+  function readSnaps() {
+    try { return JSON.parse(localStorage.getItem(SNAP_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function makeSnapshot(reason) {
+    if (!hasData()) return;
+    try {
+      const list = readSnaps();
+      const day = todayISO();
+      if (reason === 'daily' && list.some((s) => s.day === day && s.reason === 'daily')) return;
+      list.unshift({ id: uid(), day, at: Date.now(), reason, data: JSON.parse(JSON.stringify(state)) });
+      localStorage.setItem(SNAP_KEY, JSON.stringify(list.slice(0, MAX_SNAPS)));
+    } catch (e) { /* sin espacio: se omite la copia */ }
+  }
+  const hasData = () => state.ingredients.length + state.recipes.length + state.sales.length > 0;
+
+  /* ======================= Cálculos ======================= */
+  const findIng = (id) => state.ingredients.find((i) => i.id === id);
+  const findRecipe = (id) => state.recipes.find((r) => r.id === id);
+  function unitCost(ing) {
+    const base = num(ing.packQty) * (UNITS[ing.packUnit] ? UNITS[ing.packUnit].f : 1);
+    return base > 0 ? num(ing.price) / base : 0;
+  }
+  function lineInfo(line) {
+    const ing = findIng(line.ingId);
+    if (!ing) return { ing: null, cost: 0, missing: !!line.ingId };
+    const u = UNITS[line.unit];
+    const f = u && u.type === ing.type ? u.f : 1;
+    const uc = unitCost(ing);
+    return { ing, cost: num(line.qty) * f * uc, missing: !(uc > 0) };
+  }
+  function calc(r) {
+    let ingredients = 0, missing = 0;
+    for (const l of r.items) {
+      const li = lineInfo(l);
+      ingredients += li.cost;
+      if (li.missing) missing++;
+    }
+    const extras = sum(r.extras, (x) => num(x.cost));
+    const labor = num(r.hours) * num(state.settings.hourlyRate);
+    const overhead = num(r.overhead);
+    const cost = ingredients + extras + labor + overhead;
+    const m = Math.min(Math.max(num(r.margin), 0), 90) / 100;
+    const suggested = roundNice(cost / (1 - m));
+    const custom = num(r.price) > 0 ? num(r.price) : 0;
+    const price = custom || suggested;
+    const profit = price - cost;
+    const portions = Math.max(1, Math.round(num(r.portions)) || 1);
+    return {
+      ingredients, extras, labor, overhead, cost, suggested, custom, price, profit, missing, portions,
+      marginReal: price > 0 ? profit / price : 0,
+      perPortion: price / portions, costPortion: cost / portions
+    };
+  }
+  function status(c) {
+    if (c.cost <= 0) return { k: 'empty', t: 'Sin datos todavía' };
+    if (c.profit < 0) return { k: 'loss', t: 'Pierdes dinero' };
+    if (c.marginReal < 0.2) return { k: 'low', t: 'Margen bajo' };
+    return { k: 'ok', t: 'Buen margen' };
+  }
+  const chip = (c) => { const s = status(c); return `<span class="chip ${s.k}">${s.t}</span>`; };
+
+  /* ======================= Iconos ======================= */
+  const I = {
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+    next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+    up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>',
+    tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>'
+  };
+  const cakeSVG = '<svg viewBox="0 0 64 64" aria-hidden="true"><use href="#cake-art"></use></svg>';
+
+  /* ======================= Navegación ======================= */
+  const view = $('#view');
+  let route = { view: 'home' };
+  const ui = { q: '', iq: '', month: todayISO().slice(0, 7) };
+
+  function go(v, params = {}) {
+    if (saveTimer) persist();
+    route = { view: v, ...params };
+    render();
+    window.scrollTo({ top: 0 });
+  }
+  function render() {
+    const navKey = route.view === 'recipe' ? 'recipes' : route.view;
+    $$('.nav-btn').forEach((b) => { if (b.dataset.go === navKey) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    document.body.classList.toggle('in-editor', route.view === 'recipe');
+    $('#brand-sub').textContent = state.settings.business || 'Costos y ganancias de tus tortas';
+    const fn = views[route.view] || views.home;
+    view.innerHTML = fn();
+    if (route.view === 'recipe') updateCalc();
+  }
+
+  /* ======================= Vistas ======================= */
+  const views = {};
+
+  views.home = () => {
+    const s = state.settings;
+    const month = todayISO().slice(0, 7);
+    const sales = state.sales.filter((x) => x.date.slice(0, 7) === month);
+    const income = sum(sales, (x) => x.price);
+    const profit = sum(sales, (x) => x.price - x.cost);
+    const calcs = state.recipes.map((r) => calc(r)).filter((c) => c.cost > 0);
+    const avgMargin = calcs.length ? sum(calcs, (c) => c.marginReal) / calcs.length : null;
+    const stale = state.ingredients.filter((i) => Date.now() - i.updatedAt > 30 * DAY);
+    const recent = [...state.recipes].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4);
+    const needsBackup = hasData() && (!s.lastExport || Date.now() - s.lastExport > 7 * DAY);
+    const losing = state.recipes.filter((r) => { const c = calc(r); return c.cost > 0 && c.profit < 0; });
+    const monthName = fmtDate(Date.now(), { month: 'long' });
+
+    return `<div class="page">
+      <section class="hello">
+        <div>
+          <p class="eyebrow">${esc(fmtDate(Date.now(), { weekday: 'long', day: 'numeric', month: 'long' }))}</p>
+          <h1 class="page-title">${s.business ? `Hola, ${esc(s.business)}` : 'Hola, pastelera'}</h1>
+          <p class="page-lead">Calcula cuánto te cuesta cada torta y a cuánto venderla para que te quede ganancia de verdad.</p>
+        </div>
+        <div class="hello-actions">
+          <button class="btn btn-primary" data-act="new-recipe">${I.plus}Calcular una torta</button>
+          <button class="btn btn-ghost" data-act="new-sale">Registrar una venta</button>
+        </div>
+      </section>
+
+      ${!storageOK ? `<div class="notice pink">${I.alert}<p><b>Tu navegador no deja guardar datos.</b> Puede ser una ventana privada. Lo que cargues se perderá al cerrar; abre la app en una ventana normal.</p></div>` : ''}
+      ${losing.length ? `<div class="notice pink">${I.alert}<p><b>${losing.length === 1 ? `“${esc(losing[0].name || 'Una torta')}” se vende por debajo del costo.` : `${losing.length} tortas se venden por debajo del costo.`}</b> Revisa el precio para no perder dinero.</p><button class="btn btn-sm btn-ghost" data-open="${losing[0].id}">Revisar</button></div>` : ''}
+      ${stale.length ? `<div class="notice">${I.tag}<p><b>${plural(stale.length, 'ingrediente tiene', 'ingredientes tienen')} el precio de hace más de un mes.</b> Actualízalos y tus tortas se recalculan solas.</p><button class="btn btn-sm btn-ghost" data-go="ingredients">Actualizar precios</button></div>` : ''}
+      ${needsBackup ? `<div class="notice">${I.shield}<p><b>${s.lastExport ? `Tu último respaldo fue ${ago(s.lastExport)}.` : 'Todavía no descargaste un respaldo.'}</b> Guarda una copia de tus datos por si cambias de teléfono o limpias el navegador.</p><button class="btn btn-sm btn-ghost" data-go="settings">Hacer respaldo</button></div>` : ''}
+
+      <section class="stats" aria-label="Resumen">
+        <div class="stat"><small>Ganancia de ${esc(monthName)}</small><b class="${profit < 0 ? 'neg' : ''}">${money(profit)}</b><small>${plural(sales.length, 'venta', 'ventas')}</small></div>
+        <div class="stat"><small>Cobrado en ${esc(monthName)}</small><b>${money(income)}</b><small>Ingresos del mes</small></div>
+        <div class="stat"><small>Tortas calculadas</small><b>${state.recipes.length}</b><small>${plural(state.ingredients.length, 'ingrediente', 'ingredientes')}</small></div>
+        <div class="stat"><small>Margen promedio</small><b>${avgMargin == null ? '—' : pct(avgMargin)}</b><small>De tus precios de venta</small></div>
+      </section>
+
+      <section class="stack">
+        <div class="page-head"><h2 class="section-title">Tus tortas</h2>${state.recipes.length > 4 ? '<button class="btn-text" data-go="recipes">Ver todas</button>' : ''}</div>
+        ${recent.length ? `<div class="rgrid">${recent.map(recipeCard).join('')}</div>` : emptyRecipes()}
+      </section>
+    </div>`;
+  };
+
+  function emptyRecipes() {
+    return `<div class="card empty-state">${cakeSVG}<h3 class="section-title">Todavía no calculaste ninguna torta</h3>
+      <p>Anota los ingredientes, tu tiempo y los extras. Te decimos cuánto te cuesta y a cuánto venderla.</p>
+      <button class="btn btn-primary" data-act="new-recipe">${I.plus}Calcular mi primera torta</button></div>`;
+  }
+
+  function recipeCard(r) {
+    const c = calc(r);
+    return `<button class="rcard" data-open="${r.id}">
+      <span class="rcard-top"><span class="rcard-name">${esc(r.name || 'Torta sin nombre')}</span>${r.sample ? '<span class="tag">Ejemplo</span>' : ''}</span>
+      <span class="rcard-meta">${plural(c.portions, 'porción', 'porciones')} · ${plural(r.items.length, 'ingrediente', 'ingredientes')}</span>
+      <span class="rcard-nums">
+        <span><small>Costo</small><b>${money(c.cost)}</b></span>
+        <span><small>Precio</small><b>${money(c.price)}</b></span>
+        <span><small>Ganancia</small><b class="${c.profit < 0 ? 'neg' : ''}">${money(c.profit)}</b></span>
+      </span>
+      <span>${chip(c)}${c.missing ? ' <span class="chip low">Faltan precios</span>' : ''}</span>
+    </button>`;
+  }
+
+  views.recipes = () => `<div class="page">
+      <div class="page-head">
+        <div><h1 class="page-title">Tortas</h1><p class="page-lead">Cada torta guarda su receta. Si cambia el precio de un ingrediente, el costo se actualiza solo.</p></div>
+        <button class="btn btn-primary" data-act="new-recipe">${I.plus}Nueva torta</button>
+      </div>
+      ${state.recipes.length ? `<input class="input search" type="search" id="recipe-search" data-in="search" placeholder="Buscar torta…" value="${esc(ui.q)}" aria-label="Buscar torta">` : ''}
+      <div id="recipe-list">${recipeList()}</div>
+    </div>`;
+
+  function recipeList() {
+    if (!state.recipes.length) return emptyRecipes();
+    const q = ui.q.trim().toLowerCase();
+    const list = [...state.recipes].filter((r) => !q || (r.name || '').toLowerCase().includes(q)).sort((a, b) => b.updatedAt - a.updatedAt);
+    if (!list.length) return `<p class="hint">No hay tortas que coincidan con “${esc(ui.q)}”.</p>`;
+    return `<div class="rgrid">${list.map(recipeCard).join('')}</div>`;
+  }
+
+  /* ---------- Editor de torta ---------- */
+  views.recipe = () => {
+    const r = findRecipe(route.id);
+    if (!r) { route = { view: 'recipes' }; return views.recipes(); }
+    const s = state.settings;
+    const sym = esc(curSymbol());
+    return `<div class="page">
+      <div class="editor-top">
+        <button class="btn btn-ghost btn-sm" data-go="recipes">${I.back}Tortas</button>
+        <span class="spacer"></span>
+        <button class="btn btn-ghost btn-sm" data-act="dup-recipe">${I.copy}Duplicar</button>
+        <button class="btn btn-ghost btn-sm" data-act="sale-from-recipe">Registrar venta</button>
+        <button class="icon-btn danger" data-act="del-recipe" aria-label="Eliminar torta" title="Eliminar torta">${I.trash}</button>
+      </div>
+
+      <div class="editor">
+        <div class="editor-main">
+          <section class="card title-card">
+            <label class="field"><span>Nombre de la torta</span><input id="r-name" class="title-input" data-in="r" data-k="name" value="${esc(r.name)}" placeholder="Ej: Chocotorta grande" autocomplete="off"></label>
+            <label class="field"><span>Porciones</span><input id="r-portions" type="number" min="1" step="1" inputmode="numeric" data-in="r" data-k="portions" value="${esc(r.portions)}"></label>
+          </section>
+
+          <section class="card stack" aria-labelledby="st-ing">
+            <div class="step-head"><div><p class="eyebrow">Paso 1</p><h2 class="section-title" id="st-ing">Ingredientes</h2></div><span class="step-total" data-out="ingredients"></span></div>
+            <p class="hint">Elige el ingrediente y cuánto usas. El costo sale del precio al que lo compras.</p>
+            <div class="lines" id="lines">${linesHTML(r)}</div>
+            <div class="add-row"><button class="btn btn-ghost btn-sm" data-act="add-line">${I.plus}Agregar ingrediente</button></div>
+          </section>
+
+          <section class="card stack" aria-labelledby="st-ext">
+            <div class="step-head"><div><p class="eyebrow">Paso 2</p><h2 class="section-title" id="st-ext">Extras y presentación</h2></div><span class="step-total" data-out="extras"></span></div>
+            <p class="hint">Caja, base, decoración, velas… todo lo que va con la torta y también cuesta.</p>
+            <div class="lines" id="extras">${extrasHTML(r)}</div>
+            <div class="chips">${EXTRA_PRESETS.map((p) => `<button class="chip-btn" data-act="add-extra" data-name="${esc(p)}">+ ${esc(p)}</button>`).join('')}<button class="chip-btn" data-act="add-extra" data-name="">+ Otro</button></div>
+          </section>
+
+          <section class="card stack" aria-labelledby="st-time">
+            <div class="step-head"><div><p class="eyebrow">Paso 3</p><h2 class="section-title" id="st-time">Tu tiempo y gastos de cocina</h2></div><span class="step-total" data-out="laborOverhead"></span></div>
+            <p class="hint">Tu trabajo también se cobra. Suma el tiempo de preparar, hornear, decorar y lavar.</p>
+            <div class="rate-box">
+              <label class="field"><span>Horas de trabajo</span><input id="r-hours" type="number" min="0" step="0.25" inputmode="decimal" data-in="r" data-k="hours" value="${esc(r.hours)}" placeholder="Ej: 3"></label>
+              <label class="field"><span>Tu tarifa por hora</span><span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="s-rate" type="number" min="0" step="any" inputmode="decimal" data-in="setting" data-k="hourlyRate" value="${esc(s.hourlyRate || '')}" placeholder="0"></span></label>
+              <label class="field"><span>Gas, luz y otros</span><span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="r-overhead" type="number" min="0" step="any" inputmode="decimal" data-in="r" data-k="overhead" value="${esc(r.overhead)}" placeholder="0"></span></label>
+            </div>
+            <p class="hint" data-out="rateHint"></p>
+          </section>
+
+          <section class="card stack">
+            <label class="field"><span>Notas de la receta</span><textarea id="r-notes" data-in="r" data-k="notes" placeholder="Temperatura del horno, molde, relleno, pedidos especiales…">${esc(r.notes)}</textarea></label>
+          </section>
+        </div>
+
+        <aside class="summary" id="summary" aria-label="Resumen de costos y precio">
+          <div class="sum-head"><p class="eyebrow">Paso 4 · Precio</p><span data-out="chip"></span></div>
+          <div class="sum-cost"><small class="hint">Te cuesta hacerla</small><b data-out="cost"></b><small class="hint" data-out="costPortion"></small></div>
+          <div class="bar" data-out="bar" aria-hidden="true"></div>
+          <ul class="legend">
+            <li><i class="seg-ing"></i>Ingredientes<b data-out="ingredients"></b></li>
+            <li><i class="seg-ext"></i>Extras<b data-out="extras"></b></li>
+            <li><i class="seg-lab"></i>Tu tiempo<b data-out="labor"></b></li>
+            <li><i class="seg-ovh"></i>Gas, luz y otros<b data-out="overhead"></b></li>
+            <li><i class="seg-pro"></i>Ganancia<b data-out="profit"></b></li>
+          </ul>
+          <hr class="divider">
+          <div class="field">
+            <span id="margin-label">Ganancia que quieres sobre el precio</span>
+            <div class="margin-ctl">
+              <input id="r-margin-range" type="range" min="0" max="80" step="1" data-in="margin" value="${esc(num(r.margin))}" aria-labelledby="margin-label">
+              <span class="pct"><input id="r-margin" type="number" min="0" max="90" step="1" inputmode="numeric" data-in="margin" value="${esc(num(r.margin))}" aria-labelledby="margin-label"></span>
+            </div>
+            <p class="hint" data-out="marginHint"></p>
+          </div>
+          <div class="suggest">
+            <small class="hint">Precio sugerido</small>
+            <b class="big" data-out="suggested"></b>
+            <div class="row"><small class="hint" data-out="suggestedPortion"></small><button class="btn btn-sm btn-primary" data-act="use-suggested">Usar este precio</button></div>
+          </div>
+          <label class="field"><span>Tu precio de venta</span>
+            <span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="r-price" type="number" min="0" step="any" inputmode="decimal" data-in="r" data-k="price" value="${r.price ? esc(r.price) : ''}"></span>
+            <small class="hint">Si lo dejas vacío, se usa el sugerido.</small>
+          </label>
+          <div class="result">
+            <div><small>Ganancia por torta</small><b data-out="profit"></b></div>
+            <div><small>Margen real</small><b data-out="marginReal"></b></div>
+            <div><small>Precio por porción</small><b data-out="perPortion"></b></div>
+            <div><small>Costo por porción</small><b data-out="costPortionShort"></b></div>
+          </div>
+          <p class="hint" data-out="missingHint"></p>
+        </aside>
+      </div>
+
+      <div class="minibar" aria-label="Resumen rápido">
+        <div><small>Costo</small><b data-out="cost"></b></div>
+        <div><small>Precio</small><b data-out="price"></b></div>
+        <div><small>Ganancia</small><b data-out="profit"></b></div>
+        <button class="btn btn-sm btn-primary" data-act="to-summary">Ver precio</button>
+      </div>
+    </div>`;
+  };
+
+  function ingOptions(selected) {
+    const list = [...state.ingredients].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    return `<option value="">Elegir ingrediente…</option>` +
+      list.map((i) => `<option value="${i.id}" ${i.id === selected ? 'selected' : ''}>${esc(i.name)}</option>`).join('') +
+      (selected && !findIng(selected) ? `<option value="${esc(selected)}" selected>(ingrediente eliminado)</option>` : '') +
+      `<option value="__new">+ Crear ingrediente nuevo…</option>`;
+  }
+  function unitOptions(line) {
+    const ing = findIng(line.ingId);
+    const keys = ing ? BY_TYPE[ing.type] : Object.keys(UNITS);
+    return keys.map((k) => `<option value="${k}" ${k === line.unit ? 'selected' : ''}>${UNITS[k].label}</option>`).join('');
+  }
+  function linesHTML(r) {
+    if (!r.items.length) return `<p class="hint">Aún no hay ingredientes en esta torta.</p>`;
+    return `<div class="line line-head" aria-hidden="true"><span class="l-ing">Ingrediente</span><span class="l-qty">Cantidad</span><span class="l-unit">Unidad</span><span class="l-cost">Costo</span><span class="l-rm"></span></div>` +
+      r.items.map((l, idx) => `<div class="line" data-line="${l.id}">
+        <select class="l-ing" id="li-ing-${l.id}" data-ch="line-ing" data-id="${l.id}" aria-label="Ingrediente ${idx + 1}">${ingOptions(l.ingId)}</select>
+        <input class="l-qty" id="li-qty-${l.id}" type="number" min="0" step="any" inputmode="decimal" data-in="line" data-id="${l.id}" value="${esc(l.qty)}" placeholder="Cant." aria-label="Cantidad">
+        <select class="l-unit" id="li-unit-${l.id}" data-ch="line-unit" data-id="${l.id}" aria-label="Unidad">${unitOptions(l)}</select>
+        <span class="l-cost" data-linecost="${l.id}"></span>
+        <button class="icon-btn danger l-rm" data-act="rm-line" data-id="${l.id}" aria-label="Quitar ingrediente">${I.trash}</button>
+      </div>`).join('');
+  }
+  function extrasHTML(r) {
+    if (!r.extras.length) return `<p class="hint">Sin extras por ahora.</p>`;
+    const sym = esc(curSymbol());
+    return r.extras.map((x) => `<div class="line extra">
+        <input class="l-ing" id="ex-name-${x.id}" data-in="extra" data-k="name" data-id="${x.id}" value="${esc(x.name)}" placeholder="Ej: Caja" aria-label="Nombre del extra">
+        <span class="money l-qty" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="ex-cost-${x.id}" type="number" min="0" step="any" inputmode="decimal" data-in="extra" data-k="cost" data-id="${x.id}" value="${esc(x.cost)}" placeholder="0" aria-label="Costo del extra"></span>
+        <button class="icon-btn danger l-rm" data-act="rm-extra" data-id="${x.id}" aria-label="Quitar extra">${I.trash}</button>
+      </div>`).join('');
+  }
+
+  function updateCalc() {
+    const r = findRecipe(route.id);
+    if (!r) return;
+    const c = calc(r);
+    const s = state.settings;
+    const out = {
+      ingredients: money(c.ingredients), extras: money(c.extras), labor: money(c.labor), overhead: money(c.overhead),
+      laborOverhead: money(c.labor + c.overhead), cost: money(c.cost), price: money(c.price), profit: money(c.profit),
+      costPortion: `${money(c.costPortion)} por porción`, costPortionShort: money(c.costPortion),
+      suggested: money(c.suggested), suggestedPortion: `${money(c.suggested / c.portions)} la porción`,
+      marginReal: c.price > 0 ? pct(c.marginReal) : '—', perPortion: money(c.perPortion),
+      marginHint: (() => { const m = Math.min(num(r.margin), 90); return m > 0 ? `De cada ${money(100)} que cobras, ${money(m)} son ganancia limpia.` : 'Sin margen solo recuperas lo que gastaste.'; })(),
+      rateHint: num(s.hourlyRate) > 0
+        ? `Tu tiempo suma ${money(c.labor)}. La tarifa por hora se usa en todas tus tortas.`
+        : 'Pon cuánto quieres ganar por hora de trabajo. Si lo dejas en 0, estás regalando tu tiempo.',
+      missingHint: c.missing ? `${plural(c.missing, 'ingrediente no tiene', 'ingredientes no tienen')} precio. El costo real es mayor al que ves.` : ''
+    };
+    $$('[data-out]', view).forEach((el) => {
+      const k = el.dataset.out;
+      if (k in out) el.textContent = out[k];
+      if (k === 'profit') el.classList.toggle('neg', c.profit < 0);
+    });
+    const chipEl = $('[data-out="chip"]', view);
+    if (chipEl) chipEl.innerHTML = chip(c);
+    const bar = $('[data-out="bar"]', view);
+    if (bar) {
+      const total = Math.max(c.price, c.cost) || 1;
+      const segs = [['seg-ing', c.ingredients], ['seg-ext', c.extras], ['seg-lab', c.labor], ['seg-ovh', c.overhead], ['seg-pro', Math.max(c.profit, 0)]];
+      bar.innerHTML = segs.map(([cl, v]) => `<span class="${cl}" style="width:${(v / total) * 100}%"></span>`).join('');
+    }
+    for (const l of r.items) {
+      const el = $(`[data-linecost="${l.id}"]`, view);
+      if (!el) continue;
+      const li = lineInfo(l);
+      el.classList.toggle('warn', li.missing);
+      el.textContent = !l.ingId ? '—' : li.missing ? 'Sin precio' : money(li.cost);
+    }
+    const priceInput = $('#r-price');
+    if (priceInput) priceInput.placeholder = c.suggested ? String(c.suggested) : '0';
+  }
+
+  function touch(r) { r.updatedAt = Date.now(); save(); }
+
+  /* ---------- Ingredientes ---------- */
+  views.ingredients = () => `<div class="page">
+      <div class="page-head">
+        <div><h1 class="page-title">Ingredientes</h1><p class="page-lead">Anota cada ingrediente como lo compras: el tamaño del paquete y lo que pagaste. Cuando suba un precio, cámbialo aquí.</p></div>
+        <button class="btn btn-primary" data-act="new-ing">${I.plus}Nuevo ingrediente</button>
+      </div>
+      ${state.ingredients.length ? `<input class="input search" type="search" id="ing-search" data-in="isearch" placeholder="Buscar ingrediente…" value="${esc(ui.iq)}" aria-label="Buscar ingrediente">` : ''}
+      <div id="ing-list">${ingList()}</div>
+    </div>`;
+
+  function usedIn(ingId) { return state.recipes.filter((r) => r.items.some((l) => l.ingId === ingId)); }
+  function perLabel(ing) {
+    const p = PER[ing.type];
+    return `${money(unitCost(ing) * p.f)} / ${p.label}`;
+  }
+  function ingList() {
+    if (!state.ingredients.length) {
+      return `<div class="card empty-state">${cakeSVG}<h3 class="section-title">Tu despensa está vacía</h3>
+        <p>Agrega harina, huevos, azúcar… con el precio al que los compras. Después los usas en todas tus tortas.</p>
+        <button class="btn btn-primary" data-act="new-ing">${I.plus}Agregar el primero</button></div>`;
+    }
+    const q = ui.iq.trim().toLowerCase();
+    const list = [...state.ingredients].filter((i) => !q || i.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    if (!list.length) return `<p class="hint">No hay ingredientes que coincidan con “${esc(ui.iq)}”.</p>`;
+    const sym = esc(curSymbol());
+    return `<div class="ing-list">${list.map((i) => {
+      const used = usedIn(i.id).length;
+      const stale = Date.now() - i.updatedAt > 30 * DAY;
+      return `<div class="ing-row" data-ing="${i.id}">
+        <button class="ing-main" data-act="edit-ing" data-id="${i.id}">
+          <span class="ing-name">${esc(i.name)} ${i.sample ? '<span class="tag">Ejemplo</span>' : ''}</span>
+          <span class="ing-meta"><span>Paquete de ${fmtQty(i.packQty)} ${UNITS[i.packUnit].label}</span><span>·</span><span data-ago>${stale ? `<span class="chip low">Precio de ${ago(i.updatedAt)}</span>` : `Actualizado ${ago(i.updatedAt)}`}</span>${used ? `<span>·</span><span>En ${plural(used, 'torta', 'tortas')}</span>` : ''}</span>
+        </button>
+        <label class="ing-price money" style="--cur-w:${sym.length}ch"><span class="sr">Precio del paquete de ${esc(i.name)}</span><span class="cur">${sym}</span><input id="ip-${i.id}" type="number" min="0" step="any" inputmode="decimal" data-ch="ing-price" data-id="${i.id}" value="${esc(i.price)}"></label>
+        <span class="ing-unitcost" data-unitcost>${perLabel(i)}<small>precio por ${PER[i.type].label}</small></span>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function ingredientModal(ing, onSaved) {
+    const isNew = !ing;
+    const d = ing ? { ...ing } : { name: '', packQty: 1, packUnit: 'kg', price: '' };
+    const used = ing ? usedIn(ing.id) : [];
+    const sym = esc(curSymbol());
+    const unitOpts = Object.keys(UNITS).map((k) => `<option value="${k}" ${k === d.packUnit ? 'selected' : ''}>${UNITS[k].label}</option>`).join('');
+    const m = openModal({
+      title: isNew ? 'Nuevo ingrediente' : 'Editar ingrediente',
+      body: `<form id="ing-form" class="stack" novalidate>
+          <label class="field"><span>Nombre</span><input id="ing-name" value="${esc(d.name)}" placeholder="Ej: Harina 0000" autocomplete="off" required></label>
+          <div class="grid-2">
+            <label class="field"><span>Viene en paquete de</span><input id="ing-qty" type="number" min="0" step="any" inputmode="decimal" value="${esc(d.packQty)}"></label>
+            <label class="field"><span>Unidad</span><select id="ing-unit">${unitOpts}</select></label>
+          </div>
+          <label class="field"><span>Lo que pagaste por ese paquete</span><span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="ing-price" type="number" min="0" step="any" inputmode="decimal" value="${esc(d.price)}" placeholder="0"></span></label>
+          <p class="calc-out" id="ing-preview"></p>
+          ${used.length ? `<p class="hint">Se usa en ${used.map((r) => `“${esc(r.name || 'Torta sin nombre')}”`).join(', ')}. Al guardar, esas tortas se recalculan.</p>` : ''}
+          <button type="submit" hidden></button>
+        </form>`,
+      foot: `${isNew ? '' : `<button class="btn btn-ghost left" data-del>${I.trash}Eliminar</button>`}<button class="btn btn-ghost" data-close>Cancelar</button><button class="btn btn-primary" data-save>Guardar</button>`
+    });
+    const f = $('#ing-form', m.el);
+    const preview = () => {
+      const tmp = { packQty: num($('#ing-qty', m.el).value), packUnit: $('#ing-unit', m.el).value, price: num($('#ing-price', m.el).value) };
+      tmp.type = UNITS[tmp.packUnit].type;
+      $('#ing-preview', m.el).textContent = unitCost(tmp) > 0 ? `Te sale a ${perLabel(tmp)}` : 'Completa el paquete y el precio para ver cuánto te sale.';
+    };
+    f.addEventListener('input', preview);
+    preview();
+    const submit = (e) => {
+      e && e.preventDefault();
+      const name = $('#ing-name', m.el).value.trim();
+      if (!name) { $('#ing-name', m.el).focus(); toast('Ponle un nombre al ingrediente'); return; }
+      const packUnit = $('#ing-unit', m.el).value;
+      const packQty = num($('#ing-qty', m.el).value);
+      if (!(packQty > 0)) { $('#ing-qty', m.el).focus(); toast('Indica el tamaño del paquete'); return; }
+      const price = num($('#ing-price', m.el).value);
+      const type = UNITS[packUnit].type;
+      let target = ing;
+      if (isNew) {
+        target = { id: uid(), name, packQty, packUnit, price, type, updatedAt: Date.now(), sample: false };
+        state.ingredients.push(target);
+      } else {
+        const priceChanged = price !== num(ing.price) || packQty !== num(ing.packQty) || packUnit !== ing.packUnit;
+        Object.assign(ing, { name, packQty, packUnit, price, type, sample: false });
+        if (priceChanged) ing.updatedAt = Date.now();
+        // Si cambió el tipo (por ejemplo, de gramos a unidades), ajustar la unidad de las recetas.
+        state.recipes.forEach((r) => r.items.forEach((l) => { if (l.ingId === ing.id && UNITS[l.unit].type !== type) l.unit = BY_TYPE[type][0]; }));
+      }
+      save();
+      m.close();
+      toast(isNew ? 'Ingrediente agregado' : used.length ? `Guardado. ${plural(used.length, 'torta recalculada', 'tortas recalculadas')}` : 'Ingrediente guardado');
+      onSaved ? onSaved(target) : render();
+    };
+    f.addEventListener('submit', submit);
+    $('[data-save]', m.el).addEventListener('click', submit);
+    const del = $('[data-del]', m.el);
+    if (del) del.addEventListener('click', async () => {
+      m.close();
+      const ok = await confirmBox({
+        title: `¿Eliminar “${ing.name}”?`,
+        text: used.length ? `Se usa en ${plural(used.length, 'torta', 'tortas')}. Ahí quedará marcado como “ingrediente eliminado” para que lo reemplaces.` : 'No se usa en ninguna torta.',
+        ok: 'Eliminar', danger: true
+      });
+      if (!ok) return;
+      state.ingredients = state.ingredients.filter((i) => i.id !== ing.id);
+      save(); render(); toast('Ingrediente eliminado');
+    });
+    setTimeout(() => $(isNew ? '#ing-name' : '#ing-price', m.el).focus(), 50);
+  }
+
+  /* ---------- Ventas ---------- */
+  views.sales = () => {
+    const mk = ui.month;
+    const list = state.sales.filter((s) => s.date.slice(0, 7) === mk).sort((a, b) => b.date.localeCompare(a.date));
+    const income = sum(list, (s) => s.price), cost = sum(list, (s) => s.cost), profit = income - cost;
+    const [y, mo] = mk.split('-').map(Number);
+    const label = fmtDate(new Date(y, mo - 1, 1), { month: 'long', year: 'numeric' });
+    return `<div class="page">
+      <div class="page-head">
+        <div><h1 class="page-title">Ventas</h1><p class="page-lead">Anota cada torta que vendes y mira cuánto ganaste en el mes.</p></div>
+        <button class="btn btn-primary" data-act="new-sale">${I.plus}Registrar venta</button>
+      </div>
+      <div class="month-nav">
+        <button class="icon-btn" data-act="month" data-d="-1" aria-label="Mes anterior">${I.back}</button>
+        <span class="month-label">${esc(label)}</span>
+        <button class="icon-btn" data-act="month" data-d="1" aria-label="Mes siguiente">${I.next}</button>
+      </div>
+      <section class="stats">
+        <div class="stat"><small>Cobrado</small><b>${money(income)}</b></div>
+        <div class="stat"><small>Costos</small><b>${money(cost)}</b></div>
+        <div class="stat"><small>Ganancia</small><b class="${profit < 0 ? 'neg' : 'pos'}">${money(profit)}</b></div>
+        <div class="stat"><small>Ventas</small><b>${list.length}</b><small>${list.length ? `Margen ${pct(income > 0 ? profit / income : 0)}` : '&nbsp;'}</small></div>
+      </section>
+      ${list.length ? `<div class="sale-list">${list.map((s) => {
+        const d = new Date(s.date + 'T12:00:00');
+        const p = s.price - s.cost;
+        return `<div class="sale-row">
+          <div class="sale-date"><b>${d.getDate()}</b><small>${esc(fmtDate(d, { month: 'short' }).replace('.', ''))}</small></div>
+          <div class="sale-info"><b>${esc(s.title)}</b><small>${s.client ? esc(s.client) + ' · ' : ''}Costo ${money(s.cost)}</small></div>
+          <div class="sale-nums"><b>${money(s.price)}</b><small class="${p < 0 ? 'neg' : 'pos'}">${p < 0 ? '' : '+'}${money(p)}</small></div>
+          <button class="icon-btn danger" data-act="del-sale" data-id="${s.id}" aria-label="Eliminar venta">${I.trash}</button>
+        </div>`;
+      }).join('')}</div>` : `<div class="card empty-state"><h3 class="section-title">Sin ventas en este mes</h3><p>Cuando entregues una torta, regístrala aquí. Tomamos el costo de la receta para calcular tu ganancia.</p><button class="btn btn-primary" data-act="new-sale">${I.plus}Registrar venta</button></div>`}
+    </div>`;
+  };
+
+  function saleModal(recipeId) {
+    const sym = esc(curSymbol());
+    const recipes = [...state.recipes].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
+    const m = openModal({
+      title: 'Registrar venta',
+      body: `<form id="sale-form" class="stack" novalidate>
+        <label class="field"><span>¿Qué torta vendiste?</span><select id="sale-recipe"><option value="">Otra (escribir a mano)</option>${recipes.map((r) => `<option value="${r.id}" ${r.id === recipeId ? 'selected' : ''}>${esc(r.name || 'Torta sin nombre')}</option>`).join('')}</select></label>
+        <label class="field" id="sale-title-wrap"><span>Descripción</span><input id="sale-title" placeholder="Ej: Torta de cumpleaños" autocomplete="off"></label>
+        <div class="grid-2">
+          <label class="field"><span>Cobraste</span><span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="sale-price" type="number" min="0" step="any" inputmode="decimal"></span></label>
+          <label class="field"><span>Te costó</span><span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="sale-cost" type="number" min="0" step="any" inputmode="decimal"></span></label>
+        </div>
+        <div class="grid-2">
+          <label class="field"><span>Fecha</span><input id="sale-date" type="date" value="${todayISO()}"></label>
+          <label class="field"><span>Cliente (opcional)</span><input id="sale-client" placeholder="Ej: Laura" autocomplete="off"></label>
+        </div>
+        <p class="calc-out" id="sale-preview"></p>
+        <button type="submit" hidden></button>
+      </form>`,
+      foot: `<button class="btn btn-ghost" data-close>Cancelar</button><button class="btn btn-primary" data-save>Guardar venta</button>`
+    });
+    const sel = $('#sale-recipe', m.el);
+    const fill = () => {
+      const r = findRecipe(sel.value);
+      $('#sale-title-wrap', m.el).hidden = !!r;
+      if (r) {
+        const c = calc(r);
+        $('#sale-price', m.el).value = Math.round(c.price * 100) / 100 || '';
+        $('#sale-cost', m.el).value = Math.round(c.cost * 100) / 100 || '';
+      }
+      preview();
+    };
+    const preview = () => {
+      const p = num($('#sale-price', m.el).value) - num($('#sale-cost', m.el).value);
+      $('#sale-preview', m.el).innerHTML = `Ganancia de esta venta: <span class="${p < 0 ? 'neg' : 'pos'}">${money(p)}</span>`;
+    };
+    sel.addEventListener('change', fill);
+    $('#sale-form', m.el).addEventListener('input', preview);
+    fill();
+    const submit = (e) => {
+      e && e.preventDefault();
+      const r = findRecipe(sel.value);
+      const title = r ? (r.name || 'Torta sin nombre') : $('#sale-title', m.el).value.trim();
+      if (!title) { $('#sale-title', m.el).focus(); toast('Escribe qué vendiste'); return; }
+      const price = num($('#sale-price', m.el).value);
+      if (!(price > 0)) { $('#sale-price', m.el).focus(); toast('Indica cuánto cobraste'); return; }
+      const date = $('#sale-date', m.el).value || todayISO();
+      state.sales.push({ id: uid(), date, recipeId: r ? r.id : '', title, client: $('#sale-client', m.el).value.trim(), price, cost: num($('#sale-cost', m.el).value) });
+      save(); m.close();
+      ui.month = date.slice(0, 7);
+      toast('Venta registrada');
+      if (route.view === 'sales' || route.view === 'home') render();
+    };
+    $('#sale-form', m.el).addEventListener('submit', submit);
+    $('[data-save]', m.el).addEventListener('click', submit);
+    setTimeout(() => sel.focus(), 50);
+  }
+
+  /* ---------- Ajustes y respaldo ---------- */
+  views.settings = () => {
+    const s = state.settings;
+    const sym = esc(curSymbol());
+    const snaps = readSnaps();
+    return `<div class="page">
+      <div><h1 class="page-title">Ajustes</h1><p class="page-lead">Tus datos de cocina y las copias de seguridad.</p></div>
+      <div class="settings">
+        <section class="card stack">
+          <h2 class="section-title">Tu negocio</h2>
+          <div class="grid-2">
+            <label class="field"><span>Nombre de tu pastelería</span><input id="set-business" data-in="setting" data-k="business" value="${esc(s.business)}" placeholder="Ej: Dulces de Ana" autocomplete="organization"></label>
+            <label class="field"><span>Moneda</span><select id="set-currency" data-ch="currency">${CURRENCIES.map((c) => `<option value="${c[0]}" ${c[0] === s.currency ? 'selected' : ''}>${c[1]} (${c[0]})</option>`).join('')}</select></label>
+          </div>
+        </section>
+        <section class="card stack">
+          <h2 class="section-title">Valores por defecto</h2>
+          <p class="hint">Se usan al crear una torta nueva. La tarifa por hora se aplica a todas.</p>
+          <div class="grid-2">
+            <label class="field"><span>Tarifa por hora</span><span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="set-rate" type="number" min="0" step="any" inputmode="decimal" data-in="setting" data-k="hourlyRate" value="${esc(s.hourlyRate || '')}" placeholder="0"></span></label>
+            <label class="field"><span>Margen de ganancia (%)</span><input id="set-margin" type="number" min="0" max="90" step="1" inputmode="numeric" data-in="setting" data-k="margin" value="${esc(s.margin)}"></label>
+            <label class="field"><span>Gas, luz y otros por torta</span><span class="money" style="--cur-w:${sym.length}ch"><span class="cur">${sym}</span><input id="set-overhead" type="number" min="0" step="any" inputmode="decimal" data-in="setting" data-k="overhead" value="${esc(s.overhead || '')}" placeholder="0"></span></label>
+          </div>
+        </section>
+
+        <section class="card stack" aria-labelledby="bk-title">
+          <h2 class="section-title" id="bk-title">Respaldo de tus datos</h2>
+          <p class="hint">Todo se guarda en este navegador. Descarga un respaldo de vez en cuando para no perder nada si cambias de teléfono o borras el historial. ${s.lastExport ? `Último respaldo: ${ago(s.lastExport)}.` : 'Todavía no hiciste ninguno.'}</p>
+          <div class="row">
+            <button class="btn btn-primary" data-act="export">${I.down}Descargar respaldo</button>
+            <button class="btn btn-ghost" data-act="copy-backup">${I.copy}Copiar como texto</button>
+          </div>
+          <div class="row">
+            <label class="btn btn-ghost" for="import-file">${I.up}Restaurar desde archivo</label>
+            <input id="import-file" type="file" accept=".json,application/json,text/plain" class="sr" data-ch="import-file">
+            <button class="btn btn-ghost" data-act="paste-backup">Pegar respaldo</button>
+          </div>
+          <p class="hint">Si la descarga no empieza, usa “Copiar como texto” y pégalo en una nota o en un mail para ti.</p>
+        </section>
+
+        <section class="card stack">
+          <h2 class="section-title">Copias automáticas</h2>
+          <p class="hint">La app guarda sola una copia cada día que la abres (las últimas ${MAX_SNAPS}) y antes de restaurar o borrar. Sirven si te equivocas, pero viven en este mismo navegador.</p>
+          ${snaps.length ? `<ul class="snap-list">${snaps.map((sn) => `<li><span><b>${esc(fmtDate(sn.at, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</b><small>${sn.reason === 'daily' ? 'Al abrir la app' : sn.reason === 'import' ? 'Antes de restaurar' : 'Antes de borrar'} · ${plural((sn.data.recipes || []).length, 'torta', 'tortas')}, ${plural((sn.data.ingredients || []).length, 'ingrediente', 'ingredientes')}</small></span><button class="btn btn-sm btn-ghost" data-act="restore-snap" data-id="${sn.id}">Volver a esta copia</button></li>`).join('')}</ul>` : '<p class="hint">Aún no hay copias automáticas. Aparecen desde el segundo día de uso.</p>'}
+        </section>
+
+        <section class="card stack">
+          <h2 class="section-title">Otras opciones</h2>
+          <div class="row">
+            <button class="btn btn-ghost" data-act="replay-onb">Ver la introducción otra vez</button>
+            <button class="btn btn-ghost" data-act="load-sample">Agregar torta de ejemplo</button>
+            <button class="btn btn-ghost" data-act="reset" style="color:var(--cherry)">${I.trash}Borrar todos los datos</button>
+          </div>
+        </section>
+      </div>
+    </div>`;
+  };
+
+  function backupPayload() {
+    return { app: 'dulce-cuenta', version: 1, exportedAt: new Date().toISOString(), data: state };
+  }
+  function exportFile() {
+    persist();
+    try {
+      const blob = new Blob([JSON.stringify(backupPayload(), null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dulce-cuenta-respaldo-${todayISO()}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      state.settings.lastExport = Date.now();
+      save(); render();
+      toast('Respaldo descargado');
+    } catch (e) {
+      copyBackup();
+    }
+  }
+  function copyBackup() {
+    const text = JSON.stringify(backupPayload());
+    const done = () => { state.settings.lastExport = Date.now(); save(); render(); toast('Respaldo copiado. Pégalo en una nota o mail.'); };
+    const fallback = () => {
+      const m = openModal({
+        title: 'Copia este texto',
+        body: `<p class="hint">Selecciona todo el texto y cópialo. Guárdalo en una nota o mándatelo por mail.</p><textarea id="bk-text" class="input" rows="8" readonly>${esc(text)}</textarea>`,
+        foot: `<button class="btn btn-primary" data-close>Listo</button>`
+      });
+      const ta = $('#bk-text', m.el); ta.focus(); ta.select();
+      state.settings.lastExport = Date.now(); save();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else fallback();
+  }
+  function parseBackup(text) {
+    let obj;
+    try { obj = JSON.parse(text); } catch (e) { return null; }
+    const data = obj && obj.data && typeof obj.data === 'object' ? obj.data : obj;
+    if (!data || typeof data !== 'object' || !(Array.isArray(data.recipes) || Array.isArray(data.ingredients))) return null;
+    return normalize(data);
+  }
+  async function restoreData(data, source) {
+    const ok = await confirmBox({
+      title: '¿Restaurar este respaldo?',
+      text: `Tiene ${plural(data.recipes.length, 'torta', 'tortas')}, ${plural(data.ingredients.length, 'ingrediente', 'ingredientes')} y ${plural(data.sales.length, 'venta', 'ventas')}. Reemplaza lo que tienes ahora; antes guardamos una copia automática por si acaso.`,
+      ok: 'Restaurar'
+    });
+    if (!ok) return;
+    makeSnapshot('import');
+    data.settings.onboarded = true;
+    state = data;
+    fmtCache.clear();
+    persist();
+    go('home');
+    toast(source === 'snap' ? 'Volviste a la copia elegida' : 'Respaldo restaurado');
+  }
+  function pasteBackup() {
+    const m = openModal({
+      title: 'Pegar respaldo',
+      body: `<p class="hint">Pega aquí el texto que copiaste con “Copiar como texto”.</p><textarea id="paste-text" class="input" rows="8" placeholder='{"app":"dulce-cuenta", …}'></textarea>`,
+      foot: `<button class="btn btn-ghost" data-close>Cancelar</button><button class="btn btn-primary" data-ok>Continuar</button>`
+    });
+    $('#paste-text', m.el).focus();
+    $('[data-ok]', m.el).addEventListener('click', () => {
+      const data = parseBackup($('#paste-text', m.el).value.trim());
+      if (!data) { toast('Ese texto no es un respaldo de Dulce Cuenta'); return; }
+      m.close();
+      restoreData(data, 'paste');
+    });
+  }
+
+  /* ======================= Datos de ejemplo ======================= */
+  function addSample() {
+    const now = Date.now();
+    const mk = (name, packQty, packUnit, price) => {
+      const existing = state.ingredients.find((i) => i.name.toLowerCase() === name.toLowerCase());
+      if (existing) return existing;
+      const i = { id: uid(), name, packQty, packUnit, price, type: UNITS[packUnit].type, updatedAt: now, sample: true };
+      state.ingredients.push(i);
+      return i;
+    };
+    const harina = mk('Harina 0000', 1, 'kg', 1100);
+    const azucar = mk('Azúcar', 1, 'kg', 1400);
+    const huevos = mk('Huevos', 1, 'doc', 3200);
+    const manteca = mk('Manteca', 200, 'g', 2600);
+    const cacao = mk('Cacao amargo', 150, 'g', 3900);
+    const leche = mk('Leche', 1, 'l', 1500);
+    const polvo = mk('Polvo de hornear', 50, 'g', 600);
+    const vainilla = mk('Esencia de vainilla', 100, 'ml', 1800);
+    const ddl = mk('Dulce de leche repostero', 1, 'kg', 5200);
+    const crema = mk('Crema de leche', 350, 'ml', 3300);
+    const line = (ing, qty, unit) => ({ id: uid(), ingId: ing.id, qty, unit });
+    const r = {
+      id: uid(), name: 'Torta de chocolate y dulce de leche', portions: 12,
+      items: [line(harina, 300, 'g'), line(azucar, 250, 'g'), line(huevos, 4, 'u'), line(manteca, 150, 'g'), line(cacao, 60, 'g'), line(leche, 200, 'ml'), line(polvo, 10, 'g'), line(vainilla, 5, 'ml'), line(ddl, 500, 'g'), line(crema, 350, 'ml')],
+      extras: [{ id: uid(), name: 'Caja y base', cost: 2500 }, { id: uid(), name: 'Decoración', cost: 1800 }],
+      hours: 3, overhead: state.settings.overhead || 1500, margin: state.settings.margin || 40, price: null,
+      notes: 'Ejemplo: horno a 180 °C durante 40 minutos, molde de 24 cm. Cambia los precios por los tuyos.',
+      sample: true, createdAt: now, updatedAt: now
+    };
+    state.recipes.push(r);
+    save();
+    return r;
+  }
+
+  function newRecipe() {
+    const s = state.settings;
+    const r = {
+      id: uid(), name: '', portions: 12, items: [{ id: uid(), ingId: '', qty: '', unit: 'g' }], extras: [],
+      hours: '', overhead: s.overhead || '', margin: s.margin ?? 40, price: null, notes: '', sample: false,
+      createdAt: Date.now(), updatedAt: Date.now()
+    };
+    state.recipes.push(r);
+    save();
+    go('recipe', { id: r.id });
+    setTimeout(() => { const n = $('#r-name'); if (n) n.focus(); }, 30);
+  }
+
+  /* ======================= Acciones ======================= */
+  const actions = {
+    'new-recipe': newRecipe,
+    'new-ing': () => ingredientModal(null),
+    'edit-ing': (t) => ingredientModal(findIng(t.dataset.id)),
+    'new-sale': () => saleModal(''),
+    'sale-from-recipe': () => saleModal(route.id),
+    'add-line': () => {
+      const r = findRecipe(route.id);
+      const l = { id: uid(), ingId: '', qty: '', unit: 'g' };
+      r.items.push(l); touch(r);
+      $('#lines').innerHTML = linesHTML(r); updateCalc();
+      const sel = $(`#li-ing-${l.id}`); if (sel) sel.focus();
+    },
+    'rm-line': (t) => {
+      const r = findRecipe(route.id);
+      r.items = r.items.filter((l) => l.id !== t.dataset.id); touch(r);
+      $('#lines').innerHTML = linesHTML(r); updateCalc();
+    },
+    'add-extra': (t) => {
+      const r = findRecipe(route.id);
+      const x = { id: uid(), name: t.dataset.name || '', cost: '' };
+      r.extras.push(x); touch(r);
+      $('#extras').innerHTML = extrasHTML(r); updateCalc();
+      const el = $(x.name ? `#ex-cost-${x.id}` : `#ex-name-${x.id}`); if (el) el.focus();
+    },
+    'rm-extra': (t) => {
+      const r = findRecipe(route.id);
+      r.extras = r.extras.filter((x) => x.id !== t.dataset.id); touch(r);
+      $('#extras').innerHTML = extrasHTML(r); updateCalc();
+    },
+    'use-suggested': () => {
+      const r = findRecipe(route.id);
+      const c = calc(r);
+      r.price = c.suggested || null; touch(r);
+      $('#r-price').value = r.price || '';
+      updateCalc();
+      toast('Precio sugerido aplicado');
+    },
+    'to-summary': () => { const el = $('#summary'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
+    'dup-recipe': () => {
+      const r = findRecipe(route.id);
+      const copy = JSON.parse(JSON.stringify(r));
+      copy.id = uid(); copy.name = (r.name || 'Torta') + ' (copia)'; copy.sample = false;
+      copy.items.forEach((l) => (l.id = uid())); copy.extras.forEach((x) => (x.id = uid()));
+      copy.createdAt = copy.updatedAt = Date.now();
+      state.recipes.push(copy); save();
+      go('recipe', { id: copy.id });
+      toast('Torta duplicada. Ya puedes cambiarla.');
+    },
+    'del-recipe': async () => {
+      const r = findRecipe(route.id);
+      const ok = await confirmBox({ title: `¿Eliminar “${r.name || 'Torta sin nombre'}”?`, text: 'Se borra la receta y su cálculo. Las ventas ya registradas no se tocan.', ok: 'Eliminar', danger: true });
+      if (!ok) return;
+      state.recipes = state.recipes.filter((x) => x.id !== r.id); save();
+      go('recipes'); toast('Torta eliminada');
+    },
+    'del-sale': async (t) => {
+      const ok = await confirmBox({ title: '¿Eliminar esta venta?', text: 'Se quita del resumen del mes.', ok: 'Eliminar', danger: true });
+      if (!ok) return;
+      state.sales = state.sales.filter((s) => s.id !== t.dataset.id); save(); render();
+    },
+    month: (t) => {
+      const [y, m] = ui.month.split('-').map(Number);
+      const d = new Date(y, m - 1 + Number(t.dataset.d), 1);
+      ui.month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      render();
+    },
+    export: exportFile,
+    'copy-backup': copyBackup,
+    'paste-backup': pasteBackup,
+    'restore-snap': (t) => {
+      const sn = readSnaps().find((s) => s.id === t.dataset.id);
+      if (sn) restoreData(normalize(sn.data), 'snap');
+    },
+    'replay-onb': () => onboarding(),
+    'load-sample': () => { const r = addSample(); go('recipe', { id: r.id }); toast('Agregamos una torta de ejemplo'); },
+    reset: async () => {
+      const ok = await confirmBox({ title: '¿Borrar todos los datos?', text: 'Se eliminan tus tortas, ingredientes y ventas de este navegador. Guardamos una copia automática antes, por si te arrepientes.', ok: 'Borrar todo', danger: true });
+      if (!ok) return;
+      makeSnapshot('reset');
+      state = defaults(); fmtCache.clear(); persist();
+      go('home'); onboarding();
+    }
+  };
+
+  const inputs = {
+    r: (t) => {
+      const r = findRecipe(route.id); if (!r) return;
+      const k = t.dataset.k;
+      if (k === 'name' || k === 'notes') r[k] = t.value;
+      else if (k === 'price') r.price = numOrNull(t.value);
+      else r[k] = t.value === '' ? '' : num(t.value);
+      r.sample = false;
+      touch(r); updateCalc();
+    },
+    line: (t) => {
+      const r = findRecipe(route.id);
+      const l = r.items.find((x) => x.id === t.dataset.id); if (!l) return;
+      l.qty = t.value === '' ? '' : num(t.value);
+      touch(r); updateCalc();
+    },
+    extra: (t) => {
+      const r = findRecipe(route.id);
+      const x = r.extras.find((e) => e.id === t.dataset.id); if (!x) return;
+      x[t.dataset.k] = t.dataset.k === 'cost' ? (t.value === '' ? '' : num(t.value)) : t.value;
+      touch(r); updateCalc();
+    },
+    margin: (t) => {
+      const r = findRecipe(route.id);
+      const v = Math.min(Math.max(num(t.value), 0), 90);
+      r.margin = v;
+      $$('[data-in="margin"]').forEach((el) => { if (el !== t) el.value = v; });
+      touch(r); updateCalc();
+    },
+    setting: (t) => {
+      const k = t.dataset.k;
+      state.settings[k] = k === 'business' ? t.value : num(t.value);
+      if (k === 'business') $('#brand-sub').textContent = t.value || 'Costos y ganancias de tus tortas';
+      save();
+      if (route.view === 'recipe') updateCalc();
+    },
+    search: (t) => { ui.q = t.value; $('#recipe-list').innerHTML = recipeList(); },
+    isearch: (t) => { ui.iq = t.value; $('#ing-list').innerHTML = ingList(); }
+  };
+
+  const changes = {
+    'line-ing': (t) => {
+      const r = findRecipe(route.id);
+      const l = r.items.find((x) => x.id === t.dataset.id); if (!l) return;
+      const apply = (ing) => {
+        l.ingId = ing.id;
+        if (!UNITS[l.unit] || UNITS[l.unit].type !== ing.type) l.unit = BY_TYPE[ing.type][0];
+        touch(r);
+        $('#lines').innerHTML = linesHTML(r); updateCalc();
+        const q = $(`#li-qty-${l.id}`); if (q) q.focus();
+      };
+      if (t.value === '__new') {
+        t.value = l.ingId || '';
+        ingredientModal(null, apply);
+        return;
+      }
+      const ing = findIng(t.value);
+      if (ing) apply(ing); else { l.ingId = ''; touch(r); updateCalc(); }
+    },
+    'line-unit': (t) => {
+      const r = findRecipe(route.id);
+      const l = r.items.find((x) => x.id === t.dataset.id); if (!l) return;
+      l.unit = t.value; touch(r); updateCalc();
+    },
+    'ing-price': (t) => {
+      const ing = findIng(t.dataset.id); if (!ing) return;
+      ing.price = num(t.value); ing.updatedAt = Date.now(); ing.sample = false;
+      save();
+      const row = t.closest('.ing-row');
+      $('[data-unitcost]', row).innerHTML = `${perLabel(ing)}<small>precio por ${PER[ing.type].label}</small>`;
+      $('[data-ago]', row).textContent = 'Actualizado hoy';
+      const n = usedIn(ing.id).length;
+      toast(n ? `Precio actualizado. ${plural(n, 'torta recalculada', 'tortas recalculadas')}` : 'Precio actualizado');
+    },
+    currency: (t) => {
+      state.settings.currency = t.value; fmtCache.clear(); save(); render(); toast('Moneda cambiada');
+    },
+    'import-file': (t) => {
+      const file = t.files && t.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const data = parseBackup(String(reader.result));
+        t.value = '';
+        if (!data) { toast('Ese archivo no es un respaldo de Dulce Cuenta'); return; }
+        restoreData(data, 'file');
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-go],[data-open],[data-act]');
+    if (!t || t.closest('.modal') || t.closest('.onb')) return;
+    if (t.dataset.go) { go(t.dataset.go); return; }
+    if (t.dataset.open) { go('recipe', { id: t.dataset.open }); return; }
+    const fn = actions[t.dataset.act];
+    if (fn) { e.preventDefault(); fn(t, e); }
+  });
+  document.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.dataset && t.dataset.in && inputs[t.dataset.in] && !t.closest('.modal')) inputs[t.dataset.in](t, e);
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.dataset && t.dataset.ch && changes[t.dataset.ch] && !t.closest('.modal')) changes[t.dataset.ch](t, e);
+  });
+
+  /* ======================= Modal, confirmación y avisos ======================= */
+  function openModal({ title, body, foot, onClose }) {
+    const prev = document.activeElement;
+    const el = document.createElement('div');
+    el.className = 'overlay';
+    el.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-head"><h2 id="modal-title">${esc(title)}</h2><button class="icon-btn" data-close aria-label="Cerrar">${I.close}</button></div>
+        <div class="modal-body">${body}</div>
+        ${foot ? `<div class="modal-foot">${foot}</div>` : ''}
+      </div>`;
+    document.body.appendChild(el);
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      el.remove();
+      document.removeEventListener('keydown', onKey);
+      if (onClose) onClose();
+      if (prev && prev.focus && document.contains(prev)) prev.focus();
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') close();
+      if (e.key === 'Tab') {
+        const f = $$('button, input, select, textarea, [tabindex]:not([tabindex="-1"])', el).filter((x) => !x.disabled && x.offsetParent !== null);
+        if (!f.length) return;
+        if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    el.addEventListener('mousedown', (e) => { if (e.target === el) close(); });
+    el.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
+    return { el, close };
+  }
+  function confirmBox({ title, text, ok = 'Confirmar', danger = false }) {
+    return new Promise((resolve) => {
+      let answered = false;
+      const m = openModal({
+        title, body: `<p>${esc(text)}</p>`,
+        foot: `<button class="btn btn-ghost" data-close>Cancelar</button><button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${esc(ok)}</button>`,
+        onClose: () => { if (!answered) resolve(false); }
+      });
+      const b = $('[data-ok]', m.el);
+      b.addEventListener('click', () => { answered = true; m.close(); resolve(true); });
+      setTimeout(() => b.focus(), 30);
+    });
+  }
+  let toastTimer;
+  function toast(msg) {
+    let el = $('.toast');
+    if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+    el.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.remove(), 2800);
+  }
+
+  /* ======================= Onboarding ======================= */
+  function onboarding() {
+    const s = state.settings;
+    const draft = { business: s.business, currency: s.currency, hourlyRate: s.hourlyRate || '', margin: s.margin || 40 };
+    let step = 0;
+    const el = document.createElement('div');
+    el.className = 'onb';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-label', 'Bienvenida a Dulce Cuenta');
+    document.body.appendChild(el);
+    document.body.style.overflow = 'hidden';
+
+    const steps = [
+      () => `<div class="onb-hero">${cakeSVG}<h1 class="onb-title">Dulce Cuenta</h1>
+          <p class="onb-lead">Descubre cuánto te cuesta de verdad cada torta y a cuánto venderla para que te quede ganancia.</p></div>
+        <div class="onb-actions"><span></span><button class="btn btn-primary" data-next>Empezar ${I.next}</button></div>`,
+      () => `<div class="stack"><h2 class="onb-h">Así funciona</h2>
+          <ol class="how">
+            <li><div><b>Anota tus ingredientes</b><span>Con el tamaño del paquete y lo que pagaste. Un kilo de harina, una docena de huevos.</span></div></li>
+            <li><div><b>Arma la receta</b><span>Indica cuánto usas de cada uno, más la caja, la decoración y tus horas de trabajo.</span></div></li>
+            <li><div><b>Elige tu ganancia</b><span>Te damos el precio sugerido, lo que ganas por torta y por porción.</span></div></li>
+          </ol></div>
+        <div class="onb-actions"><button class="btn btn-ghost" data-prev>${I.back}Atrás</button><button class="btn btn-primary" data-next>Siguiente ${I.next}</button></div>`,
+      () => `<form class="stack" id="onb-form" novalidate><h2 class="onb-h">Tu cocina</h2>
+          <p class="hint">Puedes cambiar todo esto después en Ajustes.</p>
+          <label class="field"><span>Nombre de tu pastelería (opcional)</span><input id="onb-business" value="${esc(draft.business)}" placeholder="Ej: Dulces de Ana" autocomplete="organization"></label>
+          <label class="field"><span>Moneda</span><select id="onb-currency">${CURRENCIES.map((c) => `<option value="${c[0]}" ${c[0] === draft.currency ? 'selected' : ''}>${c[1]} (${c[0]})</option>`).join('')}</select></label>
+          <label class="field"><span>¿Cuánto quieres ganar por hora de trabajo?</span><input id="onb-rate" type="number" min="0" step="any" inputmode="decimal" value="${esc(draft.hourlyRate)}" placeholder="Ej: 3000"><small class="hint">Tu tiempo también es un costo. Piensa cuánto cobrarías por hora en otro trabajo.</small></label>
+          <div class="field"><span id="onb-m-label">Margen de ganancia sobre el precio</span>
+            <div class="chips" role="group" aria-labelledby="onb-m-label">${[30, 40, 50, 60].map((v) => `<button type="button" class="chip-btn" data-margin="${v}" aria-pressed="${draft.margin === v}">${v}%</button>`).join('')}</div>
+            <small class="hint">Entre 30% y 50% es lo habitual en pastelería casera.</small>
+          </div></form>
+        <div class="onb-actions"><button class="btn btn-ghost" data-prev>${I.back}Atrás</button><button class="btn btn-primary" data-next>Siguiente ${I.next}</button></div>`,
+      () => `<div class="stack"><h2 class="onb-h">Tus datos son tuyos</h2>
+          <p class="onb-lead">Todo se guarda en este navegador, sin cuentas ni contraseñas. Desde Ajustes puedes descargar un respaldo cuando quieras.</p>
+          <div class="choice">
+            <button data-finish="sample"><b>Ver una torta de ejemplo</b><span>Cargamos una torta de chocolate con precios de muestra para que veas cómo funciona.</span></button>
+            <button data-finish="empty"><b>Empezar desde cero</b><span>Vas directo a cargar tus propios ingredientes.</span></button>
+          </div></div>
+        <div class="onb-actions"><button class="btn btn-ghost" data-prev>${I.back}Atrás</button><span></span></div>`
+    ];
+
+    const readForm = () => {
+      const f = $('#onb-form', el);
+      if (!f) return;
+      draft.business = $('#onb-business', el).value.trim();
+      draft.currency = $('#onb-currency', el).value;
+      draft.hourlyRate = $('#onb-rate', el).value;
+    };
+    const paint = () => {
+      el.innerHTML = `<div class="onb-card">
+        <div class="onb-top"><div class="dots" aria-label="Paso ${step + 1} de ${steps.length}">${steps.map((_, i) => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>
+        ${step < steps.length - 1 ? '<button class="btn-text" data-skip>Saltar</button>' : ''}</div>
+        ${steps[step]()}
+      </div>`;
+      const first = $('h1, h2', el);
+      if (first) { first.setAttribute('tabindex', '-1'); first.focus({ preventScroll: true }); }
+      el.scrollTop = 0;
+    };
+    const finish = (mode) => {
+      readForm();
+      Object.assign(state.settings, {
+        business: draft.business, currency: draft.currency, hourlyRate: num(draft.hourlyRate), margin: draft.margin, onboarded: true
+      });
+      fmtCache.clear();
+      el.remove();
+      document.body.style.overflow = '';
+      if (mode === 'sample') {
+        const r = addSample();
+        persist();
+        go('recipe', { id: r.id });
+        toast('Esta es una torta de ejemplo. Cambia lo que quieras.');
+      } else {
+        persist();
+        go(mode === 'skip' ? 'home' : 'ingredients');
+        if (mode !== 'skip') setTimeout(() => ingredientModal(null), 250);
+      }
+    };
+    el.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.closest('[data-next]')) { readForm(); step = Math.min(step + 1, steps.length - 1); paint(); }
+      else if (t.closest('[data-prev]')) { readForm(); step = Math.max(step - 1, 0); paint(); }
+      else if (t.closest('[data-skip]')) finish('skip');
+      else if (t.closest('[data-finish]')) finish(t.closest('[data-finish]').dataset.finish);
+      else if (t.closest('[data-margin]')) {
+        draft.margin = Number(t.closest('[data-margin]').dataset.margin);
+        $$('[data-margin]', el).forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.margin) === draft.margin)));
+      }
+    });
+    el.addEventListener('submit', (e) => { e.preventDefault(); readForm(); step++; paint(); });
+    paint();
+  }
+
+  /* ======================= Inicio ======================= */
+  makeSnapshot('daily');
+  render();
+  if (!state.settings.onboarded) onboarding();
+
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    try { navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) { /* sin modo offline */ }
+  }
+})();
+</script>
+</body>
+</html>
