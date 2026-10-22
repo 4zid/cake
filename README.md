@@ -2,72 +2,80 @@
 
 Microaplicación para quienes venden tortas: calcula cuánto cuesta hacer cada torta, a cuánto venderla y cuánto se gana de verdad.
 
-Es un solo archivo HTML, sin servidor ni cuentas. Los datos se guardan en el navegador de cada persona.
+Funciona en el navegador, sin cuentas. Cada compradora recibe por mail un **código de acceso** que activa la app en sus dispositivos. Sus datos se guardan en su propio navegador.
 
 ## Qué hace
 
-- **Onboarding de 4 pasos**: qué hace la app, datos de la cocina (nombre, moneda, valor de la hora, margen), precios de los 10 ingredientes más comunes y elegir entre armar la primera torta o ver un ejemplo.
-- **Armar torta (interactivo)**: la torta se dibuja en pantalla y crece con cada ingrediente (bizcocho, relleno, cobertura, decoración). Los extras también se ven: velas, topper, caja, bandeja y perlas. Los colores cambian según los ingredientes (cacao, dulce de leche, frutillas…). Es una ilustración orientativa.
-- **Agregar ingrediente paso a paso**: eliges de tu lista o de los comunes, ves de dónde sale el precio ("Compras 1 kg a $1.200"), y pones cuánto usas con botones rápidos (50 g, 100 g, 250 g…). Muestra cuánto suma en la torta antes de agregarlo.
-- **Precio de venta**: selector "Sugerido / Mi precio". El sugerido sale del margen que elijas con un deslizador; "Mi precio" te deja poner el tuyo y ver al instante cuánto ganas, el margen real y el precio por porción.
-- **¿De dónde sale el precio?**: barra con ingredientes, extras, tu trabajo, gastos y ganancia, más los tres ingredientes que más pesan.
-- **Tu lista de ingredientes**: tabla con lo que compras, lo que pagaste y a cuánto te sale (por kg, litro o unidad). El precio se edita directo y las tortas se recalculan solas. Los precios de ejemplo quedan marcados en amarillo.
-- **Avisos**: tortas por debajo del costo, precios de ejemplo, precios con más de 30 días y respaldo pendiente.
-- **Ventas**: registro de cada torta vendida y resumen mensual de ganancia, ingresos y costos.
-- **Respaldo**:
-  - Descargar un archivo `.json` con todos los datos y restaurarlo después.
-  - Copiar/pegar el respaldo como texto (útil en el teléfono: se pega en una nota o mail).
-  - Copias automáticas: una por día de uso (últimas 7) y otra antes de restaurar o borrar.
-  - Recordatorio en el inicio si pasaron más de 7 días sin descargar un respaldo.
-- **Menú**: barra de botones fija abajo en el celular (siempre visible) y menú lateral en escritorio.
-- **Instalable y sin conexión** (PWA) cuando se publica en un sitio con `https`.
-- Estética clara en blanco y rosa (igual en todos los dispositivos), responsive y navegable con teclado.
+- **Bienvenida en 5 pasos**: qué hace la app, nombre de la pastelería (se ve en el cartel del local), valor de la hora y margen (con gráfico de torta), precios de los 10 ingredientes más comunes y elegir entre armar la primera torta o ver una de ejemplo. También permite recuperar un respaldo.
+- **Armar torta en 3 pasos**:
+  1. **Ingredientes**: estantes por parte de la torta (masa, relleno, cobertura, decoración) o vista de lista. Cada ingrediente abre una hoja "¿Cuánto usas?" con cantidades rápidas y muestra cuánto suma. La torta se dibuja y crece con animación.
+  2. **Extras y trabajo**: caja, bandeja, velas y cartelito aparecen en el dibujo. También se cargan extras propios, horas de trabajo, gastos de cocina, porciones y notas.
+  3. **Precio**: sugerido según el margen, o tu propio precio. Muestra la ganancia, el costo, el precio por porción, de dónde sale el precio y los ingredientes que más pesan.
+- **Despensa**: ingredientes en estantes con etiqueta de precio, o en lista para editar precios rápido. Al cambiar un precio, las tortas se recalculan. Los precios de ejemplo y los de más de un mes quedan marcados.
+- **Ventas**: resumen del mes (ganancia, cobrado, costos), cada venta y lo que más se vendió.
+- **Ajustes**: datos de la pastelería, valores por defecto, licencia del dispositivo, respaldo (archivo o texto), copias automáticas diarias y borrar datos.
+- **Avisos en el inicio**: tortas que se venden por debajo del costo, precios de ejemplo, precios viejos y respaldo pendiente.
+- **Instalable y sin conexión** (PWA) una vez activada.
+- Celular (menú abajo, "Armar torta" a pantalla completa con la torta siempre a la vista) y escritorio (menú lateral).
+- **Accesibilidad**: navegable con teclado, foco visible, textos alternativos en las ilustraciones y contraste AA. Las animaciones se apagan si el sistema pide "reducir movimiento".
 
 ## Archivos
 
 | Archivo | Para qué |
 | --- | --- |
 | `public/index.html` | La app completa (HTML, CSS y JS en un archivo). |
-| `public/manifest.webmanifest` | Permite "Agregar a pantalla de inicio" como app. |
-| `public/sw.js` | Modo sin conexión. Opcional. |
-| `public/icon.svg` | Ícono de la app. |
-| `wrangler.jsonc` | Configuración para publicar en Cloudflare. |
+| `public/activar.html` | Página donde la compradora escribe su código (`/activar`). |
+| `public/admin.html` | Tu panel para crear y gestionar códigos (`/admin`). |
+| `public/manifest.webmanifest`, `public/sw.js`, `public/icon.svg` | Instalación como app y uso sin conexión. |
+| `src/worker.js` | Servidor de Cloudflare: valida códigos y solo entrega la app a dispositivos activados. |
+| `wrangler.jsonc` | Configuración de Cloudflare (Worker `cake`, base KV de códigos). |
 
-`index.html` funciona solo, incluso abriéndolo con doble clic. Los otros tres archivos suman la instalación como app y el uso sin conexión cuando está publicado en un dominio.
+## Cómo funcionan los códigos
 
-## Publicarla
+1. Alguien te compra la app.
+2. Entras a `https://TU-DOMINIO/admin`, escribes su mail y tocas **Crear código**. Se genera un código como `DULCE-7K3P-Q9XM-R2TD` y un mail listo para copiar o abrir en tu correo.
+3. La compradora abre el enlace del mail (`/activar?codigo=…`) y toca **Activar**. Queda activada en ese dispositivo y la app funciona incluso sin conexión.
+4. Cada código sirve para **3 dispositivos** (lo puedes cambiar al crearlo). Desde el panel puedes:
+   - **Revocar** un código (por ejemplo, si hubo un reembolso): la app deja de abrirse en todos sus dispositivos.
+   - **Liberar** los dispositivos de un código: sirve si alguien cambió de teléfono.
+   - **Copiar mail**: vuelve a copiar el texto para reenviárselo.
 
-Cualquier hosting estático sirve:
+   La compradora también puede liberar un lugar desde **Ajustes → Desactivar este dispositivo**.
 
-- **Cloudflare** (Workers con assets estáticos): `npx wrangler deploy`, o conecta el repo en Workers & Pages → Create → Import a repository (sin build command; deploy command `npx wrangler deploy`).
-- **Netlify Drop**: arrastra la carpeta a https://app.netlify.com/drop.
-- **Vercel** o **GitHub Pages**: publica la carpeta tal cual, sin build.
-- **Framer / Webflow**: publica la app en un hosting estático y embébela con un `iframe`, o enlaza a ella desde tu landing de venta. Los datos de cada clienta quedan en su navegador, asociados al dominio donde está publicada la app; si cambias el dominio, tendrán que usar el respaldo para pasar sus datos.
+El servidor guarda los códigos en Cloudflare KV. La app solo se entrega a dispositivos con una cookie firmada de un código válido. Sin código, cualquier visita a la app va a `/activar`.
+
+## Puesta en marcha (una sola vez)
+
+1. **Clave del panel**: en Cloudflare, abre Workers & Pages → `cake` → Settings → Variables and Secrets → Add. Tipo **Secret**, nombre `ADMIN_TOKEN`, y una clave larga que solo tú conozcas. Es la clave para entrar a `/admin`.
+2. **Rama de producción**: en Settings → Builds, elige la rama que tiene este código (o `main` después de hacer merge).
+3. **Dirección pública**: en Settings → Domains & Routes, activa `workers.dev` o agrega tu dominio propio. Si cambias de dominio más adelante, las compradoras tendrán que activar de nuevo y pasar sus datos con el respaldo, porque el navegador los guarda por dominio.
+
+## Desarrollo local
+
+```bash
+npm install
+echo "ADMIN_TOKEN=una-clave-de-prueba" > .dev.vars   # no se sube al repo
+npm run dev                                        # http://localhost:8787
+```
+
+`npm run deploy` publica desde tu computadora (necesita `npx wrangler login`). Con el repo conectado a Cloudflare, cada push a la rama de producción se publica solo.
 
 ## Personalizar
 
-- **Colores**: están como variables al principio del `<style>` en `public/index.html` (`--accent`, `--frosting`, `--bg`…).
-- **Tipografías**: Bagel Fat One (títulos) y DM Sans (texto), desde Google Fonts.
-- **Nombre**: busca "Dulce Cuenta" en `public/index.html` y `public/manifest.webmanifest`.
+- **Colores**: variables al principio del `<style>` de `public/index.html` (`--btn`, `--accent`, `--glaze`…).
+- **Tipografías**: Bagel Fat One (títulos y precios) y DM Sans (texto), desde Google Fonts.
 - **Monedas**: lista `CURRENCIES` en el script.
+- **Ingredientes comunes**: lista `COMMON` (nombre, paquete, unidad, parte de la torta e ilustración).
+- **Dispositivos por código**: `DEFAULT_DEVICES` en `src/worker.js`, o al crear cada código.
+- **Texto del mail**: función `mailBody` en `public/admin.html`.
 
 ## Cómo calcula
 
 - Costo de un ingrediente en la receta = cantidad usada × (precio del paquete ÷ tamaño del paquete).
-- Costo total = ingredientes + extras + (horas × tarifa) + gastos de cocina.
+- Costo total = ingredientes + extras + (horas × valor de la hora) + gastos de cocina.
 - Precio sugerido = costo ÷ (1 − margen), redondeado hacia arriba a un número cómodo de cobrar.
 - El margen es sobre el precio de venta: con 40%, de cada $100 que cobras, $40 son ganancia.
 
 ## Video promocional
 
-`promo/dulce-cuenta-promo.mp4`: video vertical 1080×1920 (Reels, TikTok, Stories) de 44 segundos, sin audio para que le pongas la música de la plataforma.
-
-Se genera con la app real dentro de un celular:
-
-- `promo/promo.html`: las escenas (la pregunta, la demo, beneficios y cierre). Los textos se editan acá.
-- `promo/render.mjs`: el guion de la demo (qué se toca y cuándo) y la grabación. Para volver a generarlo:
-
-```bash
-npx http-server -p 8765 -c-1 .   # en una terminal
-node promo/render.mjs            # en otra; necesita playwright y ffmpeg
-```
+`promo/dulce-cuenta-promo.mp4` es un video vertical 1080×1920 (Reels, TikTok, Stories) de 44 segundos. **Muestra el diseño anterior de la app.** `promo/promo.html` y `promo/render.mjs` lo generaban tocando la app vieja, así que hay que adaptarlos a las pantallas nuevas antes de volver a grabarlo.

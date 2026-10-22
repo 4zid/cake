@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Códigos · Dulce Cuenta</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FFE6EE">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400..800&display=swap">
+<style>
+:root { --ink: #3A2228; --ink2: #7A5860; --btn: #C42F65; --accent: #A82756; --glaze: #FFE6EE; --soft: #FFF4F7; --line: #F5D5DF; --field: #B07F8D; --red: #C0292F; --redbg: #FFE3E3; --green: #2F6B40; --greenbg: #E5F4E8; --amber: #845A08; --amberbg: #FFF3D6; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #FFFFFF; color: var(--ink); font: 15px/1.5 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+header { position: relative; padding: 20px 24px 18px; background: var(--glaze); }
+header::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 12px; background: radial-gradient(circle at 10px 0, var(--glaze) 9.5px, transparent 10.5px) 0 0 / 20px 12px repeat-x; }
+.hwrap { max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { margin: 0; font-family: 'Bagel Fat One', Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1; color: var(--accent); }
+.brand small { display: block; margin-top: 6px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink2); }
+main { max-width: 1080px; margin: 0 auto; padding: 36px 24px 60px; display: flex; flex-direction: column; gap: 24px; }
+h2 { margin: 0; font-size: 19px; font-weight: 800; }
+.card { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 24px; border: 1.5px solid var(--line); }
+.soft { background: var(--soft); border-color: var(--soft); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field span { font-weight: 700; }
+input, select { width: 100%; height: 48px; padding: 0 14px; border: 2px solid var(--field); border-radius: 14px; background: #FFFFFF; color: var(--ink); font: inherit; font-size: 16px; }
+input:focus, select:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(196, 47, 101, .25); }
+.btn { min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 2px solid var(--ink); border-radius: 14px; background: #FFFFFF; color: var(--ink); box-shadow: 0 3px 0 var(--ink); font: inherit; font-weight: 800; cursor: pointer; text-decoration: none; white-space: nowrap; transition: transform .1s, box-shadow .1s; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.btn-primary { background: var(--btn); color: #FFFFFF; }
+.btn-sm { min-height: 38px; padding: 0 12px; font-size: 13.5px; border-radius: 11px; box-shadow: 0 2px 0 var(--ink); }
+.btn-danger { color: var(--red); }
+.btn:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.muted { color: var(--ink2); }
+.msg { margin: 0; padding: 12px 14px; border-radius: 14px; font-weight: 600; }
+.msg.err { background: var(--redbg); color: var(--red); }
+.msg.ok { background: var(--greenbg); color: var(--green); }
+.msg:empty { display: none; }
+.result { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 18px; background: var(--greenbg); animation: rise .3s ease both; }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; }
+.big-code { font-size: 24px; }
+textarea { width: 100%; min-height: 150px; padding: 12px 14px; border: 2px solid var(--field); border-radius: 14px; font: inherit; font-size: 14px; resize: vertical; background: #FFFFFF; }
+.table-wrap { border-radius: 20px; border: 1.5px solid var(--line); overflow-x: auto; }
+table { width: 100%; min-width: 760px; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; vertical-align: middle; }
+thead tr { background: var(--soft); }
+thead th { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+tbody tr { border-top: 1px solid var(--line); }
+tr > :first-child { padding-left: 18px; }
+tr > :last-child { padding-right: 18px; }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.pill.on { background: var(--greenbg); color: var(--green); }
+.pill.off { background: var(--redbg); color: var(--red); }
+.pill.full { background: var(--amberbg); color: var(--amber); }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+[hidden] { display: none !important; }
+.app-wrap { display: flex; flex-direction: column; gap: 24px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 12px 18px; border-radius: 14px; background: var(--ink); color: #FFFFFF; font-weight: 700; animation: rise .25s ease both; }
+@keyframes rise { from { opacity: 0; transform: translate(var(--tx, 0), 8px); } to { opacity: 1; transform: translate(var(--tx, 0), 0); } }
+.toast { --tx: -50%; }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<header><div class="hwrap"><h1 class="brand">Dulce Cuenta<small>Códigos de acceso</small></h1><button class="btn btn-sm" id="logout" type="button" hidden>Salir</button></div></header>
+<main>
+  <section class="card" id="login" aria-labelledby="login-h">
+    <h2 id="login-h">Entrar</h2>
+    <p class="muted">Usa la clave que guardaste como <b>ADMIN_TOKEN</b> en Cloudflare. Se recuerda solo mientras esta pestaña esté abierta.</p>
+    <form class="row" id="login-form">
+      <label class="field" style="flex:1 1 280px"><span>Clave de administración</span><input type="password" id="token" autocomplete="current-password" required></label>
+      <button class="btn btn-primary" type="submit" style="align-self:flex-end">Entrar</button>
+    </form>
+    <p class="msg" id="login-msg" role="alert"></p>
+  </section>
+
+  <div id="app" class="app-wrap" hidden>
+    <section class="card soft" aria-labelledby="new-h">
+      <h2 id="new-h">Nuevo código para una compra</h2>
+      <form id="new-form" class="grid">
+        <label class="field"><span>Mail de la clienta</span><input type="email" id="n-email" placeholder="clienta@mail.com" autocomplete="off"></label>
+        <label class="field"><span>Nota (opcional)</span><input id="n-note" placeholder="Ej: compra por Instagram" autocomplete="off"></label>
+        <label class="field"><span>Dispositivos</span><select id="n-max"><option>1</option><option>2</option><option selected>3</option><option>5</option></select></label>
+        <label class="field"><span>Cantidad</span><input type="number" id="n-count" value="1" min="1" max="50"></label>
+        <button class="btn btn-primary" type="submit">Crear código</button>
+      </form>
+      <div id="created"></div>
+    </section>
+
+    <section class="card" aria-labelledby="list-h">
+      <div class="row" style="justify-content:space-between">
+        <h2 id="list-h">Códigos <span class="muted" id="count"></span></h2>
+        <label class="field" style="flex:0 1 320px"><span class="sr">Buscar</span><input type="search" id="q" placeholder="Buscar por código, mail o nota"></label>
+      </div>
+      <div class="table-wrap"><table>
+        <caption class="sr">Códigos creados</caption>
+        <thead><tr><th scope="col">Código</th><th scope="col">Clienta</th><th scope="col">Dispositivos</th><th scope="col">Estado</th><th scope="col">Creado</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead>
+        <tbody id="rows"><tr><td colspan="6" class="muted">Cargando…</td></tr></tbody>
+      </table></div>
+    </section>
+  </div>
+</main>
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const KEY = 'dc-admin-token';
+  let token = '';
+  try { token = sessionStorage.getItem(KEY) || ''; } catch (e) { /* sin almacenamiento */ }
+  let codes = [];
+
+  const toast = (t) => { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); };
+  const copy = async (text, label) => { try { await navigator.clipboard.writeText(text); toast(label || 'Copiado'); } catch (e) { prompt('Copia este texto:', text); } };
+  const link = (code) => `${location.origin}/activar?codigo=${encodeURIComponent(code)}`;
+  const mailBody = (c) => `¡Hola! Gracias por comprar Dulce Cuenta.\n\nTu código de acceso es:\n${c.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link(c.code)}\n\nPuedes usarlo en hasta ${c.maxDevices} ${c.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
+
+  async function call(method, path, body) {
+    const res = await fetch(path, { method, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { const err = new Error(data.message || 'No se pudo completar.'); err.status = res.status; throw err; }
+    return data;
+  }
+  async function load() {
+    const data = await call('GET', '/api/admin/codes');
+    codes = data.codes || [];
+    paint();
+  }
+  function paint() {
+    const q = $('#q').value.trim().toLowerCase();
+    const list = codes.filter((c) => !q || [c.code, c.email, c.note].join(' ').toLowerCase().includes(q));
+    $('#count').textContent = `· ${codes.length}`;
+    $('#rows').innerHTML = list.length ? list.map((c) => {
+      const state = c.revoked ? '<span class="pill off">Revocado</span>' : c.devices >= c.maxDevices ? '<span class="pill full">Completo</span>' : '<span class="pill on">Activo</span>';
+      return `<tr>
+        <td><span class="code">${esc(c.code)}</span></td>
+        <td>${esc(c.email) || '<span class="muted">—</span>'}${c.note ? `<br><small class="muted">${esc(c.note)}</small>` : ''}</td>
+        <td>${c.devices} de ${c.maxDevices}</td>
+        <td>${state}</td>
+        <td>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('es') : ''}</td>
+        <td><div class="actions">
+          <button class="btn btn-sm" type="button" data-a="mail" data-c="${esc(c.code)}" aria-label="Copiar mail para ${esc(c.code)}">Copiar mail</button>
+          ${c.devices ? `<button class="btn btn-sm" type="button" data-a="liberar" data-c="${esc(c.code)}" aria-label="Liberar dispositivos de ${esc(c.code)}">Liberar</button>` : ''}
+          <button class="btn btn-sm ${c.revoked ? '' : 'btn-danger'}" type="button" data-a="${c.revoked ? 'reactivar' : 'revocar'}" data-c="${esc(c.code)}" aria-label="${c.revoked ? 'Reactivar' : 'Revocar'} ${esc(c.code)}">${c.revoked ? 'Reactivar' : 'Revocar'}</button>
+        </div></td></tr>`;
+    }).join('') : `<tr><td colspan="6" class="muted">${codes.length ? 'Ningún código coincide con la búsqueda.' : 'Todavía no creaste códigos.'}</td></tr>`;
+  }
+  function showApp() {
+    $('#login').hidden = true; $('#app').hidden = false; $('#logout').hidden = false;
+    load().catch((e) => toast(e.message));
+  }
+
+  $('#login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    token = $('#token').value.trim();
+    try {
+      await call('GET', '/api/admin/codes');
+      try { sessionStorage.setItem(KEY, token); } catch (err) { /* sin almacenamiento */ }
+      $('#login-msg').textContent = '';
+      showApp();
+    } catch (err) {
+      $('#login-msg').className = 'msg err';
+      $('#login-msg').textContent = err.message;
+    }
+  });
+  $('#logout').addEventListener('click', () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* nada */ } location.reload(); });
+  $('#q').addEventListener('input', paint);
+  $('#new-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.submitter; if (btn) btn.disabled = true;
+    try {
+      const data = await call('POST', '/api/admin/codes', { email: $('#n-email').value, note: $('#n-note').value, maxDevices: $('#n-max').value, count: $('#n-count').value });
+      const made = data.created || [];
+      const first = made[0];
+      const subject = encodeURIComponent('Tu acceso a Dulce Cuenta');
+      $('#created').innerHTML = `<div class="result" role="status">
+        <b>${made.length === 1 ? 'Código creado' : `${made.length} códigos creados`}</b>
+        ${made.map((c) => `<span class="code big-code">${esc(c.code)}</span>`).join('')}
+        ${made.length === 1 ? `<label class="field"><span>Mail para enviarle</span><textarea id="mail-text">${esc(mailBody(first))}</textarea></label>
+        <div class="row"><button class="btn btn-primary" type="button" id="copy-mail">Copiar mail</button><button class="btn" type="button" id="copy-link">Copiar enlace</button>${first.email ? `<a class="btn" href="mailto:${encodeURIComponent(first.email)}?subject=${subject}&body=${encodeURIComponent(mailBody(first))}">Abrir en mi correo</a>` : ''}</div>`
+        : `<div class="row"><button class="btn btn-primary" type="button" id="copy-all">Copiar todos</button></div>`}
+      </div>`;
+      const cm = $('#copy-mail'); if (cm) cm.onclick = () => copy($('#mail-text').value, 'Mail copiado');
+      const cl = $('#copy-link'); if (cl) cl.onclick = () => copy(link(first.code), 'Enlace copiado');
+      const ca = $('#copy-all'); if (ca) ca.onclick = () => copy(made.map((c) => c.code).join('\n'), 'Códigos copiados');
+      $('#n-email').value = ''; $('#n-note').value = ''; $('#n-count').value = 1;
+      await load();
+    } catch (err) { toast(err.message); }
+    if (btn) btn.disabled = false;
+  });
+  $('#rows').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-a]');
+    if (!b) return;
+    const c = codes.find((x) => x.code === b.dataset.c);
+    if (!c) return;
+    const a = b.dataset.a;
+    if (a === 'mail') { copy(mailBody(c), 'Mail copiado'); return; }
+    if (a === 'revocar' && !confirm(`¿Revocar ${c.code}? La clienta deja de poder abrir la app.`)) return;
+    if (a === 'liberar' && !confirm(`¿Liberar los dispositivos de ${c.code}? Tendrá que volver a escribir el código en cada uno.`)) return;
+    try { await call('POST', '/api/admin/codes/' + encodeURIComponent(c.code), { action: a }); toast('Listo'); await load(); }
+    catch (err) { toast(err.message); }
+  });
+
+  if (token) {
+    call('GET', '/api/admin/codes').then(showApp).catch(() => { token = ''; });
+  }
+})();
+</script>
+</body>
+</html>

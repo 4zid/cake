@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Activa Dulce Cuenta</title>
+<meta name="description" content="Activa Dulce Cuenta con el código de tu compra.">
+<meta name="theme-color" content="#FFE6EE">
+<meta name="robots" content="noindex">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400..800&display=swap">
+<style>
+:root { --ink: #3A2228; --ink2: #7A5860; --btn: #C42F65; --accent: #A82756; --glaze: #FFE6EE; --soft: #FFF4F7; --line: #F5D5DF; --field: #B07F8D; --red: #C0292F; --redbg: #FFE3E3; --green: #2F6B40; --greenbg: #E5F4E8; --display: 'Bagel Fat One', 'Cooper Black', Georgia, serif; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: #FFFFFF; color: var(--ink); font: 16px/1.5 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.art { position: relative; display: flex; flex-direction: column; padding: 40px 48px; background: var(--glaze); }
+.art::after { content: ''; position: absolute; top: 0; bottom: 0; right: -12px; width: 12px; background: radial-gradient(circle at 0 10px, var(--glaze) 9.5px, transparent 10.5px) 0 0 / 12px 20px repeat-y; }
+.brand { margin: 0; font-family: var(--display); font-size: 28px; line-height: 1; color: var(--accent); }
+.cake { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+.cake svg { width: min(440px, 100%); height: auto; overflow: visible; animation: drop .7s cubic-bezier(.2, .9, .3, 1.25) both; }
+main { display: flex; align-items: center; padding: 40px 48px 40px 60px; }
+.box { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 20px; animation: rise .4s cubic-bezier(.2, .8, .3, 1) both; }
+h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 46px; line-height: 1.05; text-wrap: balance; }
+h1 span { color: var(--btn); }
+.lead { margin: 0; font-size: 17px; color: var(--ink2); }
+label { font-size: 15px; font-weight: 700; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+input { width: 100%; height: 60px; padding: 0 16px; border: 2px solid var(--field); border-radius: 14px; background: #FFFFFF; color: var(--ink); font: inherit; font-size: 20px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; transition: border-color .15s, box-shadow .15s; }
+input::placeholder { color: #C9A9B2; letter-spacing: .04em; }
+input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(196, 47, 101, .25); }
+input[aria-invalid="true"] { border-color: var(--red); }
+.btn { min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid var(--ink); border-radius: 16px; background: var(--btn); color: #FFFFFF; box-shadow: 0 4px 0 var(--ink); font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; transition: transform .1s, box-shadow .1s; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.btn[disabled] { opacity: .7; cursor: progress; }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.spin { width: 18px; height: 18px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .4); border-top-color: #FFFFFF; animation: spin .8s linear infinite; }
+.msg { margin: 0; padding: 12px 14px; border-radius: 14px; font-size: 15px; font-weight: 600; }
+.msg.err { background: var(--redbg); color: var(--red); }
+.msg.ok { background: var(--greenbg); color: var(--green); }
+.msg:empty { display: none; }
+.help { margin: 0; font-size: 14px; color: var(--ink2); }
+.help b { color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@keyframes drop { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.shake { animation: shake .35s ease; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+@media (max-width: 859px) {
+  body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .art { padding: 18px 16px 10px; }
+  .art::after { top: 100%; bottom: auto; left: 0; right: 0; width: auto; height: 12px; background: radial-gradient(circle at 10px 0, var(--glaze) 9.5px, transparent 10.5px) 0 0 / 20px 12px repeat-x; }
+  .brand { font-size: 22px; }
+  .cake { padding: 8px 0; }
+  .cake svg { width: 220px; }
+  main { align-items: flex-start; padding: 32px 16px calc(24px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 32px; }
+  .lead { font-size: 15px; }
+}
+</style>
+</head>
+<body>
+<div class="art" aria-hidden="true">
+  <p class="brand">Dulce Cuenta</p>
+  <div class="cake"><svg class="cake-art" viewBox="0 0 320 280" role="img" aria-label="Torta con frutillas y velas" focusable="false"><ellipse cx="160" cy="274" rx="92" ry="4.5" fill="#3A2228" opacity=".08"/><g data-k="stand"><ellipse cx="160" cy="266" rx="46" ry="7" fill="#FFFFFF" stroke="#3A2228" stroke-width="2.5"/><path d="M145 245 L175 245 L169 262 H151 Z" fill="#FFFFFF" stroke="#3A2228" stroke-width="2.5" stroke-linejoin="round"/><rect x="38" y="234" width="244" height="12" rx="6" fill="#FFFFFF" stroke="#3A2228" stroke-width="2.5"/><path d="M50 238 H120" stroke="#F2A7BB" stroke-width="2" stroke-linecap="round" fill="none"/></g><g data-k="m0"><rect x="62" y="198" width="196" height="38" rx="9" fill="#F0CB93" stroke="#3A2228" stroke-width="2.5"/><rect x="72" y="204" width="176" height="3" rx="1.5" fill="#FFFFFF" opacity=".32"/><circle cx="158.4" cy="221.7" r="1.5" fill="#C99A57"/><circle cx="116.0" cy="219.4" r="2.0" fill="#C99A57"/><circle cx="87.5" cy="227.7" r="2.1" fill="#C99A57"/><circle cx="144.7" cy="216.4" r="2.3" fill="#C99A57"/><circle cx="187.1" cy="212.5" r="1.9" fill="#C99A57"/><circle cx="114.4" cy="223.8" r="1.5" fill="#C99A57"/><circle cx="170.4" cy="220.3" r="1.5" fill="#C99A57"/><circle cx="82.6" cy="228.8" r="2.6" fill="#C99A57"/></g><g data-k="r0"><rect x="57" y="189" width="206" height="11" rx="5.5" fill="#E07A92" stroke="#3A2228" stroke-width="2.5"/></g><g data-k="m1"><rect x="62" y="153" width="196" height="38" rx="9" fill="#F0CB93" stroke="#3A2228" stroke-width="2.5"/><rect x="72" y="159" width="176" height="3" rx="1.5" fill="#FFFFFF" opacity=".32"/><circle cx="94.8" cy="174.4" r="2.5" fill="#C99A57"/><circle cx="106.5" cy="174.0" r="2.0" fill="#C99A57"/><circle cx="189.6" cy="171.3" r="1.5" fill="#C99A57"/><circle cx="243.5" cy="174.5" r="1.6" fill="#C99A57"/><circle cx="168.1" cy="172.3" r="1.5" fill="#C99A57"/><circle cx="206.9" cy="172.7" r="1.8" fill="#C99A57"/><circle cx="87.7" cy="183.6" r="1.6" fill="#C99A57"/><circle cx="226.1" cy="174.9" r="1.6" fill="#C99A57"/></g><g data-k="r1"><rect x="57" y="144" width="206" height="11" rx="5.5" fill="#E07A92" stroke="#3A2228" stroke-width="2.5"/></g><g data-k="m2"><rect x="62" y="108" width="196" height="38" rx="9" fill="#F0CB93" stroke="#3A2228" stroke-width="2.5"/><rect x="72" y="114" width="176" height="3" rx="1.5" fill="#FFFFFF" opacity=".32"/><circle cx="177.7" cy="128.6" r="2.3" fill="#C99A57"/><circle cx="186.3" cy="123.6" r="1.6" fill="#C99A57"/><circle cx="151.5" cy="122.7" r="1.4" fill="#C99A57"/><circle cx="144.9" cy="133.9" r="2.1" fill="#C99A57"/><circle cx="238.3" cy="127.2" r="1.9" fill="#C99A57"/><circle cx="159.3" cy="129.3" r="2.4" fill="#C99A57"/><circle cx="151.5" cy="129.3" r="1.6" fill="#C99A57"/><circle cx="114.7" cy="135.1" r="1.5" fill="#C99A57"/></g><g data-k="cob"><path d="M58 124 V113 Q58 105 66 105 H254 Q262 105 262 113 V124 H250 V140 A6 6 0 0 1 238 140 V124 H226 V132 A6 6 0 0 1 214 132 V124 H202 V148 A6 6 0 0 1 190 148 V124 H174 V135 A6 6 0 0 1 162 135 V124 H146 V144 A6 6 0 0 1 134 144 V124 H118 V131 A6 6 0 0 1 106 131 V124 H90 V139 A6 6 0 0 1 78 139 V124 H58 Z" fill="#F2A7BB" stroke="#3A2228" stroke-width="2.5" stroke-linejoin="round"/><path d="M72 111 H118" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".45" fill="none"/></g><g data-k="fru"><g transform="translate(82 101) scale(.6)"><path d="M0 -12 C-9 -13 -13 -6 -11 2 C-9 9 -4 14 0 16 C4 14 9 9 11 2 C13 -6 9 -13 0 -12 Z" fill="#E2384F" stroke="#3A2228" stroke-width="4" stroke-linejoin="round"/><path d="M-8 -11 L-4 -18 L0 -13 L4 -18 L8 -11 Q0 -7 -8 -11 Z" fill="#5E9A4E" stroke="#3A2228" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="-4" cy="-2" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="4" cy="-1" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="0" cy="6" rx="1.4" ry="2" fill="#FCE38A"/></g><g transform="translate(108 101) scale(.6)"><path d="M0 -12 C-9 -13 -13 -6 -11 2 C-9 9 -4 14 0 16 C4 14 9 9 11 2 C13 -6 9 -13 0 -12 Z" fill="#E2384F" stroke="#3A2228" stroke-width="4" stroke-linejoin="round"/><path d="M-8 -11 L-4 -18 L0 -13 L4 -18 L8 -11 Q0 -7 -8 -11 Z" fill="#5E9A4E" stroke="#3A2228" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="-4" cy="-2" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="4" cy="-1" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="0" cy="6" rx="1.4" ry="2" fill="#FCE38A"/></g><g transform="translate(212 101) scale(.6)"><path d="M0 -12 C-9 -13 -13 -6 -11 2 C-9 9 -4 14 0 16 C4 14 9 9 11 2 C13 -6 9 -13 0 -12 Z" fill="#E2384F" stroke="#3A2228" stroke-width="4" stroke-linejoin="round"/><path d="M-8 -11 L-4 -18 L0 -13 L4 -18 L8 -11 Q0 -7 -8 -11 Z" fill="#5E9A4E" stroke="#3A2228" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="-4" cy="-2" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="4" cy="-1" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="0" cy="6" rx="1.4" ry="2" fill="#FCE38A"/></g><g transform="translate(238 101) scale(.6)"><path d="M0 -12 C-9 -13 -13 -6 -11 2 C-9 9 -4 14 0 16 C4 14 9 9 11 2 C13 -6 9 -13 0 -12 Z" fill="#E2384F" stroke="#3A2228" stroke-width="4" stroke-linejoin="round"/><path d="M-8 -11 L-4 -18 L0 -13 L4 -18 L8 -11 Q0 -7 -8 -11 Z" fill="#5E9A4E" stroke="#3A2228" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="-4" cy="-2" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="4" cy="-1" rx="1.4" ry="2" fill="#FCE38A"/><ellipse cx="0" cy="6" rx="1.4" ry="2" fill="#FCE38A"/></g></g><g data-k="vel"><rect x="130" y="71" width="8" height="36" rx="2" fill="#9FD3E6" stroke="#3A2228" stroke-width="2"/><path d="M132 79 L136 83 M132 89 L136 93" stroke="#FFFFFF" stroke-width="2" opacity=".7" fill="none"/><ellipse cx="134" cy="62" rx="4.2" ry="7" fill="#F5A524" stroke="#3A2228" stroke-width="1.6"><animate attributeName="ry" values="7;5.8;7" dur="1.1s" repeatCount="indefinite"/></ellipse><ellipse cx="134" cy="64" rx="1.8" ry="3" fill="#FFE08A"/><rect x="156" y="63" width="8" height="44" rx="2" fill="#F6C453" stroke="#3A2228" stroke-width="2"/><path d="M158 71 L162 75 M158 81 L162 85" stroke="#FFFFFF" stroke-width="2" opacity=".7" fill="none"/><ellipse cx="160" cy="54" rx="4.2" ry="7" fill="#F5A524" stroke="#3A2228" stroke-width="1.6"><animate attributeName="ry" values="7;5.8;7" dur="1.1s" repeatCount="indefinite"/></ellipse><ellipse cx="160" cy="56" rx="1.8" ry="3" fill="#FFE08A"/><rect x="182" y="71" width="8" height="36" rx="2" fill="#F29BB6" stroke="#3A2228" stroke-width="2"/><path d="M184 79 L188 83 M184 89 L188 93" stroke="#FFFFFF" stroke-width="2" opacity=".7" fill="none"/><ellipse cx="186" cy="62" rx="4.2" ry="7" fill="#F5A524" stroke="#3A2228" stroke-width="1.6"><animate attributeName="ry" values="7;5.8;7" dur="1.1s" repeatCount="indefinite"/></ellipse><ellipse cx="186" cy="64" rx="1.8" ry="3" fill="#FFE08A"/></g></svg></div>
+</div>
+<main>
+  <form class="box" id="form" novalidate>
+    <h1>Activa tu <span>Dulce Cuenta</span></h1>
+    <p class="lead">Escribe el código que te llegó por mail con tu compra. Lo haces una sola vez en cada dispositivo.</p>
+    <div class="field">
+      <label for="code">Tu código</label>
+      <input id="code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" maxlength="24" placeholder="DULCE-XXXX-XXXX-XXXX" aria-describedby="help msg" required>
+    </div>
+    <p class="msg" id="msg" role="alert" aria-live="assertive"></p>
+    <button class="btn" type="submit" id="go">Activar</button>
+    <p class="help" id="help">Puedes usar el mismo código en tu teléfono y en tu computadora. ¿No lo encuentras? Busca <b>Dulce Cuenta</b> en tu correo o responde el mail de tu compra.</p>
+  </form>
+</main>
+<script>
+(() => {
+  'use strict';
+  const form = document.getElementById('form');
+  const input = document.getElementById('code');
+  const msg = document.getElementById('msg');
+  const btn = document.getElementById('go');
+  const ALPHA = /[^23456789ABCDEFGHJKLMNPQRSTUVWXYZ]/g;
+  const pretty = (raw) => {
+    let s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (s.startsWith('DULCE')) s = s.slice(5);
+    s = s.replace(ALPHA, '').slice(0, 12);
+    const parts = [s.slice(0, 4), s.slice(4, 8), s.slice(8, 12)].filter(Boolean);
+    return parts.length ? 'DULCE-' + parts.join('-') : '';
+  };
+  const device = () => {
+    const k = 'dulce-cuenta:device';
+    try {
+      let d = localStorage.getItem(k);
+      if (!d) { d = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^\w-]/g, ''); localStorage.setItem(k, d); }
+      return d;
+    } catch (e) { return 'tmp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+  };
+  const show = (text, ok) => { msg.textContent = text; msg.className = 'msg ' + (ok ? 'ok' : 'err'); };
+  const q = new URLSearchParams(location.search).get('codigo');
+  if (q) input.value = pretty(q);
+  input.addEventListener('input', () => {
+    const pos = input.selectionStart;
+    input.value = input.value.toUpperCase();
+    try { input.setSelectionRange(pos, pos); } catch (err) { /* sin cursor */ }
+    input.removeAttribute('aria-invalid');
+    msg.textContent = '';
+  });
+  input.addEventListener('blur', () => { input.value = pretty(input.value); });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = pretty(input.value);
+    input.value = code;
+    if (code.length !== 20) {
+      input.setAttribute('aria-invalid', 'true');
+      show('El código tiene el formato DULCE-XXXX-XXXX-XXXX.');
+      form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+      input.focus();
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin" aria-hidden="true"></span>Activando…';
+    try {
+      const res = await fetch('/api/activar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, device: device() }), credentials: 'same-origin' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        show('¡Listo! Abriendo tu Dulce Cuenta…', true);
+        setTimeout(() => location.replace('/'), 500);
+        return;
+      }
+      input.setAttribute('aria-invalid', 'true');
+      show(data.message || 'No pudimos activar el código. Prueba de nuevo.');
+      form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+    } catch (err) {
+      show('No hay conexión. Conéctate a internet para activar; después la app funciona sin conexión.');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Activar';
+  });
+  if (!q) input.focus();
+})();
+</script>
+</body>
+</html>

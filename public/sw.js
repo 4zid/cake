@@ -1,9 +1,9 @@
-// Dulce Cuenta: permite abrir la app sin conexión una vez visitada.
-const CACHE = 'dulce-cuenta-v1';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
+// Dulce Cuenta: permite abrir la app sin conexión una vez activada en este dispositivo.
+const CACHE = 'dulce-cuenta-v2';
+const FILES = ['./', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).catch(() => {}).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -15,17 +15,21 @@ self.addEventListener('activate', (e) => {
 });
 
 // Red primero para tener siempre la última versión; si no hay conexión, usa la copia guardada.
+// La activación, el panel de códigos y la API nunca se guardan.
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (url.pathname.startsWith('/api/') || /^\/(activar|admin)/.test(url.pathname)) return;
   e.respondWith(
     fetch(e.request)
       .then((res) => {
-        if (res.ok && new URL(e.request.url).origin === location.origin) {
+        // Solo se guarda la app real: si el servidor redirige a /activar, no se pisa la copia.
+        if (res.ok && !res.redirected && res.type === 'basic') {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy));
         }
         return res;
       })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match('./index.html')))
+      .catch(() => caches.match(e.request).then((r) => r || caches.match('./')))
   );
 });

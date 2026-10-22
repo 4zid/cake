@@ -1,11 +1,20 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cake",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
+  // La app, la activación y el panel de códigos son archivos estáticos de ./public.
+  // El Worker corre primero para decidir quién puede abrir la app.
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
   },
+  // Códigos de acceso de cada compra.
+  "kv_namespaces": [
+    { "binding": "LICENSES", "id": "4ac45605be854dea9824642d09ebaf22" }
+  ],
   "observability": {
     "enabled": false
   }
