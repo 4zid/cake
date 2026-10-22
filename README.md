@@ -55,3 +55,17 @@ Cualquier hosting estático sirve:
 - Costo total = ingredientes + extras + (horas × tarifa) + gastos de cocina.
 - Precio sugerido = costo ÷ (1 − margen), redondeado hacia arriba a un número cómodo de cobrar.
 - El margen es sobre el precio de venta: con 40%, de cada $100 que cobras, $40 son ganancia.
+
+## Video promocional
+
+`promo/dulce-cuenta-promo.mp4`: video vertical 1080×1920 (Reels, TikTok, Stories) de 44 segundos, sin audio para que le pongas la música de la plataforma.
+
+Se genera con la app real dentro de un celular:
+
+- `promo/promo.html`: las escenas (la pregunta, la demo, beneficios y cierre). Los textos se editan acá.
+- `promo/render.mjs`: el guion de la demo (qué se toca y cuándo) y la grabación. Para volver a generarlo:
+
+```bash
+npx http-server -p 8765 -c-1 .   # en una terminal
+node promo/render.mjs            # en otra; necesita playwright y ffmpeg
+```
