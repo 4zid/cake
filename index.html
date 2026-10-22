@@ -718,7 +718,7 @@ fieldset.fs legend { font-weight: 700; padding: 0; margin-bottom: 10px; font-siz
       ingredients: arr(d.ingredients).map((i) => ({ id: i.id || uid(), name: i.name || 'Ingrediente', packQty: num(i.packQty) || 1, packUnit: UNITS[i.packUnit] ? i.packUnit : 'u', price: num(i.price), type: UNITS[i.packUnit] ? UNITS[i.packUnit].type : 'unit', updatedAt: i.updatedAt || Date.now(), sample: !!i.sample })),
       recipes: arr(d.recipes).map((r) => ({
         id: r.id || uid(), name: r.name || '', portions: num(r.portions) || 1,
-        items: arr(r.items).map((l) => ({ id: l.id || uid(), ingId: l.ingId || '', qty: l.qty ?? '', unit: UNITS[l.unit] ? l.unit : 'g' })),
+        items: arr(r.items).filter((l) => l && l.ingId).map((l) => ({ id: l.id || uid(), ingId: l.ingId || '', qty: l.qty ?? '', unit: UNITS[l.unit] ? l.unit : 'g' })),
         extras: arr(r.extras).map((x) => ({ id: x.id || uid(), name: x.name || '', cost: x.cost ?? '' })),
         hours: r.hours ?? '', overhead: r.overhead ?? '', margin: r.margin ?? base.settings.margin, price: r.price ?? null,
         notes: r.notes || '', sample: !!r.sample, createdAt: r.createdAt || Date.now(), updatedAt: r.updatedAt || Date.now()
