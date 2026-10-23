@@ -5,6 +5,8 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
+  // Sin enlaces de vista previa por versión: solo existe la dirección oficial.
+  "preview_urls": false,
   // La app, la activación y el panel de códigos son archivos estáticos de ./public.
   // El Worker corre primero para decidir quién puede abrir la app.
   "assets": {
@@ -25,8 +27,10 @@
   "vars": {
     "CF_BEACON": "fcea3432b3824302baa271444cab2c62"
   },
+  // Registros de cada pedido (pagos, activaciones, errores) en Cloudflare → cake → Observability.
   "observability": {
-    "enabled": false
+    "enabled": true,
+    "head_sampling_rate": 1
   },
   "env": {
     // Pruebas: Worker "cake-staging", se publica desde la rama "staging"
@@ -34,6 +38,7 @@
     "staging": {
       "name": "cake-staging",
       "workers_dev": true,
+      "preview_urls": false,
       "kv_namespaces": [
         { "binding": "LICENSES", "id": "37021103a8964cfbbdfc71405db9669d" }
       ],
@@ -41,7 +46,9 @@
         { "binding": "DB", "database_name": "cake-staging-analytics", "database_id": "496d44d9-9e69-4dc6-9fa0-3067847a69bc" }
       ],
       "vars": {
-        "CF_BEACON": "ff0ce4ee1ad246fc9d90963e4aee5849"
+        "CF_BEACON": "ff0ce4ee1ad246fc9d90963e4aee5849",
+        // Oculta el ambiente de pruebas de los buscadores.
+        "STAGING": "1"
       },
       "observability": {
         "enabled": true

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /$
+Disallow: /admin
+Disallow: /activar
+Disallow: /gracias
+Disallow: /comprar
+Disallow: /api/

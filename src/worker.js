@@ -19,28 +19,35 @@ const LANDING = new Set(['/landing', '/landing.html']);
 
 export default {
   async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    try {
-      if (path === '/comprar' || path === '/comprar/') return await comprar(request, env, url, ctx);
-      if (path === '/api/mp/webhook') return await mpWebhook(request, env, url, ctx);
-      if (path.startsWith('/api/')) return await api(request, env, url, ctx);
-      /* /activar y /admin los sirve el gestor de archivos (activar.html y admin.html). */
-      if (PROTECTED.has(path)) {
-        const lic = await readLicense(request, env);
-        if (!lic) return await landing(request, env, url);
-        track(env, ctx, request, 'uso', { sid: lic.rec.code });
-        const res = await env.ASSETS.fetch(new Request(new URL('/', url), request));
-        return decorate(withHeaders(res, { 'Cache-Control': 'private, no-cache' }), env, false);
-      }
-      if (LANDING.has(path)) return await landing(request, env, url);
-      const res = await env.ASSETS.fetch(request);
-      return path.startsWith('/admin') ? res : decorate(res, env, /^\/(activar|gracias)/.test(path));
-    } catch (e) {
-      return json({ error: 'server', message: 'Algo falló del lado del servidor. Prueba de nuevo en un rato.' }, 500);
-    }
+    const res = await route(request, env, ctx);
+    /* El ambiente de pruebas no aparece en buscadores. */
+    return env.STAGING ? withHeaders(res, { 'X-Robots-Tag': 'noindex, nofollow' }) : res;
   }
 };
+
+async function route(request, env, ctx) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  if (path === '/robots.txt' && env.STAGING) return new Response('User-agent: *\nDisallow: /\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  try {
+    if (path === '/comprar' || path === '/comprar/') return await comprar(request, env, url, ctx);
+    if (path === '/api/mp/webhook') return await mpWebhook(request, env, url, ctx);
+    if (path.startsWith('/api/')) return await api(request, env, url, ctx);
+    /* /activar y /admin los sirve el gestor de archivos (activar.html y admin.html). */
+    if (PROTECTED.has(path)) {
+      const lic = await readLicense(request, env);
+      if (!lic) return await landing(request, env, url);
+      track(env, ctx, request, 'uso', { sid: lic.rec.code });
+      const res = await env.ASSETS.fetch(new Request(new URL('/', url), request));
+      return decorate(withHeaders(res, { 'Cache-Control': 'private, no-cache' }), env, false);
+    }
+    if (LANDING.has(path)) return await landing(request, env, url);
+    const res = await env.ASSETS.fetch(request);
+    return path.startsWith('/admin') ? res : decorate(res, env, /^\/(activar|gracias)/.test(path));
+  } catch (e) {
+    return json({ error: 'server', message: 'Algo falló del lado del servidor. Prueba de nuevo en un rato.' }, 500);
+  }
+}
 
 /* ======================= API ======================= */
 async function api(request, env, url, ctx) {
