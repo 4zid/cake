@@ -216,7 +216,7 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
 
 /* Tarjetas de tortas */
 .rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 16px; }
-.rcard { display: flex; flex-direction: column; gap: 12px; padding: 14px 14px 18px; border-radius: 24px; border: 1.5px solid var(--line); background: #FFFFFF; color: var(--ink); text-align: left; transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s; animation: rise .35s var(--ease) both; }
+.rcard { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 14px 14px 18px; border-radius: 24px; border: 1.5px solid var(--line); background: #FFFFFF; color: var(--ink); text-align: left; transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s; animation: rise .35s var(--ease) both; }
 .rgrid > :nth-child(2) { animation-delay: .05s; }
 .rgrid > :nth-child(3) { animation-delay: .1s; }
 .rgrid > :nth-child(n+4) { animation-delay: .15s; }
@@ -227,6 +227,29 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
 .rcard-body { display: flex; flex-direction: column; gap: 2px; padding: 0 4px; min-width: 0; }
 .rcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .rcard-name { font-size: 17px; line-height: 1.3; }
+.rcard-link { padding: 0; border: 0; background: none; color: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+.rcard-link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.rcard-link:focus-visible { outline: none; }
+.rcard:has(.rcard-link:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.rcard { cursor: pointer; }
+.rcard-menu { position: absolute; top: 20px; right: 20px; z-index: 2; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 14px; background: rgba(255, 255, 255, .92); color: var(--ink); box-shadow: 0 1px 3px rgba(58, 34, 40, .12); transition: background-color .15s, transform .15s var(--pop); }
+.rcard-menu:hover { background: #FFFFFF; transform: scale(1.06); }
+.sh-cake { display: grid; place-items: center; width: 100%; height: 100%; }
+.sh-cake .cake-art { width: 64px; height: auto; }
+.menu-list { display: flex; flex-direction: column; gap: 4px; }
+.menu-item { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 0 14px; border: 0; border-radius: 14px; background: #FFFFFF; color: var(--ink); font-size: 16px; font-weight: 700; text-align: left; transition: background-color .15s; }
+.menu-item:hover { background: var(--soft); }
+.menu-item svg { color: var(--ink2); }
+.menu-item.danger, .menu-item.danger svg { color: var(--red); }
+.btn-quiet { border-color: transparent; box-shadow: none; background: transparent; color: var(--ink2); }
+.btn-quiet:hover { background: var(--soft); color: var(--ink); }
+.btn-quiet:active { transform: scale(.97); box-shadow: none; }
+.ed-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.ed-more { display: none; }
+.s-del { white-space: nowrap; }
+.srow { cursor: pointer; transition: background-color .15s; }
+.srow:hover { background: var(--soft); }
+body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: auto; }
 .rcard-meta { font-size: 13.5px; color: var(--ink2); }
 .rcard-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 6px; }
 .price-d { font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -683,6 +706,8 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
   .rcard-art { width: 92px; height: 92px; border-radius: 16px; padding: 0; align-items: center; }
   .rcard-art .cake-art { width: 84px; }
   .rcard-top { display: contents; }
+  .rcard-menu { top: 8px; right: 8px; width: 40px; height: 40px; background: var(--soft); box-shadow: none; }
+  .rcard-body { padding-right: 34px; }
   .rcard-name { order: 1; }
   .rcard-meta { order: 2; }
   .rcard-price { order: 3; margin-top: 2px; }
@@ -738,7 +763,8 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
   .s-price { text-align: right; line-height: 1.25; }
   .s-price small { font-weight: 800 !important; }
   .s-price small.pos { color: var(--green) !important; }
-  .s-del { width: auto; }
+  .s-del { width: auto; display: flex; }
+  .s-del [data-act="del-sale"] { display: none; }
 
   .settings { padding-top: 26px; grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: 1fr; }
@@ -747,12 +773,14 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
   .ed { position: fixed; inset: 0; z-index: 20; max-width: none; gap: 0; background: #FFFFFF; animation: fade-in .2s ease both; }
   .ed-top { position: absolute; left: 6px; top: 8px; z-index: 3; }
   .ed-top .save-ind { display: none; }
+  .ed-more { position: absolute; right: 8px; top: 8px; z-index: 3; width: 44px; height: 44px; display: grid !important; place-items: center; border: 0; border-radius: 12px; background: transparent; color: var(--ink); }
+  .ed-more:hover { background: var(--soft); }
   .back span { display: none; }
   .back { width: 44px; height: 44px; padding: 0; justify-content: center; color: var(--ink); }
   .back svg { width: 22px; height: 22px; }
   .ed-grid { flex: 1 1 auto; min-height: 0; flex-direction: column; flex-wrap: nowrap; gap: 0; }
   .ed-left { position: static; flex: none; max-width: none; width: 100%; gap: 0; }
-  .ed-title { min-height: 44px; margin: 8px 16px 6px 56px; width: auto; padding: 9px 4px 7px; font-size: 19px; line-height: 1.25; letter-spacing: -.01em; }
+  .ed-title { min-height: 44px; margin: 8px 56px 6px 56px; width: auto; padding: 9px 4px 7px; font-size: 19px; line-height: 1.25; letter-spacing: -.01em; }
   .stage { height: 248px; margin: 0 12px; border-radius: 24px; padding-bottom: 8px; }
   .stage-art { width: 250px; }
   .badge-ing { left: 12px; top: 12px; padding: 6px 12px; border-radius: 14px; }
@@ -1654,15 +1682,17 @@ const thumbProps = (r) => ({ ...cakeProps(r), velas: false, topper: false });
 const editedAgo = (ts) => { const a = ago(ts); return a === 'hoy' ? 'editada hoy' : a === 'ayer' ? 'editada ayer' : a; };
 function recipeCard(r) {
   const c = calc(r);
-  return `<button type="button" class="rcard" data-open="${r.id}">
+  const name = esc(r.name || 'Torta sin nombre');
+  return `<div class="rcard">
     <span class="rcard-art">${cakeHTML(thumbProps(r), r.name || 'Torta')}</span>
+    <button type="button" class="rcard-menu" data-act="card-menu" data-id="${r.id}" aria-label="Opciones de ${name}">${ico('M5 12h.01M12 12h.01M19 12h.01', { w: 3.2, s: 22 })}</button>
     <span class="rcard-body">
-      <span class="rcard-top"><b class="rcard-name">${esc(r.name || 'Torta sin nombre')}</b>${chip(c)}</span>
+      <span class="rcard-top"><button type="button" class="rcard-name rcard-link" data-open="${r.id}">${name}</button>${chip(c)}</span>
       <span class="rcard-meta">${r.sample ? 'Ejemplo · ' : ''}${plural(c.portions, 'porción', 'porciones')} · ${editedAgo(r.updatedAt)}</span>
       <span class="rcard-price"><b class="price-d">${money(c.price)}</b>${gainText(c)}</span>
       ${c.missing ? '<span class="rcard-warn">Faltan precios de ingredientes</span>' : ''}
     </span>
-  </button>`;
+  </div>`;
 }
 const newRecipeTile = (txt = 'Empieza vacía y súmale ingredientes.') => `<button type="button" class="rcard rcard-new" data-act="new-recipe">
   <span class="rcard-new-art">${cakeHTML({ masa: 0, velas: false, frutillas: false }, 'Torta vacía')}</span>
@@ -1850,11 +1880,11 @@ views.sales = () => {
             <tbody>${list.map((s) => {
               const d = new Date(s.date + 'T12:00:00');
               const p = s.price - s.cost;
-              return `<tr><td class="s-date"><b>${d.getDate()}</b><small>${esc(fmtDate(d, { month: 'short' }).replace('.', ''))}</small></td>
+              return `<tr class="srow" data-act="edit-sale" data-id="${s.id}"><td class="s-date"><b>${d.getDate()}</b><small>${esc(fmtDate(d, { month: 'short' }).replace('.', ''))}</small></td>
                 <td class="s-cake"><span class="s-thumb">${saleThumb(s)}</span><span class="s-name"><b>${esc(s.title)}</b>${s.client ? `<small>${esc(s.client)}</small>` : ''}</span></td>
                 <td class="r s-price"><b>${money(s.price)}</b><small class="only-m ${p < 0 ? 'neg' : 'pos'}">${p < 0 ? '' : '+'}${money(p)}</small></td>
                 <td class="r s-gain only-d ${p < 0 ? 'neg' : 'pos'}">${p < 0 ? '' : '+'}${money(p)}</td>
-                <td class="s-del"><button type="button" class="icon-btn" data-act="del-sale" data-id="${s.id}" aria-label="Borrar venta de ${esc(s.title)} del ${d.getDate()} de ${esc(fmtDate(d, { month: 'long' }))}">${I.trash}</button></td></tr>`;
+                <td class="s-del"><button type="button" class="icon-btn" data-act="edit-sale" data-id="${s.id}" aria-label="Editar venta de ${esc(s.title)} del ${d.getDate()} de ${esc(fmtDate(d, { month: 'long' }))}">${I.edit}</button><button type="button" class="icon-btn" data-act="del-sale" data-id="${s.id}" aria-label="Borrar venta de ${esc(s.title)} del ${d.getDate()} de ${esc(fmtDate(d, { month: 'long' }))}">${I.trash}</button></td></tr>`;
             }).join('')}</tbody></table></div>
         </section>
         <aside class="topsold" aria-labelledby="top-h"><h2 id="top-h">Lo que más vendiste</h2>${top.map((t) => `<div class="ts-row"><span class="ts-thumb">${saleThumb(t.s)}</span><span class="ts-name"><b>${esc(t.s.title)}</b><small>${t.n === 1 ? '1 vez' : t.n + ' veces'}</small></span><b class="pos">${t.g < 0 ? '' : '+'}${money(t.g)}</b></div>`).join('')}</aside>
@@ -1925,7 +1955,13 @@ views.recipe = () => {
   const step = stepOf();
   return `<div class="ed" id="ed">
     <h1 class="sr">Armar torta${r.name ? `: ${esc(r.name)}` : ''}</h1>
-    <div class="ed-top"><button type="button" class="back" data-go="recipes" aria-label="Volver a Tus tortas">${I.back}<span>Tus tortas</span></button>${saveInd()}</div>
+    <div class="ed-top"><button type="button" class="back" data-go="recipes" aria-label="Volver a Tus tortas">${I.back}<span>Tus tortas</span></button>
+      <div class="ed-actions only-d" role="group" aria-label="Acciones de la torta">
+        <button type="button" class="btn btn-sm btn-quiet" data-act="sale-from-recipe">${ico(ICON_D.ventas, { s: 18 })}Anotar venta</button>
+        <button type="button" class="btn btn-sm btn-quiet" data-act="dup-recipe">${ico(ICON_D.copy, { s: 18 })}Duplicar</button>
+        <button type="button" class="btn btn-sm btn-quiet btn-danger-o" data-act="del-recipe">${I.trash}Eliminar</button>
+      </div>${saveInd()}</div>
+    <button type="button" class="ed-more only-m" data-act="card-menu" data-id="${r.id}" data-in-editor="1" aria-label="Opciones de la torta">${ico('M5 12h.01M12 12h.01M19 12h.01', { w: 3.2, s: 22 })}</button>
     <div class="ed-grid">
       <div class="ed-left">
         <textarea id="r-name" class="ed-title" rows="1" maxlength="60" data-in="r" data-k="name" placeholder="Ponle nombre a tu torta" aria-label="Nombre de la torta">${esc(r.name)}</textarea>
@@ -2067,7 +2103,7 @@ function panelPre(r) {
       <div id="top-ings"></div>
     </section>
   </div>
-  <div class="more-actions"><button type="button" class="btn btn-sm" data-act="dup-recipe">${I.copy}Duplicar torta</button><button type="button" class="btn btn-sm btn-danger-o" data-act="del-recipe">${I.trash}Eliminar torta</button></div>`;
+`;
 }
 
 /* Recalcula todo lo que se ve sin tocar los campos que se están escribiendo. */
@@ -2405,27 +2441,30 @@ function ingredientSheet(ing) {
 }
 
 /* ======================= Anotar venta ======================= */
-function saleSheet(recipeId) {
+function saleSheet(recipeId, saleId) {
+  const editing = saleId ? state.sales.find((x) => x.id === saleId) : null;
+  if (editing) recipeId = editing.recipeId;
   const recipes = [...state.recipes].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
+  const title = editing ? 'Editar venta' : 'Anotar venta';
   const m = openSheet({
-    label: 'Anotar venta',
-    html: `${sheetHead({ title: 'Anotar venta', sub: 'Tomamos el costo de la receta para calcular cuánto ganaste.' })}
+    label: title,
+    html: `${sheetHead({ title, sub: editing ? 'Corrige lo que haga falta.' : 'Tomamos el costo de la receta para calcular cuánto ganaste.' })}
       <form id="sale-form" class="stack" novalidate>
         <label class="field"><span>¿Qué torta vendiste?</span><span class="select"><select class="inp" id="sale-recipe" data-autofocus><option value="">Otra (escribir a mano)</option>${recipes.map((r) => `<option value="${r.id}" ${r.id === recipeId ? 'selected' : ''}>${esc(r.name || 'Torta sin nombre')}</option>`).join('')}</select></span></label>
-        <label class="field" id="sale-title-wrap"><span>Descripción</span><input class="inp" id="sale-title" placeholder="Ej: Torta de cumpleaños" maxlength="60" autocomplete="off"></label>
+        <label class="field" id="sale-title-wrap"><span>Descripción</span><input class="inp" id="sale-title" placeholder="Ej: Torta de cumpleaños" maxlength="60" autocomplete="off" value="${editing ? esc(editing.title) : ''}"></label>
         <div class="grid-2">
-          <label class="field"><span>Cobraste</span>${moneyInput('sale-price', 'class="inp"', '')}</label>
-          <label class="field"><span>Te costó</span>${moneyInput('sale-cost', 'class="inp"', '')}</label>
+          <label class="field"><span>Cobraste</span>${moneyInput('sale-price', 'class="inp"', editing ? editing.price : '')}</label>
+          <label class="field"><span>Te costó</span>${moneyInput('sale-cost', 'class="inp"', editing ? editing.cost : '')}</label>
         </div>
         <div class="grid-2">
-          <label class="field"><span>Fecha</span><input class="inp" id="sale-date" type="date" value="${todayISO()}"></label>
-          <label class="field"><span>Cliente (opcional)</span><input class="inp" id="sale-client" placeholder="Ej: Laura" maxlength="40" autocomplete="off"></label>
+          <label class="field"><span>Fecha</span><input class="inp" id="sale-date" type="date" value="${editing ? editing.date : todayISO()}"></label>
+          <label class="field"><span>Cliente (opcional)</span><input class="inp" id="sale-client" placeholder="Ej: Laura" maxlength="40" autocomplete="off" value="${editing ? esc(editing.client) : ''}"></label>
         </div>
         <p class="sum-box" id="sale-preview" aria-live="polite"></p>
         <label class="check" id="sale-update-wrap" hidden><input type="checkbox" id="sale-update" checked><span id="sale-update-text"></span></label>
         <button type="submit" hidden></button>
       </form>
-      <div class="sh-actions"><button type="button" class="btn" data-close>Cancelar</button><button type="button" class="btn btn-primary" data-save>Guardar venta</button></div>`
+      <div class="sh-actions">${editing ? `<button type="button" class="btn btn-danger-o left" data-del aria-label="Borrar venta">${I.trash}<span>Borrar</span></button>` : ''}<button type="button" class="btn" data-close>Cancelar</button><button type="button" class="btn btn-primary" data-save>Guardar venta</button></div>`
   });
   const sel = $('#sale-recipe', m.el);
   /* Si la vendió a otro precio, se ofrece usarlo como precio de la torta. */
@@ -2441,38 +2480,50 @@ function saleSheet(recipeId) {
     $('#sale-update-wrap', m.el).hidden = !r;
     if (r) $('#sale-update-text', m.el).innerHTML = `Usar <b>${money(num($('#sale-price', m.el).value))}</b> como precio de “${esc(r.name || 'Torta sin nombre')}” de ahora en adelante <small>Ahora figura a ${money(calc(r).price)}.</small>`;
   };
-  const fill = () => {
+  /* Al elegir una torta se completan precio y costo; al editar se respetan los valores guardados. */
+  const fill = (fromUser) => {
     const r = findRecipe(sel.value);
     $('#sale-title-wrap', m.el).hidden = !!r;
-    if (r) {
+    if (r && (fromUser || !editing)) {
       const c = calc(r);
       $('#sale-price', m.el).value = Math.round(c.price * 100) / 100 || '';
       $('#sale-cost', m.el).value = Math.round(c.cost * 100) / 100 || '';
     }
     preview();
   };
-  sel.addEventListener('change', fill);
+  sel.addEventListener('change', () => fill(true));
   $('#sale-form', m.el).addEventListener('input', preview);
-  fill();
+  fill(false);
   const submit = (e) => {
     if (e) e.preventDefault();
     const r = findRecipe(sel.value);
-    const title = r ? (r.name || 'Torta sin nombre') : $('#sale-title', m.el).value.trim();
-    if (!title) { $('#sale-title', m.el).focus(); toast('Escribe qué vendiste'); return; }
+    const name = r ? (r.name || 'Torta sin nombre') : $('#sale-title', m.el).value.trim();
+    if (!name) { $('#sale-title', m.el).focus(); toast('Escribe qué vendiste'); return; }
     const price = num($('#sale-price', m.el).value);
     if (!(price > 0)) { $('#sale-price', m.el).focus(); toast('Indica cuánto cobraste'); return; }
     const date = $('#sale-date', m.el).value || todayISO();
-    state.sales.push({ id: uid(), date, recipeId: r ? r.id : '', title, client: $('#sale-client', m.el).value.trim(), price, cost: num($('#sale-cost', m.el).value) });
+    const data = { date, recipeId: r ? r.id : '', title: name, client: $('#sale-client', m.el).value.trim(), price, cost: num($('#sale-cost', m.el).value) };
+    if (editing) Object.assign(editing, data);
+    else state.sales.push({ id: uid(), ...data });
     const updatePrice = priceDiffers() && $('#sale-update', m.el).checked;
     if (updatePrice) { r.price = price; r.updatedAt = Date.now(); r.sample = false; }
     save(); m.close();
     ui.month = date.slice(0, 7);
-    toast(updatePrice ? `Venta anotada. “${r.name || 'Torta sin nombre'}” ahora vale ${money(price)}` : 'Venta anotada');
+    const done = editing ? 'Venta actualizada' : 'Venta anotada';
+    toast(updatePrice ? `${done}. “${r.name || 'Torta sin nombre'}” ahora vale ${money(price)}` : done);
     if (route.view === 'recipe') { repaintPanel(); updateOut(); }
     else render();
   };
   $('#sale-form', m.el).addEventListener('submit', submit);
   $('[data-save]', m.el).addEventListener('click', submit);
+  const del = $('[data-del]', m.el);
+  if (del) del.addEventListener('click', async () => {
+    m.close();
+    const ok = await confirmBox({ title: '¿Borrar esta venta?', text: 'Se quita del resumen del mes.', ok: 'Borrar', danger: true });
+    if (!ok) return;
+    state.sales = state.sales.filter((x) => x.id !== editing.id); save(); render();
+    toast('Venta borrada');
+  });
 }
 
 /* ======================= Respaldo ======================= */
@@ -2791,6 +2842,55 @@ async function loadLicense() {
   } catch (e) { /* abierta sin servidor (por ejemplo, desde un archivo) */ }
 }
 
+/* ======================= Tortas: duplicar, eliminar y menú ======================= */
+function duplicateRecipe(id) {
+  const r = findRecipe(id);
+  if (!r) return;
+  const copy = JSON.parse(JSON.stringify(r));
+  copy.id = uid(); copy.name = (r.name || 'Torta') + ' (copia)'; copy.sample = false;
+  copy.items.forEach((l) => (l.id = uid())); copy.extras.forEach((x) => (x.id = uid()));
+  copy.createdAt = copy.updatedAt = Date.now();
+  state.recipes.push(copy); save();
+  go('recipe', { id: copy.id, step: 'ing' });
+  toast('Torta duplicada. Ya puedes cambiarla.');
+}
+async function deleteRecipe(id) {
+  const r = findRecipe(id);
+  if (!r) return;
+  const sold = state.sales.filter((s) => s.recipeId === r.id).length;
+  const ok = await confirmBox({ title: `¿Eliminar “${r.name || 'Torta sin nombre'}”?`, text: `Se borra la receta y su cálculo.${sold ? ` Las ${plural(sold, 'venta anotada', 'ventas anotadas')} se conservan.` : ''}`, ok: 'Eliminar', danger: true });
+  if (!ok) return;
+  state.recipes = state.recipes.filter((x) => x.id !== r.id); save();
+  if (route.view === 'recipe') go('recipes'); else render();
+  toast('Torta eliminada');
+}
+function cardMenu(id) {
+  const r = findRecipe(id);
+  if (!r) return;
+  const c = calc(r);
+  const inEditor = route.view === 'recipe';
+  const m = openSheet({
+    label: `Opciones de ${r.name || 'Torta sin nombre'}`, cls: 'sheet-sm',
+    html: `${sheetHead({ art: `<span class="sh-cake">${cakeHTML(thumbProps(r), '')}</span>`, title: r.name || 'Torta sin nombre', sub: `${money(c.price)} · ${plural(c.portions, 'porción', 'porciones')}` })}
+      <div class="menu-list">
+        ${inEditor ? '' : `<button type="button" class="menu-item" data-m="open" data-autofocus>${I.edit}<span>Editar torta</span></button>`}
+        <button type="button" class="menu-item" data-m="sale" ${inEditor ? 'data-autofocus' : ''}>${ico(ICON_D.ventas, { s: 20 })}<span>Anotar venta</span></button>
+        <button type="button" class="menu-item" data-m="dup">${ico(ICON_D.copy, { s: 20 })}<span>Duplicar</span></button>
+        <button type="button" class="menu-item danger" data-m="del">${I.trash}<span>Eliminar</span></button>
+      </div>`
+  });
+  $('.menu-list', m.el).addEventListener('click', (e) => {
+    const b = e.target.closest('[data-m]');
+    if (!b) return;
+    m.close();
+    const k = b.dataset.m;
+    if (k === 'open') go('recipe', { id, step: 'ing' });
+    else if (k === 'sale') saleSheet(id);
+    else if (k === 'dup') duplicateRecipe(id);
+    else deleteRecipe(id);
+  });
+}
+
 /* ======================= Acciones ======================= */
 const actions = {
   'new-recipe': newRecipe,
@@ -2870,23 +2970,10 @@ const actions = {
     toast(`“${r.name || 'Torta sin nombre'}” guardada`);
     go('home');
   },
-  'dup-recipe': () => {
-    const r = cur();
-    const copy = JSON.parse(JSON.stringify(r));
-    copy.id = uid(); copy.name = (r.name || 'Torta') + ' (copia)'; copy.sample = false;
-    copy.items.forEach((l) => (l.id = uid())); copy.extras.forEach((x) => (x.id = uid()));
-    copy.createdAt = copy.updatedAt = Date.now();
-    state.recipes.push(copy); save();
-    go('recipe', { id: copy.id, step: 'ing' });
-    toast('Torta duplicada. Ya puedes cambiarla.');
-  },
-  'del-recipe': async () => {
-    const r = cur();
-    const ok = await confirmBox({ title: `¿Eliminar “${r.name || 'Torta sin nombre'}”?`, text: 'Se borra la receta y su cálculo. Las ventas ya anotadas no se tocan.', ok: 'Eliminar', danger: true });
-    if (!ok) return;
-    state.recipes = state.recipes.filter((x) => x.id !== r.id); save();
-    go('recipes'); toast('Torta eliminada');
-  },
+  'dup-recipe': () => duplicateRecipe(route.id),
+  'del-recipe': () => deleteRecipe(route.id),
+  'card-menu': (t) => cardMenu(t.dataset.id),
+  'edit-sale': (t) => saleSheet('', t.dataset.id),
   'del-sale': async (t) => {
     const ok = await confirmBox({ title: '¿Borrar esta venta?', text: 'Se quita del resumen del mes.', ok: 'Borrar', danger: true });
     if (!ok) return;
