@@ -16,18 +16,33 @@
   "kv_namespaces": [
     { "binding": "LICENSES", "id": "4ac45605be854dea9824642d09ebaf22" }
   ],
+  // Estadísticas de la venta (visitas, clics, pagos), visibles en /admin.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "cake-analytics", "database_id": "a91179a7-1f0f-44b1-8e6a-a03c155e750b" }
+  ],
+  // CF_BEACON: Cloudflare Web Analytics (es público, va dentro de la página).
+  // Opcionales: META_PIXEL_ID (Meta Pixel) y GA4_ID (Google Analytics, G-XXXXXXX).
+  "vars": {
+    "CF_BEACON": "fcea3432b3824302baa271444cab2c62"
+  },
   "observability": {
     "enabled": false
   },
   "env": {
     // Pruebas: Worker "cake-staging", se publica desde la rama "staging"
-    // con "npx wrangler deploy --env staging". Tiene su propia base de códigos.
+    // con "npx wrangler deploy --env staging". Tiene su propia base de códigos y de estadísticas.
     "staging": {
       "name": "cake-staging",
       "workers_dev": true,
       "kv_namespaces": [
         { "binding": "LICENSES", "id": "37021103a8964cfbbdfc71405db9669d" }
       ],
+      "d1_databases": [
+        { "binding": "DB", "database_name": "cake-staging-analytics", "database_id": "496d44d9-9e69-4dc6-9fa0-3067847a69bc" }
+      ],
+      "vars": {
+        "CF_BEACON": "ff0ce4ee1ad246fc9d90963e4aee5849"
+      },
       "observability": {
         "enabled": true
       }

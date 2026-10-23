@@ -162,10 +162,23 @@ h2 { margin-top: 10px; font-size: clamp(32px, 4.2vw, 48px); font-weight: 800; li
 .incl li { display: flex; gap: 10px; align-items: flex-start; }
 .incl svg { flex: none; margin-top: 3px; color: var(--green2); }
 .price-card .btn { width: 100%; }
-.pay-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 14px; color: var(--ink2); text-align: center; }
-.pay-note svg { color: var(--ink2); }
+.pay-note { display: block; margin-top: 14px; font-size: 14px; color: var(--ink2); text-align: center; }
+.pay-note svg { margin-right: 6px; vertical-align: -2px; color: var(--ink2); }
 .closed-note { display: none; margin-top: 12px; font-weight: 700; color: var(--amber); text-align: center; }
 .is-closed .closed-note { display: block; }
+
+/* Garantía: se oculta si el Worker marca la página con no-guarantee (garantía en 0 días). */
+.no-guarantee .guarantee { display: none !important; }
+.g-note { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; padding: 14px 16px; border-radius: 18px; background: var(--greenbg); color: var(--green); font-size: 15px; line-height: 1.45; }
+.g-note svg { flex: none; margin-top: 1px; }
+.g-note b { display: block; font-size: 16px; }
+.seal-band { padding: 0 0 88px; }
+.seal { display: flex; align-items: center; gap: 28px; max-width: 860px; margin: 0 auto; padding: 30px 34px; border-radius: 30px; background: var(--greenbg); }
+.seal-badge { flex: none; display: grid; place-items: center; width: 132px; height: 132px; border-radius: 50%; background: #FFFFFF; border: 2px solid var(--ink); box-shadow: 0 5px 0 var(--ink); text-align: center; line-height: 1; color: var(--green); }
+.seal-badge b { display: block; font-family: var(--display); font-weight: 400; font-size: 52px; }
+.seal-badge span { display: block; margin-top: 4px; font-size: 14px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.seal h2 { margin: 0; font-size: clamp(26px, 3vw, 34px); color: var(--ink); }
+.seal p { margin-top: 8px; color: var(--ink2); font-size: 17px; }
 
 /* Precio de lanzamiento: solo se ve si el Worker marca la página con has-launch. */
 .launch { display: none !important; }
@@ -249,6 +262,10 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
   .steps .card p { align-self: start; margin: 0; }
   .step-n { top: 10px; left: 10px; width: 26px; height: 26px; font-size: 13px; }
   .price-card .btn { font-size: 17px; padding: 0 16px; }
+  .seal-band { padding-bottom: 64px; }
+  .seal { flex-direction: column; text-align: center; gap: 18px; padding: 26px 20px; }
+  .seal-badge { width: 112px; height: 112px; }
+  .seal-badge b { font-size: 44px; }
   .buybar { display: flex; }
   footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
 }
@@ -279,7 +296,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
       <a class="hide-m" href="#como-funciona">Cómo funciona</a>
       <a class="hide-m" href="#precio">Precio</a>
       <a href="/activar">Ya la compré</a>
-      <a class="btn btn-sm btn-buy hide-m" href="/comprar" data-buy>Comprar</a>
+      <a class="btn btn-sm btn-buy hide-m" href="/comprar" data-buy="top">Comprar</a>
     </nav>
   </div>
 </header>
@@ -292,7 +309,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
         <h1>¿A cuánto vendo <span>esta torta?</span></h1>
         <p class="lead">Dulce Cuenta calcula cuánto te cuesta cada torta, a cuánto venderla y cuánto ganas de verdad. Desde el celular, en minutos.</p>
         <div class="cta-row" id="hero-cta">
-          <a class="btn btn-lg btn-buy" href="/comprar" data-buy>Quiero Dulce Cuenta <span class="price-chip" data-price>Próximamente</span></a>
+          <a class="btn btn-lg btn-buy" href="/comprar" data-buy="hero">Quiero Dulce Cuenta <span class="price-chip" data-price>Próximamente</span></a>
           <a class="link" href="#como-funciona">Ver cómo funciona</a>
         </div>
         <p class="launch-line launch"><span class="launch-flag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4M4 4h13l-2.5 4L17 12H4"/></svg>Precio de lanzamiento</span> <span class="launch-prices"><span class="sr">antes</span><s data-list></s> <span class="sr">ahora</span><b data-price>Próximamente</b> <span class="off" data-off></span></span></p>
@@ -300,6 +317,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
           <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Pago único</span>
           <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Sin suscripción</span>
           <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Acceso al instante</span>
+          <span class="guarantee"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Garantía de <span data-days>7</span> días</span>
         </div>
       </div>
 
@@ -396,9 +414,19 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
           <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Funciona sin internet una vez activada</li>
           <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Todas las mejoras futuras incluidas</li>
         </ul>
-        <a class="btn btn-lg btn-buy" href="/comprar" data-buy>Comprar con Mercado Pago</a>
+        <a class="btn btn-lg btn-buy" href="/comprar" data-buy="card">Comprar con Mercado Pago</a>
         <p class="pay-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Pago seguro. Al pagar ves tu código al instante.</p>
+        <p class="g-note guarantee"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6zM9 12l2 2 4-4"/></svg><span><b>Garantía de <span data-days>7</span> días</b>Si no te convence, pides la devolución desde la app con un toque y te devolvemos todo. Sin preguntas.</span></p>
         <p class="closed-note">Las ventas abren muy pronto.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="seal-band guarantee" aria-labelledby="seal-h">
+    <div class="wrap">
+      <div class="seal reveal">
+        <div class="seal-badge" aria-hidden="true"><div><b data-days>7</b><span>días</span></div></div>
+        <div><h2 id="seal-h">Pruébala sin riesgo</h2><p>Úsala con tus tortas de verdad. Si en <span data-days>7</span> días no te sirve, entras a Ajustes, tocas <b>Pedir devolución</b> y Mercado Pago te devuelve el dinero solo, a tu mismo medio de pago.</p></div>
       </div>
     </div>
   </section>
@@ -407,6 +435,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
     <div class="wrap">
       <div class="sec-head reveal"><span class="kicker">Preguntas frecuentes</span><h2 id="faq-h">Lo que todos preguntan</h2></div>
       <div class="faq">
+        <details class="reveal guarantee"><summary>¿Y si no me sirve?</summary><p>Tienes <span data-days>7</span> días de garantía. Desde Ajustes, en la app, tocas Pedir devolución y Mercado Pago te devuelve el pago completo. No tienes que explicar nada.</p></details>
         <details class="reveal"><summary>¿Es una suscripción?</summary><p>No. Pagas una sola vez y la app es tuya, con todas las mejoras futuras.</p></details>
         <details class="reveal"><summary>¿Cómo recibo el acceso?</summary><p>Apenas se aprueba el pago ves tu código en pantalla, con un botón para activar la app. Lo escribes una vez en cada dispositivo.</p></details>
         <details class="reveal"><summary>¿Cómo puedo pagar?</summary><p>Con Mercado Pago: tarjeta de crédito, débito, dinero en tu cuenta y los demás medios que ofrece Mercado Pago.</p></details>
@@ -422,7 +451,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
     <div class="wrap reveal">
       <!--CAKE:{"masa":3,"relleno":true,"cobertura":"rosa","sabor":"vainilla","rellenoSabor":"frutilla","frutillas":true,"velas":true}-->
       <h2 id="final-h">Tu próxima torta, con el precio justo</h2>
-      <div class="cta-row"><a class="btn btn-lg btn-buy" href="/comprar" data-buy>Quiero Dulce Cuenta <span class="price-chip" data-price>Próximamente</span></a></div>
+      <div class="cta-row"><a class="btn btn-lg btn-buy" href="/comprar" data-buy="final">Quiero Dulce Cuenta <span class="price-chip" data-price>Próximamente</span></a></div>
       <p class="muted" style="margin-top:16px">¿Ya la compraste? <a class="link" href="/activar">Activa tu código</a></p>
     </div>
   </section>
@@ -434,13 +463,38 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
 
 <aside class="buybar" id="buybar" aria-label="Comprar Dulce Cuenta" aria-hidden="true">
   <div><small><span class="no-launch">Dulce Cuenta · pago único</span><span class="launch">Lanzamiento <span class="sr">antes</span><s data-list></s></span></small><b data-price>Próximamente</b></div>
-  <a class="btn btn-buy" href="/comprar" data-buy tabindex="-1">Comprar</a>
+  <a class="btn btn-buy" href="/comprar" data-buy="bar" tabindex="-1">Comprar</a>
 </aside>
 
 <script>
 (() => {
   'use strict';
   /*ART*/
+  /* Medición propia, sin cookies: un número de visita por pestaña y de dónde vino (utm_source o el sitio anterior). */
+  const store = (k, make) => { try { let v = sessionStorage.getItem(k); if (!v) { v = make(); sessionStorage.setItem(k, v); } return v; } catch (e) { return make(); } };
+  const sid = store('dc-sid', () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36));
+  const qs = new URLSearchParams(location.search);
+  const refHost = (() => { try { const h = new URL(document.referrer).hostname.replace(/^(www|l|lm|m)\./, ''); return h === location.hostname ? '' : h; } catch (e) { return ''; } })();
+  const src = store('dc-src', () => (qs.get('utm_source') || qs.get('src') || refHost || 'directo').toLowerCase().slice(0, 60));
+  const ev = (n, x) => {
+    const body = JSON.stringify({ n, s: sid, src, x: x || '' });
+    try { if (!(navigator.sendBeacon && navigator.sendBeacon('/api/ev', new Blob([body], { type: 'application/json' })))) fetch('/api/ev', { method: 'POST', body, keepalive: true, headers: { 'Content-Type': 'application/json' } }); } catch (e) { /* sin medición */ }
+  };
+  const seen = new Set();
+  const evOnce = (n, x) => { if (!seen.has(n)) { seen.add(n); ev(n, x); } };
+  const ads = (e, d) => { try { if (window.dcAds) window.dcAds(e, d); } catch (err) { /* sin píxel */ } };
+  ev('visita', qs.get('utm_campaign') || '');
+  document.querySelectorAll('a[data-buy]').forEach((a) => {
+    a.href = `/comprar?s=${encodeURIComponent(sid)}&src=${encodeURIComponent(src)}`;
+    a.addEventListener('click', () => { ev('clic', a.dataset.buy); ads('checkout'); });
+  });
+  document.querySelectorAll('.faq details').forEach((d, i) => d.addEventListener('toggle', () => { if (d.open) evOnce('faq', String(i + 1)); }));
+  const priceSec = document.getElementById('precio');
+  if ('IntersectionObserver' in window && priceSec) {
+    const po = new IntersectionObserver(([en]) => { if (en.isIntersecting) { evOnce('precio'); po.disconnect(); } }, { threshold: .4 });
+    po.observe(priceSec);
+  }
+
   /* Demo: cada ingrediente suma a la torta y al precio (precios de ejemplo en pesos). */
   const DEMO = [
     ['harina', 'Harina', 360, 'masa'], ['huevos', 'Huevos', 1200, 'masa'], ['manteca', 'Manteca', 2800, 'masa'], ['cacao', 'Cacao', 1560, 'masa'],
@@ -482,6 +536,8 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
     if (was) on.delete(k); else on.add(k);
     b.setAttribute('aria-pressed', String(!was));
     paint(true, was ? null : DEMO.find((d) => d[0] === k));
+    if (!seen.has('demo')) ads('demo');
+    evOnce('demo');
   });
 
   /* Aparición al hacer scroll */

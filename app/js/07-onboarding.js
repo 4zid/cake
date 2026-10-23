@@ -187,5 +187,11 @@ async function loadLicense() {
     if (!document.contains(box)) return;
     box.hidden = false;
     $('#lic-info', box).innerHTML = `Código <b>${esc(d.code)}</b>${d.email ? ` · ${esc(d.email)}` : ''}. Activado en ${plural(d.devices, 'dispositivo', 'dispositivos')} de ${d.maxDevices}.`;
+    const g = d.guarantee || {};
+    if (g.refundable) {
+      const until = new Date(g.until).toLocaleDateString('es', { day: 'numeric', month: 'long' });
+      $('#lic-g-text', box).innerHTML = `<b>Garantía de ${g.days} días.</b> Hasta el ${esc(until)} puedes pedir la devolución: Mercado Pago te devuelve el pago completo y la app se desactiva.`;
+      $('#lic-guarantee', box).hidden = false;
+    }
   } catch (e) { /* abierta sin servidor (por ejemplo, desde un archivo) */ }
 }

@@ -346,7 +346,7 @@ views.settings = () => {
           <label class="field"><span>Gas, luz y otros por torta</span>${moneyInput('set-overhead', 'data-in="setting" data-k="overhead" class="inp"', s.overhead || '')}</label>
         </div>
       </section>
-      <section class="card stack" id="lic-box" hidden aria-labelledby="lic-title"><h2 id="lic-title">Tu licencia</h2><p class="hint" id="lic-info"></p><div class="row"><button type="button" class="btn btn-sm" data-act="lic-out">Desactivar este dispositivo</button></div><p class="hint">Úsalo si vas a cambiar de teléfono o computadora: libera un lugar para activar el nuevo. Antes descarga un respaldo, porque los datos quedan en este navegador.</p></section>
+      <section class="card stack" id="lic-box" hidden aria-labelledby="lic-title"><h2 id="lic-title">Tu licencia</h2><p class="hint" id="lic-info"></p><div class="row"><button type="button" class="btn btn-sm" data-act="lic-out">Desactivar este dispositivo</button></div><p class="hint">Úsalo si vas a cambiar de teléfono o computadora: libera un lugar para activar el nuevo. Antes descarga un respaldo, porque los datos quedan en este navegador.</p><div class="stack" id="lic-guarantee" hidden><p class="hint" id="lic-g-text"></p><div class="row"><button type="button" class="btn btn-sm" data-act="lic-refund">Pedir devolución</button></div></div></section>
       <section class="card stack" aria-labelledby="bk-title"><h2 id="bk-title">Respaldo de tus datos</h2>
         <p class="hint">Todo se guarda en este navegador. Descarga un respaldo de vez en cuando para no perder nada si cambias de teléfono o borras el historial. ${s.lastExport ? `Último respaldo: ${ago(s.lastExport)}.` : 'Todavía no hiciste ninguno.'}</p>
         <div class="row">

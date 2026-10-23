@@ -56,6 +56,24 @@ Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al m
    - **Precio original tachado** (opcional): si es mayor que el precio que se cobra, la landing muestra "Precio de lanzamiento", el precio anterior tachado y el porcentaje de descuento. Para terminar el lanzamiento, borra el precio original o iguala los dos.
 5. **Mail automático con el código (opcional):** necesita un dominio propio verificado en [Resend](https://resend.com). Guarda los Secrets `RESEND_API_KEY` y `MAIL_FROM` (por ejemplo `Dulce Cuenta <hola@tudominio.com>`). Sin esto, el código se ve en `/gracias` y puedes reenviarlo desde `/admin` con **Copiar mail**.
 
+## Garantía
+
+En `/admin` eliges los días de garantía (7 por defecto; 0 la apaga). La landing, la página de gracias y los Ajustes de la app lo muestran.
+
+- Dentro del plazo, la compradora entra a **Ajustes → Pedir devolución**. El Worker pide el reembolso completo a Mercado Pago y revoca el código: la app deja de abrir en todos sus dispositivos.
+- Si Mercado Pago no acepta la devolución (por ejemplo, falta saldo disponible), el pedido queda marcado como **Pidió devolución** en `/admin` y lo haces con el botón **Devolver dinero**.
+- **Devolver dinero** en `/admin` sirve para cualquier compra con Mercado Pago, dentro o fuera del plazo.
+- Si devuelves el pago desde tu cuenta de Mercado Pago, el aviso también revoca el código.
+
+## Estadísticas
+
+`/admin` muestra el embudo de la venta: visitas, quiénes probaron la demo, vieron el precio, tocaron comprar, llegaron a Mercado Pago y pagaron. También ingresos, devoluciones, de dónde vienen las visitas, el dispositivo, qué botón tocaron, el país y cuántas personas usaron la app en la última semana.
+
+- Se guarda en Cloudflare D1 (`cake-analytics` en producción y `cake-staging-analytics` en pruebas), sin cookies ni datos personales. Cada visita es una pestaña.
+- **De dónde vienen**: agrega `?utm_source=instagram` (o `tiktok`, `whatsapp`, `facebook`…) al enlace que compartes, y `&utm_campaign=nombre` si quieres separar campañas. Sin eso se usa el sitio anterior, y si no hay, "directo".
+- **Cloudflare Web Analytics** (velocidad de carga, páginas vistas, navegadores) está activo en todas las páginas salvo `/admin`. Se ve en el panel de Cloudflare → Web Analytics.
+- **Meta Pixel y Google Analytics 4** (opcionales, para medir anuncios): agrega en `wrangler.jsonc`, dentro de `vars`, `"META_PIXEL_ID": "123456789012345"` o `"GA4_ID": "G-XXXXXXX"`. La landing envía PageView, la demo (`ProboDemo`), el clic en comprar (`InitiateCheckout` / `begin_checkout`) y la página de gracias la compra (`Purchase` / `purchase`) con el monto en pesos.
+
 ## Cómo funcionan los códigos
 
 1. Alguien te compra la app.

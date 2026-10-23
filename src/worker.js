@@ -5,6 +5,9 @@
    - /admin: página para crear, revocar y liberar códigos (protegida con ADMIN_TOKEN).
    - /comprar: cobra con Mercado Pago (Checkout Pro). Con el pago aprobado se crea el código solo
      y se muestra en /gracias; los reembolsos y contracargos lo revocan.
+   - Garantía: dentro de los días configurados, la compradora pide la devolución desde Ajustes y se
+     reembolsa sola en Mercado Pago (el código queda revocado).
+   - Medición: los pasos de la venta se guardan en D1 (binding DB) y se ven en /admin → Estadísticas.
    Los códigos viven en el KV "LICENSES" con la clave "code:DULCE-XXXX-XXXX-XXXX". */
 
 const COOKIE = 'dc_lic';
@@ -19,18 +22,20 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     try {
-      if (path === '/comprar' || path === '/comprar/') return await comprar(request, env, url);
+      if (path === '/comprar' || path === '/comprar/') return await comprar(request, env, url, ctx);
       if (path === '/api/mp/webhook') return await mpWebhook(request, env, url, ctx);
-      if (path.startsWith('/api/')) return await api(request, env, url);
+      if (path.startsWith('/api/')) return await api(request, env, url, ctx);
       /* /activar y /admin los sirve el gestor de archivos (activar.html y admin.html). */
       if (PROTECTED.has(path)) {
         const lic = await readLicense(request, env);
         if (!lic) return await landing(request, env, url);
+        track(env, ctx, request, 'uso', { sid: lic.rec.code });
         const res = await env.ASSETS.fetch(new Request(new URL('/', url), request));
-        return withHeaders(res, { 'Cache-Control': 'private, no-cache' });
+        return decorate(withHeaders(res, { 'Cache-Control': 'private, no-cache' }), env, false);
       }
       if (LANDING.has(path)) return await landing(request, env, url);
-      return env.ASSETS.fetch(request);
+      const res = await env.ASSETS.fetch(request);
+      return path.startsWith('/admin') ? res : decorate(res, env, /^\/(activar|gracias)/.test(path));
     } catch (e) {
       return json({ error: 'server', message: 'Algo falló del lado del servidor. Prueba de nuevo en un rato.' }, 500);
     }
@@ -38,7 +43,7 @@ export default {
 };
 
 /* ======================= API ======================= */
-async function api(request, env, url) {
+async function api(request, env, url, ctx) {
   const path = url.pathname;
   const method = request.method;
 
@@ -59,6 +64,7 @@ async function api(request, env, url) {
       }
       rec.devices.push({ id: device, at: Date.now(), ua: (request.headers.get('User-Agent') || '').slice(0, 120) });
       await putCode(env, rec);
+      track(env, ctx, request, 'activacion', { sid: code, src: rec.source || 'manual', extra: String(rec.devices.length) });
     }
     const token = await sign(env, { c: code, d: device, i: Date.now() });
     return json({ ok: true }, 200, { 'Set-Cookie': cookie(token, url) });
@@ -69,12 +75,38 @@ async function api(request, env, url) {
     return json({ open: salesOpen(env, cfg), price: cfg.price || 0, listPrice: cfg.listPrice || 0, off: cfg.off || 0, title: cfg.title });
   }
 
-  if (path === '/api/compra' && method === 'GET') return compraStatus(env, url);
+  if (path === '/api/compra' && method === 'GET') return compraStatus(env, url, request, ctx);
+
+  /* Eventos de la landing (visita, demo, precio, preguntas, clic en comprar). Sin cookies ni datos personales. */
+  if (path === '/api/ev' && method === 'POST') {
+    const body = await readJSON(request);
+    const name = String(body.n || '');
+    if (CLIENT_EVENTS.has(name) && /^[\w-]{6,40}$/.test(String(body.s || ''))) track(env, ctx, request, name, { sid: body.s, src: body.src, extra: body.x });
+    return new Response(null, { status: 204 });
+  }
 
   if (path === '/api/licencia' && method === 'GET') {
     const lic = await readLicense(request, env);
     if (!lic) return json({ error: 'sin-licencia' }, 401);
-    return json({ code: lic.rec.code, email: lic.rec.email || '', devices: lic.rec.devices.length, maxDevices: lic.rec.maxDevices || DEFAULT_DEVICES });
+    const cfg = await savedConfig(env);
+    return json({ code: lic.rec.code, email: lic.rec.email || '', devices: lic.rec.devices.length, maxDevices: lic.rec.maxDevices || DEFAULT_DEVICES, guarantee: guaranteeInfo(env, cfg, lic.rec) });
+  }
+
+  /* Garantía: la compradora pide la devolución desde Ajustes y se reembolsa sola. */
+  if (path === '/api/devolucion' && method === 'POST') {
+    const lic = await readLicense(request, env);
+    if (!lic) return json({ error: 'sin-licencia', message: 'Esta app no está activada en este dispositivo.' }, 401);
+    const g = guaranteeInfo(env, await savedConfig(env), lic.rec);
+    if (!g.refundable) return json({ error: 'fuera-de-plazo', message: g.days ? `La garantía era de ${g.days} días desde la compra y ya venció.` : 'Esta compra no tiene devolución automática.' }, 403);
+    try {
+      await refundLicense(env, lic.rec, 'compradora');
+    } catch (e) {
+      lic.rec.refundRequestedAt = Date.now();
+      await putCode(env, lic.rec);
+      return json({ error: 'manual', message: 'No pudimos hacer la devolución automática. Tu pedido quedó registrado y te devolvemos el dinero a mano en los próximos días.' }, 502);
+    }
+    track(env, ctx, request, 'reembolso', { sid: lic.rec.code, src: 'compradora', val: lic.rec.amount });
+    return json({ ok: true }, 200, { 'Set-Cookie': `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${url.protocol === 'https:' ? '; Secure' : ''}` });
   }
 
   if (path === '/api/salir' && method === 'POST') {
@@ -86,11 +118,11 @@ async function api(request, env, url) {
     return json({ ok: true }, 200, { 'Set-Cookie': `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${url.protocol === 'https:' ? '; Secure' : ''}` });
   }
 
-  if (path.startsWith('/api/admin/')) return admin(request, env, url);
+  if (path.startsWith('/api/admin/')) return admin(request, env, url, ctx);
   return json({ error: 'no-encontrado' }, 404);
 }
 
-async function admin(request, env, url) {
+async function admin(request, env, url, ctx) {
   if (!env.ADMIN_TOKEN) return json({ error: 'sin-configurar', message: 'Falta configurar ADMIN_TOKEN en Cloudflare (Settings → Variables and Secrets).' }, 503);
   const auth = request.headers.get('Authorization') || '';
   const given = auth.startsWith('Bearer ') ? auth.slice(7) : '';
@@ -111,11 +143,14 @@ async function admin(request, env, url) {
       mode: body.mode === 'usd' || body.mode === 'ars' ? body.mode : cfg.mode,
       dolar: DOLARES.includes(body.dolar) ? body.dolar : cfg.dolar,
       title: String(body.title ?? cfg.title).trim().slice(0, 120) || DEFAULT_CONFIG.title,
-      maxDevices: Math.min(Math.max(parseInt(body.maxDevices ?? cfg.maxDevices, 10) || DEFAULT_DEVICES, 1), 20)
+      maxDevices: Math.min(Math.max(parseInt(body.maxDevices ?? cfg.maxDevices, 10) || DEFAULT_DEVICES, 1), 20),
+      guaranteeDays: Math.min(Math.max(parseInt(body.guaranteeDays ?? cfg.guaranteeDays, 10) || 0, 0), 30)
     };
     await env.LICENSES.put('config', JSON.stringify(next));
     return json(await adminConfig(env, url));
   }
+
+  if (path === '/api/admin/stats' && method === 'GET') return json(await stats(env, parseInt(url.searchParams.get('dias'), 10) || 30));
 
   if (path === '/api/admin/codes' && method === 'GET') {
     const out = [];
@@ -154,6 +189,11 @@ async function admin(request, env, url) {
     if (method === 'GET') return json({ code: rec });
     if (method === 'POST') {
       const body = await readJSON(request);
+      if (body.action === 'reembolsar') {
+        try { await refundLicense(env, rec, 'admin'); } catch (e) { return json({ error: 'mp', message: e.userMessage || 'Mercado Pago no aceptó la devolución. Revisa que tengas saldo disponible o hazla desde tu cuenta.' }, 502); }
+        track(env, ctx, request, 'reembolso', { sid: rec.code, src: 'admin', val: rec.amount });
+        return json({ code: summary(rec) });
+      }
       if (body.action === 'revocar') rec.revoked = true;
       else if (body.action === 'reactivar') rec.revoked = false;
       else if (body.action === 'liberar') rec.devices = [];
@@ -184,7 +224,7 @@ function normalizeCode(raw) {
   if (s.length !== 12 || [...s].some((c) => !ALPHABET.includes(c))) return null;
   return `DULCE-${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
 }
-const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0 });
+const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0, revokedReason: rec.revokedReason || '', refundedAt: rec.refundedAt || 0, refundRequestedAt: rec.refundRequestedAt || 0 });
 async function getCode(env, code) {
   return env.LICENSES.get('code:' + code, { type: 'json' });
 }
@@ -259,7 +299,7 @@ function unb64url(s) {
 /* ======================= Venta con Mercado Pago ======================= */
 /* Precio: en pesos fijos (price/listPrice) o en dólares (usd/usdList) convertidos al dólar del día.
    listPrice/usdList es el precio original que se muestra tachado durante el lanzamiento. */
-const DEFAULT_CONFIG = { mode: 'ars', price: 0, listPrice: 0, usd: 0, usdList: 0, dolar: 'oficial', title: 'Dulce Cuenta · acceso a la app', currency: 'ARS', maxDevices: DEFAULT_DEVICES };
+const DEFAULT_CONFIG = { mode: 'ars', price: 0, listPrice: 0, usd: 0, usdList: 0, dolar: 'oficial', title: 'Dulce Cuenta · acceso a la app', currency: 'ARS', maxDevices: DEFAULT_DEVICES, guaranteeDays: 7 };
 const DOLARES = ['oficial', 'blue', 'bolsa', 'tarjeta'];
 const FX_HOURS = 6;
 const PRODUCT = 'dulce-cuenta';
@@ -330,8 +370,14 @@ async function mp(env, method, path, body, extraHeaders = {}) {
   return data;
 }
 /* /comprar: crea la preferencia de pago y lleva a la compradora a Mercado Pago. */
-async function comprar(request, env, url) {
+async function comprar(request, env, url, ctx) {
   const cfg = await getConfig(env);
+  /* La landing agrega su número de visita y de dónde vino, para unir el pago con la visita en las estadísticas. */
+  const q = url.searchParams;
+  const sid = /^[\w-]{6,40}$/.test(q.get('s') || '') ? q.get('s') : '';
+  const src = clean(q.get('src'), 60);
+  const dev = deviceOf(request.headers.get('User-Agent') || '');
+  const country = (request.cf && request.cf.country) || '';
   if (!salesOpen(env, cfg)) return redirect(new URL('/gracias?estado=cerrado', url));
   const ref = `dc-${b64url(crypto.getRandomValues(new Uint8Array(12)))}`;
   try {
@@ -342,15 +388,16 @@ async function comprar(request, env, url) {
       notification_url: `${url.origin}/api/mp/webhook`,
       external_reference: ref,
       statement_descriptor: 'DULCE CUENTA',
-      metadata: { product: PRODUCT }
+      metadata: { product: PRODUCT, sid, src, dev, country }
     }, { 'X-Idempotency-Key': ref });
+    track(env, ctx, request, 'checkout', { sid, src });
     return redirect(new URL(pref.init_point));
   } catch (e) {
     return redirect(new URL('/gracias?estado=error', url));
   }
 }
 /* /api/compra: la página /gracias pregunta cómo salió el pago y, si se aprobó, recibe el código. */
-async function compraStatus(env, url) {
+async function compraStatus(env, url, request, ctx) {
   const id = (url.searchParams.get('payment_id') || url.searchParams.get('collection_id') || '').replace(/\D/g, '');
   const ref = url.searchParams.get('ref') || url.searchParams.get('external_reference') || '';
   if (!id || !ref) return json({ status: 'desconocido' }, 400);
@@ -361,9 +408,12 @@ async function compraStatus(env, url) {
   if (pay.external_reference !== ref || !isOurs(pay)) return json({ status: 'desconocido' }, 404);
   if (pay.status === 'approved') {
     const rec = await ensureLicense(env, pay, url.origin);
-    return json({ status: 'aprobado', code: rec.code, email: rec.email || '', emailSent: !!rec.emailSentAt, maxDevices: rec.maxDevices });
+    const cfg = await savedConfig(env);
+    return json({ status: 'aprobado', code: rec.code, email: rec.email || '', emailSent: !!rec.emailSentAt, maxDevices: rec.maxDevices, amount: rec.amount || 0, paymentId: rec.paymentId, guaranteeDays: env.MP_ACCESS_TOKEN ? cfg.guaranteeDays : 0 });
   }
   if (pay.status === 'pending' || pay.status === 'in_process' || pay.status === 'authorized') return json({ status: 'pendiente' });
+  const md = pay.metadata || {};
+  track(env, ctx, request, 'rechazo', { sid: md.sid, src: md.src, dev: md.dev, extra: pay.status_detail || pay.status });
   return json({ status: 'rechazado' });
 }
 const isOurs = (pay) => (pay.metadata && pay.metadata.product === PRODUCT) || String(pay.external_reference || '').startsWith('dc-');
@@ -403,6 +453,11 @@ async function processPayment(env, id, origin) {
     if (rec && !rec.revoked) {
       rec.revoked = true;
       rec.revokedReason = pay.status === 'charged_back' ? 'contracargo' : 'reembolso';
+      if (!rec.refundedAt) {
+        rec.refundedAt = Date.now();
+        rec.refundBy = 'mercadopago';
+        await track(env, null, null, pay.status === 'charged_back' ? 'contracargo' : 'reembolso', { sid: rec.code, src: 'mercadopago', val: rec.amount });
+      }
       await putCode(env, rec);
     }
   }
@@ -424,6 +479,8 @@ async function ensureLicense(env, pay, origin) {
       source: 'mercadopago', paymentId: String(pay.id), amount: pay.transaction_amount || 0
     };
     await putCode(env, rec);
+    const md = pay.metadata || {};
+    await track(env, null, null, 'pago', { sid: md.sid, src: md.src, dev: md.dev || '?', country: md.country, val: rec.amount });
   }
   if (!rec.emailSentAt && rec.email && env.RESEND_API_KEY && env.MAIL_FROM) {
     const sent = await sendCodeMail(env, rec, origin).catch(() => false);
@@ -441,6 +498,101 @@ async function sendCodeMail(env, rec, origin) {
     body: JSON.stringify({ from: env.MAIL_FROM, to: [rec.email], subject: 'Tu acceso a Dulce Cuenta', text, html })
   });
   return res.ok;
+}
+
+/* ======================= Garantía ======================= */
+function guaranteeInfo(env, cfg, rec) {
+  const days = cfg.guaranteeDays || 0;
+  const until = rec.source === 'mercadopago' && days ? (rec.createdAt || 0) + days * 86400e3 : 0;
+  return { days, until, requested: !!rec.refundRequestedAt, refundable: !!(until && Date.now() < until && !rec.revoked && rec.paymentId && env.MP_ACCESS_TOKEN) };
+}
+/* Devuelve el pago completo en Mercado Pago y revoca el código. Se puede repetir sin cobrar dos veces. */
+async function refundLicense(env, rec, by) {
+  if (rec.source !== 'mercadopago' || !rec.paymentId) {
+    const e = new Error('sin pago'); e.userMessage = 'Este código no tiene un pago de Mercado Pago para devolver.'; throw e;
+  }
+  if (!rec.refundedAt) {
+    await mp(env, 'POST', `/v1/payments/${rec.paymentId}/refunds`, {}, { 'X-Idempotency-Key': `refund-${rec.paymentId}` });
+    rec.refundedAt = Date.now();
+    rec.refundBy = by;
+  }
+  rec.revoked = true;
+  rec.revokedReason = 'reembolso';
+  await putCode(env, rec);
+}
+
+/* ======================= Medición (D1) ======================= */
+const CLIENT_EVENTS = new Set(['visita', 'demo', 'precio', 'faq', 'clic']);
+const BOTS = /bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|telegram|headless|lighthouse|curl|wget/i;
+const clean = (v, n) => String(v ?? '').replace(/[^\w .:/@-]/g, '').trim().slice(0, n).toLowerCase();
+const deviceOf = (ua) => (/iPad|Tablet/i.test(ua) ? 'tablet' : /Mobi|Android|iPhone/i.test(ua) ? 'celular' : 'compu');
+/* Día en hora de Argentina (UTC−3). */
+const dayAR = (ts) => new Date(ts - 3 * 3600e3).toISOString().slice(0, 10);
+let schema = null;
+function ensureSchema(env) {
+  if (!schema) {
+    schema = env.DB.batch([
+      env.DB.prepare('CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, name TEXT NOT NULL, sid TEXT, src TEXT, dev TEXT, country TEXT, val REAL, extra TEXT)'),
+      env.DB.prepare('CREATE INDEX IF NOT EXISTS events_day ON events (day, name)')
+    ]).catch((e) => { schema = null; throw e; });
+  }
+  return schema;
+}
+/* Guarda un evento. Nunca frena ni rompe la respuesta: si falla, se pierde ese evento y listo. */
+function track(env, ctx, request, name, d = {}) {
+  if (!env.DB) return Promise.resolve();
+  const ua = (request && request.headers.get('User-Agent')) || '';
+  if (request && BOTS.test(ua)) return Promise.resolve();
+  const ts = Date.now();
+  const row = [ts, dayAR(ts), name, clean(d.sid, 40), clean(d.src, 60), d.dev || deviceOf(ua), d.country || (request && request.cf && request.cf.country) || '', Number(d.val) || 0, clean(d.extra, 200)];
+  const work = ensureSchema(env)
+    .then(() => env.DB.prepare('INSERT INTO events (ts, day, name, sid, src, dev, country, val, extra) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(...row).run())
+    .catch(() => {});
+  if (ctx && ctx.waitUntil) ctx.waitUntil(work);
+  return work;
+}
+async function stats(env, dias) {
+  if (!env.DB) return { enabled: false };
+  await ensureSchema(env);
+  const n = Math.min(Math.max(dias, 1), 365);
+  const since = dayAR(Date.now() - (n - 1) * 86400e3);
+  const week = dayAR(Date.now() - 6 * 86400e3);
+  const SALES = "name IN ('visita', 'clic', 'checkout', 'pago')";
+  const q = (sql, ...args) => env.DB.prepare(sql).bind(...args);
+  const [steps, daily, sources, devices, places, countries, active] = await env.DB.batch([
+    q('SELECT name, COUNT(DISTINCT sid) AS u, COUNT(*) AS n, SUM(val) AS v FROM events WHERE day >= ? GROUP BY name', since),
+    q(`SELECT day, name, COUNT(DISTINCT sid) AS u, COUNT(*) AS n, SUM(val) AS v FROM events WHERE day >= ? AND ${SALES} GROUP BY day, name`, since),
+    q(`SELECT COALESCE(NULLIF(src, ''), 'directo') AS k, name, COUNT(DISTINCT sid) AS u, COUNT(*) AS n, SUM(val) AS v FROM events WHERE day >= ? AND ${SALES} GROUP BY k, name`, since),
+    q(`SELECT dev AS k, name, COUNT(DISTINCT sid) AS u, COUNT(*) AS n, SUM(val) AS v FROM events WHERE day >= ? AND ${SALES} GROUP BY k, name`, since),
+    q("SELECT COALESCE(NULLIF(extra, ''), '?') AS k, COUNT(*) AS n FROM events WHERE day >= ? AND name = 'clic' GROUP BY k ORDER BY n DESC", since),
+    q("SELECT COALESCE(NULLIF(country, ''), '?') AS k, COUNT(DISTINCT sid) AS u FROM events WHERE day >= ? AND name = 'visita' GROUP BY k ORDER BY u DESC LIMIT 8", since),
+    q("SELECT COUNT(DISTINCT sid) AS u FROM events WHERE day >= ? AND name = 'uso'", week)
+  ]);
+  return { enabled: true, dias: n, since, steps: steps.results, daily: daily.results, sources: sources.results, devices: devices.results, places: places.results, countries: countries.results, activeWeek: active.results[0]?.u || 0 };
+}
+
+/* ======================= Etiquetas de medición en las páginas ======================= */
+/* Cloudflare Web Analytics en todas las páginas (salvo /admin); Meta Pixel y Google Analytics, si están configurados,
+   solo en las páginas de venta. window.dcAds(evento) avisa a esas herramientas: demo, checkout y purchase. */
+function decorate(res, env, ads) {
+  if (!(res.headers.get('Content-Type') || '').includes('text/html')) return res;
+  const beacon = /^[a-f0-9]{32}$/.test(env.CF_BEACON || '') ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${env.CF_BEACON}"}'></script>` : '';
+  const tags = ads ? adsTags(env) : '';
+  if (!beacon && !tags) return res;
+  return new HTMLRewriter()
+    .on('head', { element(e) { if (tags) e.append(tags, { html: true }); } })
+    .on('body', { element(e) { if (beacon) e.append(beacon, { html: true }); } })
+    .transform(res);
+}
+function adsTags(env) {
+  const px = /^\d{6,20}$/.test(env.META_PIXEL_ID || '') ? env.META_PIXEL_ID : '';
+  const ga = /^G-[A-Z0-9]{4,16}$/.test(env.GA4_ID || '') ? env.GA4_ID : '';
+  if (!px && !ga) return '';
+  let out = '';
+  if (px) out += `<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${px}');fbq('track','PageView');</script>`;
+  if (ga) out += `<script async src="https://www.googletagmanager.com/gtag/js?id=${ga}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${ga}');</script>`;
+  out += `<script>window.dcAds=function(e,d){d=d||{};try{if(window.fbq){if(e==='demo')fbq('trackCustom','ProboDemo');if(e==='checkout')fbq('track','InitiateCheckout');if(e==='purchase')fbq('track','Purchase',{value:d.value,currency:'ARS'},{eventID:'pago-'+d.id})}if(window.gtag){if(e==='demo')gtag('event','probo_demo');if(e==='checkout')gtag('event','begin_checkout',{currency:'ARS'});if(e==='purchase')gtag('event','purchase',{value:d.value,currency:'ARS',transaction_id:String(d.id)})}}catch(_){}};</script>`;
+  return out;
 }
 
 /* ======================= Utilidades HTTP ======================= */
@@ -467,7 +619,8 @@ async function landing(request, env, url) {
   const money = (n) => '$' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   const price = open ? money(cfg.price) : 'Próximamente';
   const launch = open && cfg.listPrice > cfg.price;
-  const cls = [open ? '' : 'is-closed', launch ? 'has-launch' : ''].filter(Boolean).join(' ');
+  const days = env.MP_ACCESS_TOKEN ? cfg.guaranteeDays || 0 : 0;
+  const cls = [open ? '' : 'is-closed', launch ? 'has-launch' : '', days ? '' : 'no-guarantee'].filter(Boolean).join(' ');
   /* X-Dulce-Page le avisa al service worker que no guarde esta página en lugar de la app. */
   const out = withHeaders(res, { 'Cache-Control': 'private, no-cache', 'X-Dulce-Page': 'landing' });
   out.headers.delete('ETag');
@@ -475,10 +628,11 @@ async function landing(request, env, url) {
     .on('[data-price]', { element(e) { e.setInnerContent(price); } })
     .on('[data-list]', { element(e) { e.setInnerContent(launch ? money(cfg.listPrice) : ''); } })
     .on('[data-off]', { element(e) { e.setInnerContent(launch ? `${cfg.off}% OFF` : ''); } })
+    .on('[data-days]', { element(e) { e.setInnerContent(String(days)); } })
     .on('body', { element(e) { if (cls) e.setAttribute('class', cls); } })
     /* WhatsApp y las redes necesitan la dirección completa de la imagen para mostrar la vista previa. */
     .on('meta[property="og:image"]', { element(e) { e.setAttribute('content', `${url.origin}/og.png`); } })
-    .transform(out);
+    .transform(decorate(out, env, true));
 }
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers } });

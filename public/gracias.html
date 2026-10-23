@@ -90,6 +90,7 @@ h1:focus { outline: none; }
       <div class="code-box"><span class="code" id="code"></span><button class="copy" type="button" id="copy">Copiar</button></div>
       <a class="btn" id="go" href="/activar">Activar ahora</a>
       <p class="help" id="mail-note"></p>
+      <p class="help" id="g-note" hidden></p>
     </section>
     <section class="state" id="s-pendiente" hidden>
       <h1>Tu pago está <span>en proceso</span></h1>
@@ -135,6 +136,9 @@ h1:focus { outline: none; }
         document.getElementById('code').textContent = d.code;
         document.getElementById('go').href = '/activar?codigo=' + encodeURIComponent(d.code);
         document.getElementById('mail-note').textContent = d.emailSent && d.email ? 'También te lo enviamos a ' + d.email + '.' : 'Puedes usarlo en hasta ' + (d.maxDevices || 3) + ' dispositivos.';
+        if (d.guaranteeDays) { const g = document.getElementById('g-note'); g.textContent = 'Tienes ' + d.guaranteeDays + ' días de garantía: si no te sirve, pides la devolución desde Ajustes en la app.'; g.hidden = false; }
+        /* Aviso de compra para Meta Pixel / Google Analytics, una sola vez por pago. */
+        try { const k = 'dc-compra-' + d.paymentId; if (window.dcAds && !localStorage.getItem(k)) { window.dcAds('purchase', { value: d.amount, id: d.paymentId }); localStorage.setItem(k, '1'); } } catch (e) { /* sin píxel */ }
         document.getElementById('copy').onclick = async (ev) => { try { await navigator.clipboard.writeText(d.code); ev.target.textContent = '¡Copiado!'; } catch (e) { prompt('Copia tu código:', d.code); } };
         return show('aprobado');
       }

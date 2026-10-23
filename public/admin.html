@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Códigos · Dulce Cuenta</title>
+<title>Panel · Dulce Cuenta</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#FFE6EE">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -62,6 +62,38 @@ tr > :last-child { padding-right: 18px; }
 .checks .no { background: var(--amberbg); color: var(--amber); }
 .actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 [hidden] { display: none !important; }
+/* Estadísticas */
+h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
+.seg { display: inline-flex; padding: 4px; gap: 4px; border-radius: 14px; background: var(--soft); }
+.seg button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: var(--ink2); font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #FFFFFF; color: var(--ink); box-shadow: 0 1px 0 var(--line), 0 0 0 1.5px var(--line); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kpi { padding: 14px 16px; border-radius: 18px; background: var(--soft); }
+.kpi span { display: block; font-size: 13px; font-weight: 700; color: var(--ink2); }
+.kpi b { display: block; margin-top: 2px; font-size: 26px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.kpi small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink2); }
+.kpi.main { background: var(--glaze); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+.split3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.funnel { display: flex; flex-direction: column; gap: 10px; }
+.fstep { display: grid; grid-template-columns: 150px minmax(0, 1fr) 92px; align-items: center; gap: 10px; font-size: 14px; }
+.fstep .track { height: 14px; border-radius: 0 4px 4px 0; background: var(--soft); overflow: hidden; }
+.fstep .bar { height: 100%; min-width: 2px; border-radius: 0 4px 4px 0; background: var(--btn); }
+.fstep b { text-align: right; font-variant-numeric: tabular-nums; }
+.fstep b small { margin-left: 4px; font-weight: 600; color: var(--ink2); }
+.days { position: relative; display: flex; align-items: flex-end; gap: 2px; height: 160px; padding-top: 8px; border-bottom: 1px solid var(--line); }
+.day { position: relative; flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; cursor: default; outline: none; }
+.day i { display: block; width: 100%; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--btn); }
+.day:hover i, .day:focus-visible i { background: var(--accent); }
+.day:focus-visible { box-shadow: 0 0 0 2px var(--ink); border-radius: 4px; }
+.day-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--ink2); }
+.tip { position: absolute; z-index: 5; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--ink); color: #FFFFFF; font-size: 12.5px; line-height: 1.4; white-space: nowrap; transform: translate(-50%, -100%); }
+.mini { min-width: 0; font-size: 13.5px; }
+.mini th, .mini td { padding: 6px 8px; }
+.mini td.n, .mini th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.mini-wrap { border-radius: 16px; border: 1.5px solid var(--line); overflow-x: auto; }
+.mini-wrap table { min-width: 0; }
+@media (max-width: 860px) { .split, .split3 { grid-template-columns: 1fr; } .fstep { grid-template-columns: 112px minmax(0, 1fr) 84px; font-size: 13px; } }
 .app-wrap { display: flex; flex-direction: column; gap: 24px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 12px 18px; border-radius: 14px; background: var(--ink); color: #FFFFFF; font-weight: 700; animation: rise .25s ease both; }
@@ -71,7 +103,7 @@ tr > :last-child { padding-right: 18px; }
 </style>
 </head>
 <body>
-<header><div class="hwrap"><h1 class="brand">Dulce Cuenta<small>Códigos de acceso</small></h1><button class="btn btn-sm" id="logout" type="button" hidden>Salir</button></div></header>
+<header><div class="hwrap"><h1 class="brand">Dulce Cuenta<small>Ventas, estadísticas y códigos</small></h1><button class="btn btn-sm" id="logout" type="button" hidden>Salir</button></div></header>
 <main>
   <section class="card" id="login" aria-labelledby="login-h">
     <h2 id="login-h">Entrar</h2>
@@ -84,6 +116,24 @@ tr > :last-child { padding-right: 18px; }
   </section>
 
   <div id="app" class="app-wrap" hidden>
+    <section class="card" aria-labelledby="st-h">
+      <div class="row" style="justify-content:space-between"><h2 id="st-h">Estadísticas de la venta</h2>
+        <div class="seg" role="group" aria-label="Período" id="st-range"><button type="button" data-d="1" aria-pressed="false">Hoy</button><button type="button" data-d="7" aria-pressed="false">7 días</button><button type="button" data-d="30" aria-pressed="true">30 días</button><button type="button" data-d="90" aria-pressed="false">90 días</button></div>
+      </div>
+      <p class="muted" id="st-empty" hidden></p>
+      <div class="kpis" id="kpis"></div>
+      <div class="split">
+        <div><h3>Embudo de compra</h3><div class="funnel" id="funnel"></div></div>
+        <div><h3>Visitas por día</h3><div class="days" id="days" role="list"></div><div class="day-axis" id="days-axis"></div></div>
+      </div>
+      <div class="split3">
+        <div><h3>De dónde vienen</h3><div class="mini-wrap" id="t-src"></div></div>
+        <div><h3>Dispositivo</h3><div class="mini-wrap" id="t-dev"></div></div>
+        <div><h3>Botón que tocaron</h3><div class="mini-wrap" id="t-cta"></div><h3 style="margin-top:16px">País</h3><div class="mini-wrap" id="t-country"></div></div>
+      </div>
+      <p class="muted" style="margin:0">Las visitas cuentan personas (una por pestaña), sin cookies. Para saber de dónde viene cada visita, agrega <span class="code">?utm_source=instagram</span> (o el nombre de la red) al enlace que compartes. Velocidad de carga y páginas vistas: Cloudflare → Web Analytics.</p>
+    </section>
+
     <section class="card" aria-labelledby="sale-h">
       <div class="row" style="justify-content:space-between"><h2 id="sale-h">Venta con Mercado Pago</h2><span id="sale-state"></span></div>
       <ul class="checks" id="checks"></ul>
@@ -94,6 +144,7 @@ tr > :last-child { padding-right: 18px; }
         <label class="field"><span>Precio original tachado (<span class="cur">USD</span>, opcional)</span><input type="number" id="c-list" min="0" step="0.01" inputmode="decimal"></label>
         <label class="field" style="grid-column:span 2"><span>Nombre que ve al pagar</span><input id="c-title" maxlength="120"></label>
         <label class="field"><span>Dispositivos por compra</span><select id="c-max"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
+        <label class="field"><span>Garantía (días)</span><select id="c-days"><option value="0">Sin garantía</option><option>3</option><option>7</option><option>14</option><option>30</option></select></label>
         <button class="btn btn-primary" type="submit">Guardar</button>
       </form>
       <p class="muted" id="now-price" role="status"></p>
@@ -157,7 +208,7 @@ tr > :last-child { padding-right: 18px; }
     const list = codes.filter((c) => !q || [c.code, c.email, c.note].join(' ').toLowerCase().includes(q));
     $('#count').textContent = `· ${codes.length}`;
     $('#rows').innerHTML = list.length ? list.map((c) => {
-      const state = c.revoked ? '<span class="pill off">Revocado</span>' : c.devices >= c.maxDevices ? '<span class="pill full">Completo</span>' : '<span class="pill on">Activo</span>';
+      const state = c.refundedAt || c.revokedReason === 'reembolso' ? '<span class="pill off">Devuelto</span>' : c.revokedReason === 'contracargo' ? '<span class="pill off">Contracargo</span>' : c.revoked ? '<span class="pill off">Revocado</span>' : c.refundRequestedAt ? '<span class="pill full">Pidió devolución</span>' : c.devices >= c.maxDevices ? '<span class="pill full">Completo</span>' : '<span class="pill on">Activo</span>';
       return `<tr>
         <td><span class="code">${esc(c.code)}</span></td>
         <td>${esc(c.email) || '<span class="muted">—</span>'}${c.note ? `<br><small class="muted">${esc(c.note)}</small>` : ''}${c.source === 'mercadopago' ? `<br><small class="muted">Pagó ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(c.amount || 0).replace(/\s/, '')}${c.emailSentAt ? ' · mail enviado' : ''}</small>` : ''}</td>
@@ -167,6 +218,7 @@ tr > :last-child { padding-right: 18px; }
         <td><div class="actions">
           <button class="btn btn-sm" type="button" data-a="mail" data-c="${esc(c.code)}" aria-label="Copiar mail para ${esc(c.code)}">Copiar mail</button>
           ${c.devices ? `<button class="btn btn-sm" type="button" data-a="liberar" data-c="${esc(c.code)}" aria-label="Liberar dispositivos de ${esc(c.code)}">Liberar</button>` : ''}
+          ${c.source === 'mercadopago' && !c.refundedAt ? `<button class="btn btn-sm btn-danger" type="button" data-a="reembolsar" data-c="${esc(c.code)}" aria-label="Devolver el dinero de ${esc(c.code)}">Devolver dinero</button>` : ''}
           <button class="btn btn-sm ${c.revoked ? '' : 'btn-danger'}" type="button" data-a="${c.revoked ? 'reactivar' : 'revocar'}" data-c="${esc(c.code)}" aria-label="${c.revoked ? 'Reactivar' : 'Revocar'} ${esc(c.code)}">${c.revoked ? 'Reactivar' : 'Revocar'}</button>
         </div></td></tr>`;
     }).join('') : `<tr><td colspan="6" class="muted">${codes.length ? 'Ningún código coincide con la búsqueda.' : 'Todavía no creaste códigos.'}</td></tr>`;
@@ -190,6 +242,7 @@ tr > :last-child { padding-right: 18px; }
       : usd && !n.rate ? 'No se pudo obtener la cotización del dólar. Prueba en un rato o usa un precio en pesos.' : '';
     $('#c-title').value = c.title || '';
     $('#c-max').value = String(c.maxDevices || 3);
+    $('#c-days').value = String(c.guaranteeDays ?? 7);
     $('#buy-url').textContent = c.buyUrl;
     $('#hook-url').textContent = c.webhookUrl;
     $('#sale-state').innerHTML = c.open ? '<span class="pill on">Venta abierta</span>' : '<span class="pill full">Venta cerrada</span>';
@@ -206,16 +259,97 @@ tr > :last-child { padding-right: 18px; }
     e.preventDefault();
     const usd = $('#c-mode').value === 'usd';
     const amounts = usd ? { usd: $('#c-price').value || 0, usdList: $('#c-list').value || 0 } : { price: $('#c-price').value || 0, listPrice: $('#c-list').value || 0 };
-    try { paintConfig(await call('PUT', '/api/admin/config', { mode: $('#c-mode').value, dolar: $('#c-dolar').value, ...amounts, title: $('#c-title').value, maxDevices: $('#c-max').value })); toast('Venta guardada'); }
+    try { paintConfig(await call('PUT', '/api/admin/config', { mode: $('#c-mode').value, dolar: $('#c-dolar').value, ...amounts, title: $('#c-title').value, maxDevices: $('#c-max').value, guaranteeDays: $('#c-days').value })); toast('Venta guardada'); }
     catch (err) { toast(err.message); }
   });
   $('#c-mode').addEventListener('change', paintMode);
   $('#copy-buy').addEventListener('click', () => copy($('#buy-url').textContent, 'Enlace copiado'));
   $('#copy-hook').addEventListener('click', () => copy($('#hook-url').textContent, 'URL copiada'));
+  /* ---------- Estadísticas ---------- */
+  let range = 30;
+  const num = (n) => Math.round(n || 0).toLocaleString('es-AR');
+  const pct = (a, b) => (b ? `${Math.round((a / b) * 1000) / 10}%` : '—');
+  const STEPS = [['visita', 'Visitaron'], ['demo', 'Probaron la demo'], ['precio', 'Vieron el precio'], ['clic', 'Tocaron comprar'], ['checkout', 'Llegaron a pagar'], ['pago', 'Pagaron']];
+  const PLACES = { top: 'Barra de arriba', hero: 'Portada', card: 'Tarjeta de precio', final: 'Cierre', bar: 'Barra del celular' };
+  function pivot(rows) {
+    const m = new Map();
+    for (const r of rows) {
+      const o = m.get(r.k) || { k: r.k, visita: 0, clic: 0, pago: 0, ingresos: 0 };
+      if (r.name === 'visita') o.visita = r.u; if (r.name === 'clic') o.clic = r.u; if (r.name === 'pago') { o.pago = r.n; o.ingresos = r.v || 0; }
+      m.set(r.k, o);
+    }
+    return [...m.values()].sort((a, b) => b.visita - a.visita || b.pago - a.pago);
+  }
+  const mini = (head, rows) => rows.length
+    ? `<table class="mini"><thead><tr>${head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="n"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`
+    : '<p class="muted" style="margin:10px 12px">Sin datos todavía.</p>';
+  async function loadStats() {
+    const d = await call('GET', '/api/admin/stats?dias=' + range);
+    if (!d.enabled) { $('#st-empty').textContent = 'Las estadísticas no están conectadas en este Worker.'; $('#st-empty').hidden = false; return; }
+    const step = Object.fromEntries((d.steps || []).map((r) => [r.name, r]));
+    const u = (k) => (k === 'pago' || k === 'reembolso' ? step[k]?.n : step[k]?.u) || 0;
+    const visits = u('visita');
+    $('#st-empty').hidden = visits > 0;
+    $('#st-empty').textContent = 'Todavía no hay visitas en este período. Aparecen apenas alguien entra a la landing.';
+    $('#kpis').innerHTML = [
+      ['Visitas', num(visits), 'personas distintas', true],
+      ['Probaron la demo', num(u('demo')), pct(u('demo'), visits) + ' de las visitas'],
+      ['Tocaron comprar', num(u('clic')), pct(u('clic'), visits) + ' de las visitas'],
+      ['Ventas', num(u('pago')), 'conversión ' + pct(u('pago'), visits), true],
+      ['Ingresos', peso(step.pago?.v || 0), u('reembolso') ? `${num(u('reembolso'))} devueltos (${peso(step.reembolso?.v || 0)})` : 'sin devoluciones'],
+      ['Usan la app', num(d.activeWeek), 'en los últimos 7 días']
+    ].map(([t, v, sub, main]) => `<div class="kpi${main ? ' main' : ''}"><span>${t}</span><b>${v}</b><small>${esc(sub)}</small></div>`).join('');
+    $('#funnel').innerHTML = STEPS.map(([k, label]) => {
+      const v = u(k);
+      return `<div class="fstep"><span>${label}</span><div class="track" aria-hidden="true"><div class="bar" style="width:${visits ? Math.max(0, Math.min(100, (v / visits) * 100)) : 0}%"></div></div><b>${num(v)}<small>${k === 'visita' ? '' : pct(v, visits)}</small></b></div>`;
+    }).join('');
+    /* Visitas por día, con un día por barra aunque no haya datos. */
+    const byDay = new Map();
+    for (const r of d.daily || []) { const o = byDay.get(r.day) || {}; o[r.name] = r.name === 'pago' ? r.n : r.u; if (r.name === 'pago') o.ingresos = r.v || 0; byDay.set(r.day, o); }
+    const days = [];
+    for (let t = new Date(d.since + 'T12:00:00Z'), i = 0; i < d.dias; i++, t = new Date(t.getTime() + 86400e3)) days.push(t.toISOString().slice(0, 10));
+    const max = Math.max(1, ...days.map((k) => byDay.get(k)?.visita || 0));
+    const fmtDay = (k) => new Date(k + 'T12:00:00Z').toLocaleDateString('es', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    $('#days').innerHTML = days.map((k) => {
+      const o = byDay.get(k) || {};
+      const pl = (n, one, many) => `${num(n)} ${n === 1 ? one : many}`;
+      const text = `${fmtDay(k)}: ${pl(o.visita || 0, 'visita', 'visitas')}, ${pl(o.clic || 0, 'tocó', 'tocaron')} comprar, ${pl(o.pago || 0, 'venta', 'ventas')}`;
+      return `<div class="day" role="listitem" tabindex="0" aria-label="${esc(text)}" data-tip="${esc(text)}"><i style="height:${((o.visita || 0) / max) * 100}%"></i></div>`;
+    }).join('');
+    $('#days-axis').innerHTML = `<span>${fmtDay(days[0])}</span><span>máx. ${num(max)} por día</span><span>${fmtDay(days[days.length - 1])}</span>`;
+    $('#t-src').innerHTML = mini(['Fuente', 'Visitas', 'Compra', 'Ventas'], pivot(d.sources || []).slice(0, 10).map((o) => [esc(o.k), num(o.visita), num(o.clic), num(o.pago)]));
+    $('#t-dev').innerHTML = mini(['Dispositivo', 'Visitas', 'Ventas', 'Conv.'], pivot(d.devices || []).map((o) => [esc(o.k === '?' ? 'sin dato' : o.k), num(o.visita), num(o.pago), pct(o.pago, o.visita)]));
+    $('#t-cta').innerHTML = mini(['Botón', 'Toques'], (d.places || []).map((r) => [esc(PLACES[r.k] || r.k), num(r.n)]));
+    $('#t-country').innerHTML = mini(['País', 'Visitas'], (d.countries || []).map((r) => [esc(r.k), num(r.u)]));
+  }
+  /* Detalle de cada día al pasar el mouse o al enfocar con teclado. */
+  let tip = null;
+  const showTip = (el) => {
+    if (!tip) { tip = document.createElement('div'); tip.className = 'tip'; tip.setAttribute('aria-hidden', 'true'); $('#days').appendChild(tip); }
+    tip.textContent = el.dataset.tip;
+    const box = $('#days').getBoundingClientRect(), r = el.getBoundingClientRect();
+    tip.style.left = `${Math.min(Math.max(r.left - box.left + r.width / 2, 90), box.width - 90)}px`;
+    tip.style.top = `${r.top - box.top + r.height - (el.firstElementChild.offsetHeight || 0) - 6}px`;
+    tip.hidden = false;
+  };
+  const hideTip = () => { if (tip) tip.hidden = true; };
+  $('#days').addEventListener('mouseover', (e) => { const el = e.target.closest('.day'); if (el) showTip(el); });
+  $('#days').addEventListener('focusin', (e) => { const el = e.target.closest('.day'); if (el) showTip(el); });
+  $('#days').addEventListener('mouseleave', hideTip);
+  $('#days').addEventListener('focusout', hideTip);
+  $('#st-range').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-d]'); if (!b) return;
+    range = Number(b.dataset.d);
+    document.querySelectorAll('#st-range button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    tip = null;
+    loadStats().catch((err) => toast(err.message));
+  });
+
   function showApp() {
     $('#login').hidden = true; $('#app').hidden = false; $('#logout').hidden = false;
     load().catch((e) => toast(e.message));
     loadConfig().catch((e) => toast(e.message));
+    loadStats().catch((e) => toast(e.message));
   }
 
   $('#login-form').addEventListener('submit', async (e) => {
@@ -264,6 +398,7 @@ tr > :last-child { padding-right: 18px; }
     const a = b.dataset.a;
     if (a === 'mail') { copy(mailBody(c), 'Mail copiado'); return; }
     if (a === 'revocar' && !confirm(`¿Revocar ${c.code}? La clienta deja de poder abrir la app.`)) return;
+    if (a === 'reembolsar' && !confirm(`¿Devolver ${c.amount ? peso(c.amount) : 'el pago'} a ${c.email || c.code}? Mercado Pago reembolsa el pago completo y el código se revoca.`)) return;
     if (a === 'liberar' && !confirm(`¿Liberar los dispositivos de ${c.code}? Tendrá que volver a escribir el código en cada uno.`)) return;
     try { await call('POST', '/api/admin/codes/' + encodeURIComponent(c.code), { action: a }); toast('Listo'); await load(); }
     catch (err) { toast(err.message); }

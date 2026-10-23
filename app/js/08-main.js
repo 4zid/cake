@@ -154,6 +154,19 @@ const actions = {
     try { await fetch('/api/salir', { method: 'POST', credentials: 'same-origin' }); } catch (e) { toast('Necesitas conexión para desactivar'); return; }
     location.replace('/activar');
   },
+  'lic-refund': async () => {
+    const ok = await confirmBox({ title: '¿Pedir la devolución?', text: 'Mercado Pago te devuelve el pago completo a tu medio de pago y la app se desactiva en todos tus dispositivos. Si quieres guardar tus recetas, descarga antes un respaldo.', ok: 'Pedir devolución', danger: true });
+    if (!ok) return;
+    persist();
+    let d = {};
+    try {
+      const res = await fetch('/api/devolucion', { method: 'POST', credentials: 'same-origin' });
+      d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast(d.message || 'No pudimos pedir la devolución. Prueba de nuevo.'); return; }
+    } catch (e) { toast('Necesitas conexión para pedir la devolución'); return; }
+    toast('Listo: Mercado Pago te devuelve el dinero');
+    setTimeout(() => location.replace('/'), 1800);
+  },
   'replay-onb': () => onboarding(),
   'load-sample': () => { const r = addSample(); go('recipe', { id: r.id, step: 'ing' }); toast('Agregamos una torta de ejemplo'); },
   reset: async () => {
