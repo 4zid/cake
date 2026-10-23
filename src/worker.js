@@ -1,4 +1,4 @@
-/* Dulce Cuenta · servidor de licencias.
+/* Cuánto Cobro · servidor de licencias.
    - La app (/) solo se entrega a dispositivos activados con un código válido; al resto se le muestra
      la landing de venta (landing.html) con el precio actual.
    - /activar: página para cargar el código que llega por mail con la compra.
@@ -8,17 +8,26 @@
    - Garantía: dentro de los días configurados, la compradora pide la devolución desde Ajustes y se
      reembolsa sola en Mercado Pago (el código queda revocado).
    - Medición: los pasos de la venta se guardan en D1 (binding DB) y se ven en /admin → Estadísticas.
-   Los códigos viven en el KV "LICENSES" con la clave "code:DULCE-XXXX-XXXX-XXXX". */
+   Los códigos viven en el KV "LICENSES" con la clave "code:COBRO-XXXX-XXXX-XXXX"
+   (los primeros códigos, de cuando la app se llamaba Dulce Cuenta, empiezan con DULCE y siguen valiendo). */
 
 const COOKIE = 'dc_lic';
 const COOKIE_DAYS = 400;
 const DEFAULT_DEVICES = 3;
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+const PREFIX = 'COBRO';
+const PREFIXES = ['COBRO', 'DULCE'];
 const PROTECTED = new Set(['/', '/index', '/index.html']);
 const LANDING = new Set(['/landing', '/landing.html']);
 
 export default {
   async fetch(request, env, ctx) {
+    /* Una sola dirección oficial: www y workers.dev redirigen al dominio. Los avisos de Mercado Pago (/api/) no se redirigen. */
+    const url = new URL(request.url);
+    const home = env.CANONICAL_HOST;
+    if (home && url.hostname !== home && !url.pathname.startsWith('/api/') && (url.hostname === 'www.' + home || url.hostname.endsWith('.workers.dev'))) {
+      return new Response(null, { status: 301, headers: { Location: `https://${home}${url.pathname}${url.search}` } });
+    }
     const res = await route(request, env, ctx);
     /* El ambiente de pruebas no aparece en buscadores. */
     return env.STAGING ? withHeaders(res, { 'X-Robots-Tag': 'noindex, nofollow' }) : res;
@@ -58,7 +67,7 @@ async function api(request, env, url, ctx) {
     const body = await readJSON(request);
     const code = normalizeCode(body.code);
     const device = String(body.device || '').slice(0, 64);
-    if (!code) return json({ error: 'formato', message: 'El código tiene el formato DULCE-XXXX-XXXX-XXXX.' }, 400);
+    if (!code) return json({ error: 'formato', message: 'El código tiene el formato COBRO-XXXX-XXXX-XXXX.' }, 400);
     if (!/^[\w-]{8,64}$/.test(device)) return json({ error: 'dispositivo', message: 'No pudimos identificar este dispositivo. Recarga la página.' }, 400);
     const rec = await getCode(env, code);
     if (!rec) return json({ error: 'invalido', message: 'Ese código no existe. Revisa que esté igual que en el mail.' }, 404);
@@ -224,16 +233,21 @@ async function admin(request, env, url, ctx) {
 function newCode() {
   const bytes = crypto.getRandomValues(new Uint8Array(12));
   const chars = Array.from(bytes, (b) => ALPHABET[b % 32]).join('');
-  return `DULCE-${chars.slice(0, 4)}-${chars.slice(4, 8)}-${chars.slice(8, 12)}`;
+  return `${PREFIX}-${chars.slice(0, 4)}-${chars.slice(4, 8)}-${chars.slice(8, 12)}`;
 }
 function normalizeCode(raw) {
-  const s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^DULCE/, '');
+  let s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let prefix = PREFIX;
+  for (const p of PREFIXES) if (s.length === p.length + 12 && s.startsWith(p)) { prefix = p; s = s.slice(p.length); break; }
   if (s.length !== 12 || [...s].some((c) => !ALPHABET.includes(c))) return null;
-  return `DULCE-${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
+  return `${prefix}-${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
 }
 const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0, revokedReason: rec.revokedReason || '', refundedAt: rec.refundedAt || 0, refundRequestedAt: rec.refundRequestedAt || 0 });
 async function getCode(env, code) {
-  return env.LICENSES.get('code:' + code, { type: 'json' });
+  const rec = await env.LICENSES.get('code:' + code, { type: 'json' });
+  /* Un código viejo escrito sin su prefijo DULCE llega como COBRO: se busca también con el prefijo anterior. */
+  if (rec || !code.startsWith(PREFIX + '-')) return rec;
+  return env.LICENSES.get('code:DULCE' + code.slice(PREFIX.length), { type: 'json' });
 }
 async function putCode(env, rec) {
   const meta = summary(rec);
@@ -306,7 +320,7 @@ function unb64url(s) {
 /* ======================= Venta con Mercado Pago ======================= */
 /* Precio: en pesos fijos (price/listPrice) o en dólares (usd/usdList) convertidos al dólar del día.
    listPrice/usdList es el precio original que se muestra tachado durante el lanzamiento. */
-const DEFAULT_CONFIG = { mode: 'ars', price: 0, listPrice: 0, usd: 0, usdList: 0, dolar: 'oficial', title: 'Dulce Cuenta · acceso a la app', currency: 'ARS', maxDevices: DEFAULT_DEVICES, guaranteeDays: 7 };
+const DEFAULT_CONFIG = { mode: 'ars', price: 0, listPrice: 0, usd: 0, usdList: 0, dolar: 'oficial', title: 'Cuánto Cobro · acceso a la app', currency: 'ARS', maxDevices: DEFAULT_DEVICES, guaranteeDays: 7 };
 const DOLARES = ['oficial', 'blue', 'bolsa', 'tarjeta'];
 const FX_HOURS = 6;
 const PRODUCT = 'dulce-cuenta';
@@ -389,12 +403,12 @@ async function comprar(request, env, url, ctx) {
   const ref = `dc-${b64url(crypto.getRandomValues(new Uint8Array(12)))}`;
   try {
     const pref = await mp(env, 'POST', '/checkout/preferences', {
-      items: [{ id: PRODUCT, title: cfg.title, description: 'Calculadora de costos y ganancias para tortas', category_id: 'services', quantity: 1, currency_id: cfg.currency, unit_price: cfg.price }],
+      items: [{ id: PRODUCT, title: cfg.title, description: 'Calculadora de precios para tortas', category_id: 'services', quantity: 1, currency_id: cfg.currency, unit_price: cfg.price }],
       back_urls: { success: `${url.origin}/gracias`, pending: `${url.origin}/gracias`, failure: `${url.origin}/gracias` },
       auto_return: 'approved',
       notification_url: `${url.origin}/api/mp/webhook`,
       external_reference: ref,
-      statement_descriptor: 'DULCE CUENTA',
+      statement_descriptor: 'CUANTO COBRO',
       metadata: { product: PRODUCT, sid, src, dev, country }
     }, { 'X-Idempotency-Key': ref });
     track(env, ctx, request, 'checkout', { sid, src });
@@ -473,7 +487,7 @@ async function processPayment(env, id, origin) {
 async function codeForPayment(env, paymentId) {
   const sig = new Uint8Array(await crypto.subtle.sign('HMAC', await hmacKey(env), new TextEncoder().encode(`mp:${paymentId}`)));
   const chars = Array.from(sig.slice(0, 12), (b) => ALPHABET[b % 32]).join('');
-  return `DULCE-${chars.slice(0, 4)}-${chars.slice(4, 8)}-${chars.slice(8, 12)}`;
+  return `${PREFIX}-${chars.slice(0, 4)}-${chars.slice(4, 8)}-${chars.slice(8, 12)}`;
 }
 async function ensureLicense(env, pay, origin) {
   const code = await codeForPayment(env, pay.id);
@@ -497,12 +511,12 @@ async function ensureLicense(env, pay, origin) {
 }
 async function sendCodeMail(env, rec, origin) {
   const link = `${origin}/activar?codigo=${encodeURIComponent(rec.code)}`;
-  const text = `¡Hola! Gracias por comprar Dulce Cuenta.\n\nTu código de acceso es:\n${rec.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link}\n\nPuedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
-  const html = `<div style="font-family:Arial,sans-serif;color:#3A2228;max-width:520px;margin:0 auto;padding:24px"><p style="font-size:22px;font-weight:800;color:#A82756;margin:0 0 16px">Dulce Cuenta</p><p>¡Hola! Gracias por tu compra.</p><p>Tu código de acceso es:</p><p style="font-size:24px;font-weight:800;letter-spacing:2px;background:#FFE6EE;padding:14px 18px;border-radius:14px;display:inline-block">${rec.code}</p><p><a href="${link}" style="display:inline-block;background:#C42F65;color:#fff;font-weight:800;padding:14px 22px;border-radius:14px;text-decoration:none">Activar Dulce Cuenta</a></p><p style="color:#7A5860;font-size:14px">Puedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.</p></div>`;
+  const text = `¡Hola! Gracias por comprar Cuánto Cobro.\n\nTu código de acceso es:\n${rec.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link}\n\nPuedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
+  const html = `<div style="font-family:Arial,sans-serif;color:#3A2228;max-width:520px;margin:0 auto;padding:24px"><p style="font-size:22px;font-weight:800;color:#A82756;margin:0 0 16px">Cuánto Cobro</p><p>¡Hola! Gracias por tu compra.</p><p>Tu código de acceso es:</p><p style="font-size:24px;font-weight:800;letter-spacing:2px;background:#FFE6EE;padding:14px 18px;border-radius:14px;display:inline-block">${rec.code}</p><p><a href="${link}" style="display:inline-block;background:#C42F65;color:#fff;font-weight:800;padding:14px 22px;border-radius:14px;text-decoration:none">Activar Dulce Cuenta</a></p><p style="color:#7A5860;font-size:14px">Puedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.</p></div>`;
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `code-${rec.code}` },
-    body: JSON.stringify({ from: env.MAIL_FROM, to: [rec.email], subject: 'Tu acceso a Dulce Cuenta', text, html })
+    body: JSON.stringify({ from: env.MAIL_FROM, to: [rec.email], subject: 'Tu acceso a Cuánto Cobro', text, html })
   });
   return res.ok;
 }

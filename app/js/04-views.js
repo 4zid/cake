@@ -160,7 +160,7 @@ views.home = () => {
   const shown = sorted.slice(0, 3);
   return `<div class="page page-home">
     <section class="hero" aria-labelledby="hola">
-      <div class="hero-brand only-m"><span class="brand-word">Dulce Cuenta</span>${saveInd()}</div>
+      <div class="hero-brand only-m"><span class="brand-word">Cuánto Cobro</span>${saveInd()}</div>
       <div class="hero-row">
         <div class="hero-main">
           <h1 id="hola" class="hello">${s.business ? `Hola, ${esc(s.business)}` : 'Hola'}</h1>

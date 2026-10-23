@@ -7,6 +7,11 @@
   "workers_dev": true,
   // Sin enlaces de vista previa por versión: solo existe la dirección oficial.
   "preview_urls": false,
+  // Dirección oficial. www y workers.dev redirigen a cuantocobro.app (ver CANONICAL_HOST).
+  "routes": [
+    { "pattern": "cuantocobro.app", "custom_domain": true },
+    { "pattern": "www.cuantocobro.app", "custom_domain": true }
+  ],
   // La app, la activación y el panel de códigos son archivos estáticos de ./public.
   // El Worker corre primero para decidir quién puede abrir la app.
   "assets": {
@@ -25,6 +30,7 @@
   // CF_BEACON: Cloudflare Web Analytics (es público, va dentro de la página).
   // Opcionales: META_PIXEL_ID (Meta Pixel) y GA4_ID (Google Analytics, G-XXXXXXX).
   "vars": {
+    "CANONICAL_HOST": "cuantocobro.app",
     "CF_BEACON": "fcea3432b3824302baa271444cab2c62"
   },
   // Registros de cada pedido (pagos, activaciones, errores) en Cloudflare → cake → Observability.
@@ -39,6 +45,9 @@
       "name": "cake-staging",
       "workers_dev": true,
       "preview_urls": false,
+      "routes": [
+        { "pattern": "staging.cuantocobro.app", "custom_domain": true }
+      ],
       "kv_namespaces": [
         { "binding": "LICENSES", "id": "37021103a8964cfbbdfc71405db9669d" }
       ],
@@ -46,6 +55,7 @@
         { "binding": "DB", "database_name": "cake-staging-analytics", "database_id": "496d44d9-9e69-4dc6-9fa0-3067847a69bc" }
       ],
       "vars": {
+        "CANONICAL_HOST": "staging.cuantocobro.app",
         "CF_BEACON": "ff0ce4ee1ad246fc9d90963e4aee5849",
         // Oculta el ambiente de pruebas de los buscadores.
         "STAGING": "1"

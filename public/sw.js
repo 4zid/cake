@@ -1,5 +1,5 @@
-// Dulce Cuenta: permite abrir la app sin conexión una vez activada en este dispositivo.
-const CACHE = 'dulce-cuenta-v5';
+// Cuánto Cobro: permite abrir la app sin conexión una vez activada en este dispositivo.
+const CACHE = 'cuanto-cobro-v6';
 const FILES = ['./', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (e) => {

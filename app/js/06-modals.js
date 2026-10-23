@@ -323,7 +323,7 @@ function exportFile() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dulce-cuenta-respaldo-${todayISO()}.json`;
+    a.download = `cuanto-cobro-respaldo-${todayISO()}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     state.settings.lastExport = Date.now();
@@ -377,7 +377,7 @@ function pasteBackup() {
   });
   $('[data-ok]', m.el).addEventListener('click', () => {
     const data = parseBackup($('#paste-text', m.el).value.trim());
-    if (!data) { toast('Ese texto no es un respaldo de Dulce Cuenta'); return; }
+    if (!data) { toast('Ese texto no es un respaldo de Cuánto Cobro'); return; }
     m.close();
     restoreData(data, 'paste');
   });
@@ -387,7 +387,7 @@ function readBackupFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const data = parseBackup(String(reader.result));
-    if (!data) { toast('Ese archivo no es un respaldo de Dulce Cuenta'); return; }
+    if (!data) { toast('Ese archivo no es un respaldo de Cuánto Cobro'); return; }
     restoreData(data, 'file');
   };
   reader.readAsText(file);

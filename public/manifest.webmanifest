@@ -1,6 +1,6 @@
 {
-  "name": "Dulce Cuenta",
-  "short_name": "Dulce Cuenta",
+  "name": "Cuánto Cobro",
+  "short_name": "Cuánto Cobro",
   "description": "Calculadora de costos y ganancias para quienes venden tortas.",
   "lang": "es",
   "start_url": "./",

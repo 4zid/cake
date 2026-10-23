@@ -5,3 +5,5 @@ Disallow: /activar
 Disallow: /gracias
 Disallow: /comprar
 Disallow: /api/
+
+Sitemap: https://cuantocobro.app/sitemap.xml

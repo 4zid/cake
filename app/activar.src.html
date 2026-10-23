@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Activa Dulce Cuenta</title>
-<meta name="description" content="Activa Dulce Cuenta con el código de tu compra.">
+<title>Activa Cuánto Cobro</title>
+<meta name="description" content="Activa Cuánto Cobro con el código de tu compra.">
 <meta name="theme-color" content="#FFE6EE">
 <meta name="robots" content="noindex">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -64,21 +64,21 @@ input[aria-invalid="true"] { border-color: var(--red); }
 </head>
 <body>
 <div class="art" aria-hidden="true">
-  <p class="brand">Dulce Cuenta</p>
+  <p class="brand">Cuánto Cobro</p>
   <div class="cake"><!--CAKE--></div>
 </div>
 <main>
   <form class="box" id="form" novalidate>
-    <h1>Activa tu <span>Dulce Cuenta</span></h1>
+    <h1>Activa <span>Cuánto Cobro</span></h1>
     <p class="lead">Escribe el código que te llegó por mail con tu compra. Lo haces una sola vez en cada dispositivo.</p>
     <div class="field">
       <label for="code">Tu código</label>
-      <input id="code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" maxlength="24" placeholder="DULCE-XXXX-XXXX-XXXX" aria-describedby="help msg" required>
+      <input id="code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" maxlength="24" placeholder="COBRO-XXXX-XXXX-XXXX" aria-describedby="help msg" required>
     </div>
     <p class="msg" id="msg" role="alert" aria-live="assertive"></p>
     <button class="btn" type="submit" id="go">Activar</button>
     <p class="help" id="buy" hidden>¿Todavía no la tienes? <a href="/comprar" style="color:var(--accent);font-weight:800">Cómprala acá</a><span id="buy-price"></span>.</p>
-    <p class="help" id="help">Puedes usar el mismo código en tu teléfono y en tu computadora. ¿No lo encuentras? Busca <b>Dulce Cuenta</b> en tu correo o responde el mail de tu compra.</p>
+    <p class="help" id="help">Puedes usar el mismo código en tu teléfono y en tu computadora. ¿No lo encuentras? Busca <b>Cuánto Cobro</b> en tu correo o responde el mail de tu compra.</p>
   </form>
 </main>
 <script>
@@ -91,10 +91,12 @@ input[aria-invalid="true"] { border-color: var(--red); }
   const ALPHA = /[^23456789ABCDEFGHJKLMNPQRSTUVWXYZ]/g;
   const pretty = (raw) => {
     let s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (s.startsWith('DULCE')) s = s.slice(5);
+    /* Los códigos nuevos empiezan con COBRO; los de antes, con DULCE. */
+    let prefix = 'COBRO';
+    for (const p of ['COBRO', 'DULCE']) if (s.startsWith(p)) { prefix = p; s = s.slice(p.length); break; }
     s = s.replace(ALPHA, '').slice(0, 12);
     const parts = [s.slice(0, 4), s.slice(4, 8), s.slice(8, 12)].filter(Boolean);
-    return parts.length ? 'DULCE-' + parts.join('-') : '';
+    return parts.length ? prefix + '-' + parts.join('-') : '';
   };
   const device = () => {
     const k = 'dulce-cuenta:device';
@@ -121,7 +123,7 @@ input[aria-invalid="true"] { border-color: var(--red); }
     input.value = code;
     if (code.length !== 20) {
       input.setAttribute('aria-invalid', 'true');
-      show('El código tiene el formato DULCE-XXXX-XXXX-XXXX.');
+      show('El código tiene el formato COBRO-XXXX-XXXX-XXXX.');
       form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
       input.focus();
       return;
@@ -132,7 +134,7 @@ input[aria-invalid="true"] { border-color: var(--red); }
       const res = await fetch('/api/activar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, device: device() }), credentials: 'same-origin' });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
-        show('¡Listo! Abriendo tu Dulce Cuenta…', true);
+        show('¡Listo! Abriendo Cuánto Cobro…', true);
         setTimeout(() => location.replace('/'), 500);
         return;
       }

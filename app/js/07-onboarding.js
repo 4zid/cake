@@ -16,7 +16,7 @@ function onboarding() {
   el.className = 'onb';
   el.setAttribute('role', 'dialog');
   el.setAttribute('aria-modal', 'true');
-  el.setAttribute('aria-label', 'Bienvenida a Dulce Cuenta');
+  el.setAttribute('aria-label', 'Bienvenida a Cuánto Cobro');
   document.body.appendChild(el);
   onbEl = el;
   lockScroll(true);
@@ -103,7 +103,7 @@ function onboarding() {
         <span class="grow"></span>
         ${step < 5 ? '<button type="button" class="link" data-skip>Saltar</button>' : ''}
       </div>
-      <div class="onb-art"><p class="brand-word">Dulce Cuenta</p><div class="onb-art-in">${art()}</div></div>
+      <div class="onb-art"><p class="brand-word">Cuánto Cobro</p><div class="onb-art-in">${art()}</div></div>
       <div class="onb-content"><div class="onb-inner">${content()}</div></div>
       <div class="onb-foot">${foot()}</div>`;
     const h = $('h1, h2', el);

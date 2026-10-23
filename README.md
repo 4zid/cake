@@ -1,6 +1,6 @@
-# Dulce Cuenta
+# Cuánto Cobro
 
-Microaplicación para quienes venden tortas: calcula cuánto cuesta hacer cada torta, a cuánto venderla y cuánto se gana de verdad.
+**https://cuantocobro.app** · Microaplicación para quienes venden tortas: calcula cuánto cuesta hacer cada torta, a cuánto venderla y cuánto se gana de verdad.
 
 Funciona en el navegador, sin cuentas. Cada compradora recibe por mail un **código de acceso** que activa la app en sus dispositivos. Sus datos se guardan en su propio navegador.
 
@@ -54,7 +54,7 @@ Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al m
    - **En dólares** (recomendado): pones el precio en USD y se cobra en pesos al dólar del día (oficial, blue, MEP o tarjeta, según elijas), redondeado a un precio de vidriera como $22.900. La cotización sale de dolarapi.com y se actualiza cada 6 horas; si la consulta falla se usa la última conocida.
    - **En pesos**: precio fijo.
    - **Precio original tachado** (opcional): si es mayor que el precio que se cobra, la landing muestra "Precio de lanzamiento", el precio anterior tachado y el porcentaje de descuento. Para terminar el lanzamiento, borra el precio original o iguala los dos.
-5. **Mail automático con el código (opcional):** necesita un dominio propio verificado en [Resend](https://resend.com). Guarda los Secrets `RESEND_API_KEY` y `MAIL_FROM` (por ejemplo `Dulce Cuenta <hola@tudominio.com>`). Sin esto, el código se ve en `/gracias` y puedes reenviarlo desde `/admin` con **Copiar mail**.
+5. **Mail automático con el código (opcional):** necesita un dominio propio verificado en [Resend](https://resend.com). Guarda los Secrets `RESEND_API_KEY` y `MAIL_FROM` (por ejemplo `Cuánto Cobro <hola@cuantocobro.app>`). Sin esto, el código se ve en `/gracias` y puedes reenviarlo desde `/admin` con **Copiar mail**.
 
 ## Garantía
 
@@ -90,10 +90,12 @@ El servidor guarda los códigos en Cloudflare KV. La app solo se entrega a dispo
 
 ## Ramas y ambientes
 
-| Rama | Worker en Cloudflare | Base de códigos | Para qué |
-| --- | --- | --- | --- |
-| `prod` | `cake` | `dulce-cuenta-licencias` | La app que usan tus clientas. |
-| `staging` | `cake-staging` | `dulce-cuenta-licencias-staging` | Probar cambios antes de publicarlos. |
+| Rama | Worker en Cloudflare | Dirección | Base de códigos | Para qué |
+| --- | --- | --- | --- | --- |
+| `prod` | `cake` | https://cuantocobro.app | `cake-licencias` | La app que usan tus clientas. |
+| `staging` | `cake-staging` | https://staging.cuantocobro.app | `cake-staging-licencias` | Probar cambios antes de publicarlos. |
+
+`www.cuantocobro.app` y las direcciones `*.workers.dev` redirigen al dominio (variable `CANONICAL_HOST`), salvo `/api/`, para no cortar avisos de Mercado Pago. La app se llamaba **Dulce Cuenta**: los códigos viejos `DULCE-…` siguen funcionando y los nuevos empiezan con `COBRO-`.
 
 Para publicar: los cambios se suben primero a `staging` y, cuando están probados, se pasan a `prod` (merge de `staging` en `prod`). Los códigos de prueba viven en la base de staging y no sirven en producción.
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Panel · Dulce Cuenta</title>
+<title>Panel · Cuánto Cobro</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#FFE6EE">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -103,7 +103,7 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
 </style>
 </head>
 <body>
-<header><div class="hwrap"><h1 class="brand">Dulce Cuenta<small>Ventas, estadísticas y códigos</small></h1><button class="btn btn-sm" id="logout" type="button" hidden>Salir</button></div></header>
+<header><div class="hwrap"><h1 class="brand">Cuánto Cobro<small>Ventas, estadísticas y códigos</small></h1><button class="btn btn-sm" id="logout" type="button" hidden>Salir</button></div></header>
 <main>
   <section class="card" id="login" aria-labelledby="login-h">
     <h2 id="login-h">Entrar</h2>
@@ -190,7 +190,7 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
   const toast = (t) => { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); };
   const copy = async (text, label) => { try { await navigator.clipboard.writeText(text); toast(label || 'Copiado'); } catch (e) { prompt('Copia este texto:', text); } };
   const link = (code) => `${location.origin}/activar?codigo=${encodeURIComponent(code)}`;
-  const mailBody = (c) => `¡Hola! Gracias por comprar Dulce Cuenta.\n\nTu código de acceso es:\n${c.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link(c.code)}\n\nPuedes usarlo en hasta ${c.maxDevices} ${c.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
+  const mailBody = (c) => `¡Hola! Gracias por comprar Cuánto Cobro.\n\nTu código de acceso es:\n${c.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link(c.code)}\n\nPuedes usarlo en hasta ${c.maxDevices} ${c.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
 
   async function call(method, path, body) {
     const res = await fetch(path, { method, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
@@ -374,7 +374,7 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
       const data = await call('POST', '/api/admin/codes', { email: $('#n-email').value, note: $('#n-note').value, maxDevices: $('#n-max').value, count: $('#n-count').value });
       const made = data.created || [];
       const first = made[0];
-      const subject = encodeURIComponent('Tu acceso a Dulce Cuenta');
+      const subject = encodeURIComponent('Tu acceso a Cuánto Cobro');
       $('#created').innerHTML = `<div class="result" role="status">
         <b>${made.length === 1 ? 'Código creado' : `${made.length} códigos creados`}</b>
         ${made.map((c) => `<span class="code big-code">${esc(c.code)}</span>`).join('')}

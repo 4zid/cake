@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Dulce Cuenta</title>
+<title>Cuánto Cobro</title>
 <meta name="description" content="Calcula cuánto te cuesta cada torta, a cuánto venderla y cuánto ganas.">
 <meta name="theme-color" content="#FFE6EE">
 <meta name="robots" content="noindex">
@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400..800&display=swap">
 <style>
-/* Dulce Cuenta · rediseño. Blanco y rosa, tipografías Bagel Fat One (títulos y precios) y DM Sans (texto).
+/* Cuánto Cobro · rediseño. Blanco y rosa, tipografías Bagel Fat One (títulos y precios) y DM Sans (texto).
    Escritorio: menú lateral. Celular (< 860px): barra de botones abajo y "Armar torta" a pantalla completa. */
 :root {
   --ink: #3A2228;
@@ -898,7 +898,7 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
 <a class="skip" href="#view">Saltar al contenido</a>
 <div class="app">
   <aside class="side" aria-label="Menú principal">
-    <button type="button" class="brand" data-go="home" aria-label="Dulce Cuenta, ir al inicio"><span class="brand-word">Dulce Cuenta</span><span class="brand-sub" id="brand-sub"></span></button>
+    <button type="button" class="brand" data-go="home" aria-label="Cuánto Cobro, ir al inicio"><span class="brand-word">Cuánto Cobro</span><span class="brand-sub" id="brand-sub"></span></button>
     <nav aria-label="Secciones"><ul class="side-nav" id="side-nav"></ul></nav>
     <span class="grow"></span>
     <div id="side-save"></div>
@@ -906,7 +906,7 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   <main id="view" class="main" tabindex="-1"></main>
 </div>
 <nav class="tabbar" id="tabbar" aria-label="Secciones"></nav>
-<noscript><p class="noscript">Dulce Cuenta necesita JavaScript activado para funcionar.</p></noscript>
+<noscript><p class="noscript">Cuánto Cobro necesita JavaScript activado para funcionar.</p></noscript>
 <script>
 (() => {
 'use strict';
@@ -1728,7 +1728,7 @@ views.home = () => {
   const shown = sorted.slice(0, 3);
   return `<div class="page page-home">
     <section class="hero" aria-labelledby="hola">
-      <div class="hero-brand only-m"><span class="brand-word">Dulce Cuenta</span>${saveInd()}</div>
+      <div class="hero-brand only-m"><span class="brand-word">Cuánto Cobro</span>${saveInd()}</div>
       <div class="hero-row">
         <div class="hero-main">
           <h1 id="hola" class="hello">${s.business ? `Hola, ${esc(s.business)}` : 'Hola'}</h1>
@@ -2535,7 +2535,7 @@ function exportFile() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dulce-cuenta-respaldo-${todayISO()}.json`;
+    a.download = `cuanto-cobro-respaldo-${todayISO()}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     state.settings.lastExport = Date.now();
@@ -2589,7 +2589,7 @@ function pasteBackup() {
   });
   $('[data-ok]', m.el).addEventListener('click', () => {
     const data = parseBackup($('#paste-text', m.el).value.trim());
-    if (!data) { toast('Ese texto no es un respaldo de Dulce Cuenta'); return; }
+    if (!data) { toast('Ese texto no es un respaldo de Cuánto Cobro'); return; }
     m.close();
     restoreData(data, 'paste');
   });
@@ -2599,7 +2599,7 @@ function readBackupFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const data = parseBackup(String(reader.result));
-    if (!data) { toast('Ese archivo no es un respaldo de Dulce Cuenta'); return; }
+    if (!data) { toast('Ese archivo no es un respaldo de Cuánto Cobro'); return; }
     restoreData(data, 'file');
   };
   reader.readAsText(file);
@@ -2668,7 +2668,7 @@ function onboarding() {
   el.className = 'onb';
   el.setAttribute('role', 'dialog');
   el.setAttribute('aria-modal', 'true');
-  el.setAttribute('aria-label', 'Bienvenida a Dulce Cuenta');
+  el.setAttribute('aria-label', 'Bienvenida a Cuánto Cobro');
   document.body.appendChild(el);
   onbEl = el;
   lockScroll(true);
@@ -2755,7 +2755,7 @@ function onboarding() {
         <span class="grow"></span>
         ${step < 5 ? '<button type="button" class="link" data-skip>Saltar</button>' : ''}
       </div>
-      <div class="onb-art"><p class="brand-word">Dulce Cuenta</p><div class="onb-art-in">${art()}</div></div>
+      <div class="onb-art"><p class="brand-word">Cuánto Cobro</p><div class="onb-art-in">${art()}</div></div>
       <div class="onb-content"><div class="onb-inner">${content()}</div></div>
       <div class="onb-foot">${foot()}</div>`;
     const h = $('h1, h2', el);
