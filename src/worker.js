@@ -66,7 +66,7 @@ async function api(request, env, url) {
 
   if (path === '/api/venta' && method === 'GET') {
     const cfg = await getConfig(env);
-    return json({ open: salesOpen(env, cfg), price: cfg.price || 0, title: cfg.title });
+    return json({ open: salesOpen(env, cfg), price: cfg.price || 0, listPrice: cfg.listPrice || 0, off: cfg.off || 0, title: cfg.title });
   }
 
   if (path === '/api/compra' && method === 'GET') return compraStatus(env, url);
@@ -101,12 +101,15 @@ async function admin(request, env, url) {
   if (path === '/api/admin/config' && method === 'GET') return json(await adminConfig(env, url));
   if (path === '/api/admin/config' && method === 'PUT') {
     const body = await readJSON(request);
-    const cfg = await getConfig(env);
-    const price = Math.round(Number(String(body.price ?? cfg.price).replace(',', '.')) * 100) / 100;
-    if (!(price >= 0) || price > 100000000) return json({ error: 'precio', message: 'El precio no es válido.' }, 400);
+    const cfg = await savedConfig(env);
+    const num = (v, d) => Math.round(Number(String(v ?? d).replace(',', '.')) * 100) / 100;
+    const nums = { price: num(body.price, cfg.price), listPrice: num(body.listPrice, cfg.listPrice), usd: num(body.usd, cfg.usd), usdList: num(body.usdList, cfg.usdList) };
+    if (Object.values(nums).some((n) => !(n >= 0) || n > 100000000)) return json({ error: 'precio', message: 'Algún precio no es válido.' }, 400);
     const next = {
       ...cfg,
-      price,
+      ...nums,
+      mode: body.mode === 'usd' || body.mode === 'ars' ? body.mode : cfg.mode,
+      dolar: DOLARES.includes(body.dolar) ? body.dolar : cfg.dolar,
       title: String(body.title ?? cfg.title).trim().slice(0, 120) || DEFAULT_CONFIG.title,
       maxDevices: Math.min(Math.max(parseInt(body.maxDevices ?? cfg.maxDevices, 10) || DEFAULT_DEVICES, 1), 20)
     };
@@ -254,21 +257,61 @@ function unb64url(s) {
 }
 
 /* ======================= Venta con Mercado Pago ======================= */
-const DEFAULT_CONFIG = { price: 0, title: 'Dulce Cuenta · acceso a la app', currency: 'ARS', maxDevices: DEFAULT_DEVICES };
+/* Precio: en pesos fijos (price/listPrice) o en dólares (usd/usdList) convertidos al dólar del día.
+   listPrice/usdList es el precio original que se muestra tachado durante el lanzamiento. */
+const DEFAULT_CONFIG = { mode: 'ars', price: 0, listPrice: 0, usd: 0, usdList: 0, dolar: 'oficial', title: 'Dulce Cuenta · acceso a la app', currency: 'ARS', maxDevices: DEFAULT_DEVICES };
+const DOLARES = ['oficial', 'blue', 'bolsa', 'tarjeta'];
+const FX_HOURS = 6;
 const PRODUCT = 'dulce-cuenta';
 /* MP_API_BASE solo se usa para probar en local con un Mercado Pago simulado. */
 const mpApi = (env) => env.MP_API_BASE || 'https://api.mercadopago.com';
-async function getConfig(env) {
+async function savedConfig(env) {
   const saved = await env.LICENSES.get('config', { type: 'json' });
   return { ...DEFAULT_CONFIG, ...(saved || {}) };
 }
+/* La configuración con el precio que se cobra hoy, en pesos. */
+async function getConfig(env) {
+  const cfg = await savedConfig(env);
+  return { ...cfg, ...(await pricing(env, cfg)) };
+}
+async function pricing(env, cfg) {
+  if (cfg.mode !== 'usd') {
+    const list = cfg.listPrice > cfg.price ? cfg.listPrice : 0;
+    return { price: cfg.price, listPrice: list, off: list ? Math.round((1 - cfg.price / list) * 100) : 0, rate: 0, rateAt: 0 };
+  }
+  const fx = await dollarRate(env, cfg.dolar);
+  if (!fx || !(cfg.usd > 0)) return { price: 0, listPrice: 0, off: 0, rate: fx?.rate || 0, rateAt: fx?.at || 0 };
+  const list = cfg.usdList > cfg.usd ? pesos(cfg.usdList * fx.rate) : 0;
+  return { price: pesos(cfg.usd * fx.rate), listPrice: list, off: list ? Math.round((1 - cfg.usd / cfg.usdList) * 100) : 0, rate: fx.rate, rateAt: fx.at };
+}
+/* Redondea a un precio de vidriera: 23.250 → 22.900, 31.000 → 30.900. */
+const pesos = (x) => (x < 2000 ? Math.ceil(x / 10) * 10 : Math.round(x / 1000) * 1000 - 100);
+/* Cotización de venta de dolarapi.com, guardada en KV unas horas. Si la consulta falla se usa la última conocida. */
+async function dollarRate(env, casa) {
+  const key = `fx:${DOLARES.includes(casa) ? casa : 'oficial'}`;
+  const cached = await env.LICENSES.get(key, { type: 'json' });
+  if (cached && Date.now() - cached.at < FX_HOURS * 3600e3) return cached;
+  try {
+    const res = await fetch(`${env.FX_API_BASE || 'https://dolarapi.com'}/v1/dolares/${key.slice(3)}`, { signal: AbortSignal.timeout(4000) });
+    const d = await res.json();
+    const rate = Number(d.venta);
+    if (!res.ok || !(rate > 0)) throw new Error('cotización inválida');
+    const fx = { rate, at: Date.now() };
+    await env.LICENSES.put(key, JSON.stringify(fx));
+    return fx;
+  } catch {
+    return cached || null;
+  }
+}
 const salesOpen = (env, cfg) => !!env.MP_ACCESS_TOKEN && cfg.price > 0;
 async function adminConfig(env, url) {
-  const cfg = await getConfig(env);
+  const cfg = await savedConfig(env);
+  const now = await pricing(env, cfg);
   const token = env.MP_ACCESS_TOKEN || '';
   return {
     ...cfg,
-    open: salesOpen(env, cfg),
+    now,
+    open: salesOpen(env, now),
     buyUrl: `${url.origin}/comprar`,
     webhookUrl: `${url.origin}/api/mp/webhook`,
     mercadopago: token ? (token.startsWith('TEST-') ? 'prueba' : 'real') : 'sin-configurar',
@@ -421,13 +464,18 @@ async function landing(request, env, url) {
   const res = await env.ASSETS.fetch(new URL('/landing', url));
   const cfg = await getConfig(env);
   const open = salesOpen(env, cfg);
-  const price = open ? '$' + String(Math.round(cfg.price)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : 'Próximamente';
+  const money = (n) => '$' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const price = open ? money(cfg.price) : 'Próximamente';
+  const launch = open && cfg.listPrice > cfg.price;
+  const cls = [open ? '' : 'is-closed', launch ? 'has-launch' : ''].filter(Boolean).join(' ');
   /* X-Dulce-Page le avisa al service worker que no guarde esta página en lugar de la app. */
   const out = withHeaders(res, { 'Cache-Control': 'private, no-cache', 'X-Dulce-Page': 'landing' });
   out.headers.delete('ETag');
   return new HTMLRewriter()
     .on('[data-price]', { element(e) { e.setInnerContent(price); } })
-    .on('body', { element(e) { if (!open) e.setAttribute('class', 'is-closed'); } })
+    .on('[data-list]', { element(e) { e.setInnerContent(launch ? money(cfg.listPrice) : ''); } })
+    .on('[data-off]', { element(e) { e.setInnerContent(launch ? `${cfg.off}% OFF` : ''); } })
+    .on('body', { element(e) { if (cls) e.setAttribute('class', cls); } })
     /* WhatsApp y las redes necesitan la dirección completa de la imagen para mostrar la vista previa. */
     .on('meta[property="og:image"]', { element(e) { e.setAttribute('content', `${url.origin}/og.png`); } })
     .transform(out);

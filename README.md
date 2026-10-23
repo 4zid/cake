@@ -50,7 +50,10 @@ Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al m
    - en `cake`, las credenciales **de producción**;
    - en `cake-staging`, las **de prueba**, para probar con tarjetas de prueba sin cobrar de verdad.
 3. En la aplicación de Mercado Pago, ve a **Webhooks → Configurar notificaciones**, pega la URL que muestra `/admin` (`https://TU-DOMINIO/api/mp/webhook`), marca el evento **Pagos** y guarda. Copia la **clave secreta** y guárdala como Secret `MP_WEBHOOK_SECRET`.
-4. En `/admin` carga el precio. Cuando todo está en verde dice **Venta abierta**. Copia el enlace de compra y ponlo en el botón de tu landing.
+4. En `/admin` carga el precio. Cuando todo está en verde dice **Venta abierta**. La landing en `/` ya usa ese precio y el enlace de compra.
+   - **En dólares** (recomendado): pones el precio en USD y se cobra en pesos al dólar del día (oficial, blue, MEP o tarjeta, según elijas), redondeado a un precio de vidriera como $22.900. La cotización sale de dolarapi.com y se actualiza cada 6 horas; si la consulta falla se usa la última conocida.
+   - **En pesos**: precio fijo.
+   - **Precio original tachado** (opcional): si es mayor que el precio que se cobra, la landing muestra "Precio de lanzamiento", el precio anterior tachado y el porcentaje de descuento. Para terminar el lanzamiento, borra el precio original o iguala los dos.
 5. **Mail automático con el código (opcional):** necesita un dominio propio verificado en [Resend](https://resend.com). Guarda los Secrets `RESEND_API_KEY` y `MAIL_FROM` (por ejemplo `Dulce Cuenta <hola@tudominio.com>`). Sin esto, el código se ve en `/gracias` y puedes reenviarlo desde `/admin` con **Copiar mail**.
 
 ## Cómo funcionan los códigos

@@ -88,11 +88,15 @@ tr > :last-child { padding-right: 18px; }
       <div class="row" style="justify-content:space-between"><h2 id="sale-h">Venta con Mercado Pago</h2><span id="sale-state"></span></div>
       <ul class="checks" id="checks"></ul>
       <form id="cfg-form" class="grid">
-        <label class="field"><span>Precio (ARS)</span><input type="number" id="c-price" min="0" step="1" inputmode="numeric" required></label>
+        <label class="field"><span>Moneda del precio</span><select id="c-mode"><option value="usd">Dólares → pesos del día</option><option value="ars">Pesos fijos</option></select></label>
+        <label class="field" data-mode="usd"><span>Dólar de referencia</span><select id="c-dolar"><option value="oficial">Oficial</option><option value="blue">Blue</option><option value="bolsa">MEP</option><option value="tarjeta">Tarjeta</option></select></label>
+        <label class="field"><span>Precio que se cobra (<span class="cur">USD</span>)</span><input type="number" id="c-price" min="0" step="0.01" inputmode="decimal" required></label>
+        <label class="field"><span>Precio original tachado (<span class="cur">USD</span>, opcional)</span><input type="number" id="c-list" min="0" step="0.01" inputmode="decimal"></label>
         <label class="field" style="grid-column:span 2"><span>Nombre que ve al pagar</span><input id="c-title" maxlength="120"></label>
         <label class="field"><span>Dispositivos por compra</span><select id="c-max"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
         <button class="btn btn-primary" type="submit">Guardar</button>
       </form>
+      <p class="muted" id="now-price" role="status"></p>
       <div class="row"><span class="muted">Enlace para tu botón “Comprar”:</span><span class="code" id="buy-url"></span><button class="btn btn-sm" type="button" id="copy-buy">Copiar enlace</button></div>
       <div class="row"><span class="muted">URL de notificaciones (Mercado Pago → Webhooks):</span><span class="code" id="hook-url"></span><button class="btn btn-sm" type="button" id="copy-hook">Copiar</button></div>
     </section>
@@ -167,8 +171,23 @@ tr > :last-child { padding-right: 18px; }
         </div></td></tr>`;
     }).join('') : `<tr><td colspan="6" class="muted">${codes.length ? 'Ningún código coincide con la búsqueda.' : 'Todavía no creaste códigos.'}</td></tr>`;
   }
+  const peso = (n) => '$' + Math.round(n).toLocaleString('es-AR');
+  function paintMode() {
+    const usd = $('#c-mode').value === 'usd';
+    document.querySelectorAll('[data-mode="usd"]').forEach((el) => { el.hidden = !usd; });
+    document.querySelectorAll('#cfg-form .cur').forEach((el) => { el.textContent = usd ? 'USD' : 'ARS'; });
+  }
   function paintConfig(c) {
-    $('#c-price').value = c.price || '';
+    const usd = c.mode === 'usd';
+    $('#c-mode').value = usd ? 'usd' : 'ars';
+    $('#c-dolar').value = c.dolar || 'oficial';
+    $('#c-price').value = (usd ? c.usd : c.price) || '';
+    $('#c-list').value = (usd ? c.usdList : c.listPrice) || '';
+    paintMode();
+    const n = c.now || {};
+    $('#now-price').textContent = n.price > 0
+      ? `Hoy se cobra ${peso(n.price)}${n.listPrice ? ` (antes ${peso(n.listPrice)}, ${n.off}% OFF)` : ''}${usd ? ` · dólar ${$('#c-dolar').selectedOptions[0].textContent.toLowerCase()} a ${peso(n.rate)}, se actualiza cada 6 horas` : ''}.`
+      : usd && !n.rate ? 'No se pudo obtener la cotización del dólar. Prueba en un rato o usa un precio en pesos.' : '';
     $('#c-title').value = c.title || '';
     $('#c-max').value = String(c.maxDevices || 3);
     $('#buy-url').textContent = c.buyUrl;
@@ -178,16 +197,19 @@ tr > :last-child { padding-right: 18px; }
     $('#checks').innerHTML = [
       item(c.mercadopago !== 'sin-configurar', c.mercadopago === 'real' ? 'Mercado Pago: cobros reales' : c.mercadopago === 'prueba' ? 'Mercado Pago: modo prueba' : 'Falta MP_ACCESS_TOKEN'),
       item(c.webhookSecret, c.webhookSecret ? 'Firma de notificaciones' : 'Falta MP_WEBHOOK_SECRET'),
-      item(c.price > 0, c.price > 0 ? 'Precio cargado' : 'Falta el precio'),
+      item(c.now?.price > 0, c.now?.price > 0 ? 'Precio cargado' : 'Falta el precio'),
       item(c.email, c.email ? 'Mail automático' : 'Mail automático desactivado')
     ].join('');
   }
   async function loadConfig() { paintConfig(await call('GET', '/api/admin/config')); }
   $('#cfg-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    try { paintConfig(await call('PUT', '/api/admin/config', { price: $('#c-price').value, title: $('#c-title').value, maxDevices: $('#c-max').value })); toast('Venta guardada'); }
+    const usd = $('#c-mode').value === 'usd';
+    const amounts = usd ? { usd: $('#c-price').value || 0, usdList: $('#c-list').value || 0 } : { price: $('#c-price').value || 0, listPrice: $('#c-list').value || 0 };
+    try { paintConfig(await call('PUT', '/api/admin/config', { mode: $('#c-mode').value, dolar: $('#c-dolar').value, ...amounts, title: $('#c-title').value, maxDevices: $('#c-max').value })); toast('Venta guardada'); }
     catch (err) { toast(err.message); }
   });
+  $('#c-mode').addEventListener('change', paintMode);
   $('#copy-buy').addEventListener('click', () => copy($('#buy-url').textContent, 'Enlace copiado'));
   $('#copy-hook').addEventListener('click', () => copy($('#hook-url').textContent, 'URL copiada'));
   function showApp() {
