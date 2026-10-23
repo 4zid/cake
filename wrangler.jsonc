@@ -1,5 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Producción: Worker "cake", se publica desde la rama "prod".
   "name": "cake",
   "main": "src/worker.js",
   "compatibility_date": "2026-10-01",
@@ -17,5 +18,19 @@
   ],
   "observability": {
     "enabled": false
+  },
+  "env": {
+    // Pruebas: Worker "cake-staging", se publica desde la rama "staging"
+    // con "npx wrangler deploy --env staging". Tiene su propia base de códigos.
+    "staging": {
+      "name": "cake-staging",
+      "workers_dev": true,
+      "kv_namespaces": [
+        { "binding": "LICENSES", "id": "37021103a8964cfbbdfc71405db9669d" }
+      ],
+      "observability": {
+        "enabled": true
+      }
+    }
   }
 }

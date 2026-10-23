@@ -28,7 +28,7 @@ Funciona en el navegador, sin cuentas. Cada compradora recibe por mail un **cód
 | `public/admin.html` | Tu panel para crear y gestionar códigos (`/admin`). |
 | `public/manifest.webmanifest`, `public/sw.js`, `public/icon.svg` | Instalación como app y uso sin conexión. |
 | `src/worker.js` | Servidor de Cloudflare: valida códigos y solo entrega la app a dispositivos activados. |
-| `wrangler.jsonc` | Configuración de Cloudflare (Worker `cake`, base KV de códigos). |
+| `wrangler.jsonc` | Configuración de Cloudflare: producción (`cake`) y pruebas (`cake-staging`), cada una con su base de códigos. |
 
 ## Cómo funcionan los códigos
 
@@ -44,11 +44,29 @@ Funciona en el navegador, sin cuentas. Cada compradora recibe por mail un **cód
 
 El servidor guarda los códigos en Cloudflare KV. La app solo se entrega a dispositivos con una cookie firmada de un código válido. Sin código, cualquier visita a la app va a `/activar`.
 
+## Ramas y ambientes
+
+| Rama | Worker en Cloudflare | Base de códigos | Para qué |
+| --- | --- | --- | --- |
+| `prod` | `cake` | `dulce-cuenta-licencias` | La app que usan tus clientas. |
+| `staging` | `cake-staging` | `dulce-cuenta-licencias-staging` | Probar cambios antes de publicarlos. |
+
+Para publicar: los cambios se suben primero a `staging` y, cuando están probados, se pasan a `prod` (merge de `staging` en `prod`). Los códigos de prueba viven en la base de staging y no sirven en producción.
+
 ## Puesta en marcha (una sola vez)
 
-1. **Clave del panel**: en Cloudflare, abre Workers & Pages → `cake` → Settings → Variables and Secrets → Add. Tipo **Secret**, nombre `ADMIN_TOKEN`, y una clave larga que solo tú conozcas. Es la clave para entrar a `/admin`.
-2. **Rama de producción**: en Settings → Builds, elige la rama que tiene este código (o `main` después de hacer merge).
-3. **Dirección pública**: en Settings → Domains & Routes, activa `workers.dev` o agrega tu dominio propio. Si cambias de dominio más adelante, las compradoras tendrán que activar de nuevo y pasar sus datos con el respaldo, porque el navegador los guarda por dominio.
+**Producción (Worker `cake`)**, en Workers & Pages → `cake` → Settings:
+
+1. **Builds** → rama de producción `prod`, comando de deploy `npx wrangler deploy`. Desactiva "Builds for non-production branches" para que la rama `staging` no se publique acá.
+2. Espera el primer deploy. Recién entonces Cloudflare deja agregar variables.
+3. **Variables and Secrets** → Add → tipo **Secret**, nombre `ADMIN_TOKEN`, con una clave larga que solo tú conozcas. Es la clave para entrar a `/admin`.
+4. **Domains & Routes** → activa `workers.dev` o agrega tu dominio. Si cambias de dominio más adelante, las compradoras tendrán que activar de nuevo y pasar sus datos con el respaldo, porque el navegador los guarda por dominio.
+
+**Pruebas (Worker `cake-staging`)**:
+
+1. Workers & Pages → Create → Import a repository → `4zid/cake`. Nombre del proyecto: `cake-staging`.
+2. Comando de deploy: `npx wrangler deploy --env staging`, sin build command. Rama de producción: `staging`.
+3. Cuando termine el primer deploy, agrega su propio secreto `ADMIN_TOKEN`, que puede ser distinto al de producción.
 
 ## Desarrollo local
 
@@ -58,7 +76,7 @@ echo "ADMIN_TOKEN=una-clave-de-prueba" > .dev.vars   # no se sube al repo
 npm run dev                                        # http://localhost:8787
 ```
 
-`npm run deploy` publica desde tu computadora (necesita `npx wrangler login`). Con el repo conectado a Cloudflare, cada push a la rama de producción se publica solo.
+`npx wrangler dev --env staging` prueba con la configuración de staging. `npm run deploy` publica producción desde tu computadora (necesita `npx wrangler login`). Con el repo conectado a Cloudflare, cada push a la rama de producción se publica solo.
 
 ## Personalizar
 
