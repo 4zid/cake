@@ -500,6 +500,10 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
 .sum-box b { font-size: 20px; color: var(--accent); font-variant-numeric: tabular-nums; }
 .sum-box b.pos { color: var(--green); }
 .sum-box small { font-size: 14px; color: var(--ink2); }
+.check { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 12px 14px; border-radius: 16px; border: 2px solid var(--line); cursor: pointer; line-height: 1.4; transition: border-color .15s, background-color .15s; }
+.check:has(input:checked) { border-color: var(--btn); background: var(--soft); }
+.check input { flex: none; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--btn); cursor: pointer; }
+.check small { display: block; font-size: 13px; color: var(--ink2); }
 .qty-wrap { position: relative; }
 .qty-wrap .inp { padding-right: 110px; }
 .qty-unit { position: absolute; right: 6px; top: 6px; bottom: 6px; display: flex; }
@@ -880,6 +884,8 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
 'use strict';
 /* Generado desde el rediseño: ilustraciones de ingredientes e íconos de extras. */
 const ING_ART = {
+ "frutos": "<path d=\"M14 33 C14 27 20 24 26 26 C31 28 31 34 27 37 C22 40 14 38 14 33 Z\" fill=\"#EBD7B0\"/><path d=\"M18 32 C19 29 23 28 26 30 C27 32 25 35 22 35 C19 35 18 34 18 32 Z\" fill=\"#8DBF5A\" stroke-width=\"1.5\"/><path d=\"M33 20 C39 22 41 31 37 37 C31 35 28 26 33 20 Z\" fill=\"#C08552\"/><path d=\"M34 24 C35 28 35 31 36 34\" stroke-width=\"1.3\" opacity=\".45\"/><circle cx=\"45\" cy=\"31\" r=\"7\" fill=\"#B9844F\"/><path d=\"M45 25 V37 M41 29 Q45 31 49 29 M41 33 Q45 35 49 33\" stroke-width=\"1.3\" opacity=\".45\"/><path d=\"M8 36 H56 Q55 49 45 55 Q39 58 32 58 Q25 58 19 55 Q9 49 8 36 Z\" fill=\"#F2A7BB\"/><path d=\"M14 41 H40\" stroke=\"#FFFFFF\" stroke-width=\"2.2\" opacity=\".7\"/>",
+ "granas": "<rect x=\"19\" y=\"11\" width=\"26\" height=\"9\" rx=\"3\" fill=\"#7BC4C4\"/><path d=\"M23 11.5 V19.5 M29 11.5 V19.5 M35 11.5 V19.5 M41 11.5 V19.5\" stroke=\"#FFFFFF\" stroke-width=\"1.5\" opacity=\".6\"/><path d=\"M21 20 H43 L46 26 V53 Q46 57 42 57 H22 Q18 57 18 53 V26 Z\" fill=\"#FFFFFF\"/><g stroke=\"none\"><rect x=\"23\" y=\"29\" width=\"7\" height=\"2.6\" rx=\"1.3\" fill=\"#F6C453\" transform=\"rotate(25 26 30)\"/><rect x=\"33\" y=\"27\" width=\"7\" height=\"2.6\" rx=\"1.3\" fill=\"#E86A92\" transform=\"rotate(-30 36 28)\"/><rect x=\"26\" y=\"36\" width=\"7\" height=\"2.6\" rx=\"1.3\" fill=\"#9C7BD1\" transform=\"rotate(-15 29 37)\"/><rect x=\"36\" y=\"35\" width=\"7\" height=\"2.6\" rx=\"1.3\" fill=\"#7BC4C4\" transform=\"rotate(40 39 36)\"/><rect x=\"22\" y=\"44\" width=\"7\" height=\"2.6\" rx=\"1.3\" fill=\"#D63C72\" transform=\"rotate(-35 25 45)\"/><rect x=\"32\" y=\"45\" width=\"7\" height=\"2.6\" rx=\"1.3\" fill=\"#F6C453\" transform=\"rotate(15 35 46)\"/><rect x=\"38\" y=\"49\" width=\"6\" height=\"2.6\" rx=\"1.3\" fill=\"#E86A92\" transform=\"rotate(-20 41 50)\"/><rect x=\"24\" y=\"51\" width=\"6\" height=\"2.6\" rx=\"1.3\" fill=\"#7BC4C4\" transform=\"rotate(30 27 52)\"/></g>",
  "harina": "<path d=\"M17 22 L47 22 L51 54 Q51.5 58 47.5 58 L16.5 58 Q12.5 58 13 54 Z\" fill=\"#FFF8EC\"></path><path d=\"M17 22 L20 13 Q21 11 23 11 L41 11 Q43 11 44 13 L47 22 Z\" fill=\"#F1E1C4\"></path><path d=\"M25 12 L26.5 21 M32 11.5 V21 M39 12 L37.5 21\" stroke-width=\"1.3\" opacity=\".35\"></path><rect x=\"21\" y=\"29\" width=\"22\" height=\"20\" rx=\"4\" fill=\"#F2A7BB\"></rect><path d=\"M32 46 V33\" stroke-width=\"1.6\"></path><path d=\"M32 36 Q28.5 35 28 32 Q31.5 32.5 32 36 Z M32 36 Q35.5 35 36 32 Q32.5 32.5 32 36 Z M32 41 Q28.5 40 28 37 Q31.5 37.5 32 41 Z M32 41 Q35.5 40 36 37 Q32.5 37.5 32 41 Z\" fill=\"#FFF8EC\" stroke-width=\"1.3\"></path>",
  "azucar": "<rect x=\"14\" y=\"28\" width=\"36\" height=\"29\" rx=\"4\" fill=\"#A9D8EA\"></rect><path d=\"M14 37 H50 V47 H14 Z\" fill=\"#FFFFFF\"></path><rect x=\"19\" y=\"18\" width=\"11\" height=\"11\" rx=\"2\" fill=\"#FFFFFF\"></rect><rect x=\"33\" y=\"19\" width=\"10\" height=\"10\" rx=\"2\" fill=\"#FFFFFF\"></rect><rect x=\"26\" y=\"8\" width=\"9\" height=\"9\" rx=\"2\" fill=\"#FFFFFF\" transform=\"rotate(12 30.5 12.5)\"></rect><path d=\"M22 42 H42\" stroke=\"#D63C72\" stroke-width=\"2.2\"></path>",
  "huevos": "<ellipse cx=\"19\" cy=\"33\" rx=\"8\" ry=\"10.5\" fill=\"#FFF6EA\"></ellipse><ellipse cx=\"45\" cy=\"33\" rx=\"8\" ry=\"10.5\" fill=\"#FFF6EA\"></ellipse><ellipse cx=\"32\" cy=\"29\" rx=\"8\" ry=\"10.5\" fill=\"#F3D9B8\"></ellipse><path d=\"M28 24 Q29 21.5 31 21\" stroke=\"#FFFFFF\" stroke-width=\"2\" opacity=\".8\"></path><path d=\"M7 40 H57 L54 54 Q53 57 50 57 H14 Q11 57 10 54 Z\" fill=\"#D9B98C\"></path><path d=\"M19 45 V52 M32 45 V52 M45 45 V52\" stroke-width=\"1.5\" opacity=\".35\"></path>",
@@ -945,7 +951,14 @@ const COMMON = [
   ['Harina leudante', 1, 'kg', 'masa', 'harina'], ['Azúcar impalpable', 500, 'g', 'cobertura', 'azucar'], ['Aceite', 900, 'ml', 'masa', 'otro'],
   ['Queso crema', 290, 'g', 'relleno', 'crema'], ['Limones', 1, 'kg', 'relleno', 'otro'], ['Mermelada', 454, 'g', 'relleno', 'frutillas'],
   ['Coco rallado', 100, 'g', 'deco', 'otro'], ['Nueces', 100, 'g', 'deco', 'otro'], ['Merengue en polvo', 200, 'g', 'cobertura', 'azucar'],
-  ['Colorante', 1, 'u', 'deco', 'otro']
+  ['Colorante', 1, 'u', 'deco', 'otro'],
+  ['Nutella', 350, 'g', 'relleno', 'chocolate'], ['Pistachos', 100, 'g', 'deco', 'frutos'], ['Almendras', 100, 'g', 'deco', 'frutos'],
+  ['Chocolate blanco', 150, 'g', 'cobertura', 'chocolate'], ['Leche condensada', 395, 'g', 'relleno', 'leche'], ['Mascarpone', 250, 'g', 'relleno', 'crema'],
+  ['Ricota', 500, 'g', 'relleno', 'crema'], ['Crema chantilly', 500, 'ml', 'cobertura', 'crema'], ['Fondant', 500, 'g', 'cobertura', 'azucar'],
+  ['Maicena', 500, 'g', 'masa', 'harina'], ['Bicarbonato', 100, 'g', 'masa', 'polvo'], ['Café instantáneo', 100, 'g', 'masa', 'cacao'],
+  ['Arándanos', 125, 'g', 'deco', 'frutillas'], ['Frambuesas', 125, 'g', 'deco', 'frutillas'], ['Granas de colores', 100, 'g', 'deco', 'granas'],
+  ['Chips de chocolate', 150, 'g', 'deco', 'chocolate'], ['Manzanas', 1, 'kg', 'relleno', 'otro'], ['Zanahorias', 1, 'kg', 'masa', 'otro'],
+  ['Galletitas', 170, 'g', 'masa', 'otro'], ['Gelatina sin sabor', 20, 'g', 'relleno', 'polvo'], ['Dulce de membrillo', 500, 'g', 'relleno', 'ddl']
 ];
 const STARTER = COMMON.slice(0, 10);
 /* Extras con ilustración propia. Cualquier otro extra se carga a mano. */
@@ -1024,15 +1037,17 @@ function roundNice(x) {
 /* ======================= Ingredientes: parte de la torta e ilustración ======================= */
 function guessKind(name) {
   const n = norm(name);
-  if (/dulce de leche|ddl/.test(n)) return 'ddl';
+  if (/dulce de leche|ddl|membrillo/.test(n)) return 'ddl';
+  if (/pistach|almendr|nuez|nueces|avellan|castan|mani\b|coco/.test(n)) return 'frutos';
+  if (/granas|grana|sprinkle|confit|colorines|perlas/.test(n)) return 'granas';
   if (/harina|maicena|almidon/.test(n)) return 'harina';
-  if (/azucar|impalpable|glass|merengue/.test(n)) return 'azucar';
+  if (/azucar|impalpable|glass|merengue|fondant/.test(n)) return 'azucar';
   if (/huevo/.test(n)) return 'huevos';
   if (/manteca|margarina/.test(n)) return 'manteca';
-  if (/crema|queso|chantilly|ricota/.test(n)) return 'crema';
+  if (/crema|queso|chantilly|ricota|mascarpone/.test(n)) return 'crema';
   if (/leche/.test(n)) return 'leche';
-  if (/cacao/.test(n)) return 'cacao';
-  if (/polvo|levadura|bicarbonato/.test(n)) return 'polvo';
+  if (/cacao|cafe/.test(n)) return 'cacao';
+  if (/polvo|levadura|bicarbonato|gelatina/.test(n)) return 'polvo';
   if (/vainilla|esencia/.test(n)) return 'vainilla';
   if (/chocolate|ganache|nutella|cobertura/.test(n)) return 'chocolate';
   if (/frutilla|fresa|frambuesa|mermelada|arandano|cereza/.test(n)) return 'frutillas';
@@ -1041,8 +1056,8 @@ function guessKind(name) {
 function guessCat(name) {
   const n = norm(name);
   if (/impalpable|glass|merengue|chantilly|ganache|cobertura|fondant/.test(n)) return 'cobertura';
-  if (/coco|nuez|nueces|almendra|granas|confit|colorante|perla|sprinkle|decor|flor|oblea|mani\b/.test(n)) return 'deco';
-  if (/dulce de leche|ddl|mermelada|nutella|queso crema|limon|ricota|relleno|membrillo/.test(n)) return 'relleno';
+  if (/coco|nuez|nueces|almendra|pistach|avellan|granas|confit|colorante|perla|sprinkle|chips|decor|flor|oblea|mani\b|arandano|frambuesa/.test(n)) return 'deco';
+  if (/dulce de leche|ddl|mermelada|nutella|queso crema|limon|ricota|mascarpone|relleno|membrillo|condensada|gelatina|manzana/.test(n)) return 'relleno';
   const k = guessKind(name);
   if (k === 'chocolate' || k === 'crema') return 'cobertura';
   if (k === 'frutillas') return 'deco';
@@ -1227,8 +1242,9 @@ function cakeProps(r) {
   const masaN = by.masa.length;
   const kinds = new Set(r.extras.map((x) => extraKind(x.name)).filter(Boolean));
   const sabor = /red velvet|colorante/.test(all) ? 'redvelvet' : has(by.masa, /cacao|chocolate/) ? 'chocolate' : has(by.masa, /limon/) ? 'limon' : 'vainilla';
-  const rs = has(by.relleno, /dulce de leche|ddl/) ? 'ddl' : has(by.relleno, /frutilla|fresa|frambuesa|mermelada/) ? 'frutilla' : has(by.relleno, /limon/) ? 'limon' : 'crema';
+  const rs = has(by.relleno, /dulce de leche|ddl|nutella|membrillo/) ? 'ddl' : has(by.relleno, /frutilla|fresa|frambuesa|mermelada/) ? 'frutilla' : has(by.relleno, /limon/) ? 'limon' : 'crema';
   const cob = !by.cobertura.length ? 'ninguna'
+    : has(by.cobertura, /chocolate blanco/) && !has(by.cobertura, /ganache|nutella|chocolate (?!blanco)|^chocolate$/) ? 'crema'
     : has(by.cobertura, /ganache|chocolate|nutella/) ? 'chocolate'
     : has(by.cobertura, /merengue/) ? 'merengue'
     : has(by.cobertura, /crema|chantilly|queso|impalpable|glass/) ? 'crema' : 'rosa';
@@ -2406,14 +2422,24 @@ function saleSheet(recipeId) {
           <label class="field"><span>Cliente (opcional)</span><input class="inp" id="sale-client" placeholder="Ej: Laura" maxlength="40" autocomplete="off"></label>
         </div>
         <p class="sum-box" id="sale-preview" aria-live="polite"></p>
+        <label class="check" id="sale-update-wrap" hidden><input type="checkbox" id="sale-update" checked><span id="sale-update-text"></span></label>
         <button type="submit" hidden></button>
       </form>
       <div class="sh-actions"><button type="button" class="btn" data-close>Cancelar</button><button type="button" class="btn btn-primary" data-save>Guardar venta</button></div>`
   });
   const sel = $('#sale-recipe', m.el);
+  /* Si la vendió a otro precio, se ofrece usarlo como precio de la torta. */
+  const priceDiffers = () => {
+    const r = findRecipe(sel.value);
+    const price = num($('#sale-price', m.el).value);
+    return r && price > 0 && Math.round(price * 100) !== Math.round(calc(r).price * 100) ? r : null;
+  };
   const preview = () => {
     const p = num($('#sale-price', m.el).value) - num($('#sale-cost', m.el).value);
     $('#sale-preview', m.el).innerHTML = `<span>${p < 0 ? 'Pierdes' : 'Ganas'} <b class="${p < 0 ? 'neg' : 'pos'}">${money(Math.abs(p))}</b> con esta venta</span>`;
+    const r = priceDiffers();
+    $('#sale-update-wrap', m.el).hidden = !r;
+    if (r) $('#sale-update-text', m.el).innerHTML = `Usar <b>${money(num($('#sale-price', m.el).value))}</b> como precio de “${esc(r.name || 'Torta sin nombre')}” de ahora en adelante <small>Ahora figura a ${money(calc(r).price)}.</small>`;
   };
   const fill = () => {
     const r = findRecipe(sel.value);
@@ -2437,10 +2463,13 @@ function saleSheet(recipeId) {
     if (!(price > 0)) { $('#sale-price', m.el).focus(); toast('Indica cuánto cobraste'); return; }
     const date = $('#sale-date', m.el).value || todayISO();
     state.sales.push({ id: uid(), date, recipeId: r ? r.id : '', title, client: $('#sale-client', m.el).value.trim(), price, cost: num($('#sale-cost', m.el).value) });
+    const updatePrice = priceDiffers() && $('#sale-update', m.el).checked;
+    if (updatePrice) { r.price = price; r.updatedAt = Date.now(); r.sample = false; }
     save(); m.close();
     ui.month = date.slice(0, 7);
-    toast('Venta anotada');
-    if (route.view === 'sales' || route.view === 'home') render();
+    toast(updatePrice ? `Venta anotada. “${r.name || 'Torta sin nombre'}” ahora vale ${money(price)}` : 'Venta anotada');
+    if (route.view === 'recipe') { repaintPanel(); updateOut(); }
+    else render();
   };
   $('#sale-form', m.el).addEventListener('submit', submit);
   $('[data-save]', m.el).addEventListener('click', submit);
