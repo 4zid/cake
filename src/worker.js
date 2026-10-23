@@ -619,7 +619,8 @@ async function landing(request, env, url) {
   const money = (n) => '$' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   const price = open ? money(cfg.price) : 'Próximamente';
   const launch = open && cfg.listPrice > cfg.price;
-  const days = env.MP_ACCESS_TOKEN ? cfg.guaranteeDays || 0 : 0;
+  /* La garantía se anuncia aunque la venta todavía esté cerrada. */
+  const days = cfg.guaranteeDays || 0;
   const cls = [open ? '' : 'is-closed', launch ? 'has-launch' : '', days ? '' : 'no-guarantee'].filter(Boolean).join(' ');
   /* X-Dulce-Page le avisa al service worker que no guarde esta página en lugar de la app. */
   const out = withHeaders(res, { 'Cache-Control': 'private, no-cache', 'X-Dulce-Page': 'landing' });
