@@ -56,6 +56,10 @@ tr > :last-child { padding-right: 18px; }
 .pill.on { background: var(--greenbg); color: var(--green); }
 .pill.off { background: var(--redbg); color: var(--red); }
 .pill.full { background: var(--amberbg); color: var(--amber); }
+.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.checks li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 700; }
+.checks .ok { background: var(--greenbg); color: var(--green); }
+.checks .no { background: var(--amberbg); color: var(--amber); }
 .actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 [hidden] { display: none !important; }
 .app-wrap { display: flex; flex-direction: column; gap: 24px; }
@@ -80,6 +84,19 @@ tr > :last-child { padding-right: 18px; }
   </section>
 
   <div id="app" class="app-wrap" hidden>
+    <section class="card" aria-labelledby="sale-h">
+      <div class="row" style="justify-content:space-between"><h2 id="sale-h">Venta con Mercado Pago</h2><span id="sale-state"></span></div>
+      <ul class="checks" id="checks"></ul>
+      <form id="cfg-form" class="grid">
+        <label class="field"><span>Precio (ARS)</span><input type="number" id="c-price" min="0" step="1" inputmode="numeric" required></label>
+        <label class="field" style="grid-column:span 2"><span>Nombre que ve al pagar</span><input id="c-title" maxlength="120"></label>
+        <label class="field"><span>Dispositivos por compra</span><select id="c-max"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+      </form>
+      <div class="row"><span class="muted">Enlace para tu botón “Comprar”:</span><span class="code" id="buy-url"></span><button class="btn btn-sm" type="button" id="copy-buy">Copiar enlace</button></div>
+      <div class="row"><span class="muted">URL de notificaciones (Mercado Pago → Webhooks):</span><span class="code" id="hook-url"></span><button class="btn btn-sm" type="button" id="copy-hook">Copiar</button></div>
+    </section>
+
     <section class="card soft" aria-labelledby="new-h">
       <h2 id="new-h">Nuevo código para una compra</h2>
       <form id="new-form" class="grid">
@@ -139,7 +156,7 @@ tr > :last-child { padding-right: 18px; }
       const state = c.revoked ? '<span class="pill off">Revocado</span>' : c.devices >= c.maxDevices ? '<span class="pill full">Completo</span>' : '<span class="pill on">Activo</span>';
       return `<tr>
         <td><span class="code">${esc(c.code)}</span></td>
-        <td>${esc(c.email) || '<span class="muted">—</span>'}${c.note ? `<br><small class="muted">${esc(c.note)}</small>` : ''}</td>
+        <td>${esc(c.email) || '<span class="muted">—</span>'}${c.note ? `<br><small class="muted">${esc(c.note)}</small>` : ''}${c.source === 'mercadopago' ? `<br><small class="muted">Pagó ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(c.amount || 0).replace(/\s/, '')}${c.emailSentAt ? ' · mail enviado' : ''}</small>` : ''}</td>
         <td>${c.devices} de ${c.maxDevices}</td>
         <td>${state}</td>
         <td>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('es') : ''}</td>
@@ -150,9 +167,33 @@ tr > :last-child { padding-right: 18px; }
         </div></td></tr>`;
     }).join('') : `<tr><td colspan="6" class="muted">${codes.length ? 'Ningún código coincide con la búsqueda.' : 'Todavía no creaste códigos.'}</td></tr>`;
   }
+  function paintConfig(c) {
+    $('#c-price').value = c.price || '';
+    $('#c-title').value = c.title || '';
+    $('#c-max').value = String(c.maxDevices || 3);
+    $('#buy-url').textContent = c.buyUrl;
+    $('#hook-url').textContent = c.webhookUrl;
+    $('#sale-state').innerHTML = c.open ? '<span class="pill on">Venta abierta</span>' : '<span class="pill full">Venta cerrada</span>';
+    const item = (ok, text) => `<li class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '!'} ${text}</li>`;
+    $('#checks').innerHTML = [
+      item(c.mercadopago !== 'sin-configurar', c.mercadopago === 'real' ? 'Mercado Pago: cobros reales' : c.mercadopago === 'prueba' ? 'Mercado Pago: modo prueba' : 'Falta MP_ACCESS_TOKEN'),
+      item(c.webhookSecret, c.webhookSecret ? 'Firma de notificaciones' : 'Falta MP_WEBHOOK_SECRET'),
+      item(c.price > 0, c.price > 0 ? 'Precio cargado' : 'Falta el precio'),
+      item(c.email, c.email ? 'Mail automático' : 'Mail automático desactivado')
+    ].join('');
+  }
+  async function loadConfig() { paintConfig(await call('GET', '/api/admin/config')); }
+  $('#cfg-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try { paintConfig(await call('PUT', '/api/admin/config', { price: $('#c-price').value, title: $('#c-title').value, maxDevices: $('#c-max').value })); toast('Venta guardada'); }
+    catch (err) { toast(err.message); }
+  });
+  $('#copy-buy').addEventListener('click', () => copy($('#buy-url').textContent, 'Enlace copiado'));
+  $('#copy-hook').addEventListener('click', () => copy($('#hook-url').textContent, 'URL copiada'));
   function showApp() {
     $('#login').hidden = true; $('#app').hidden = false; $('#logout').hidden = false;
     load().catch((e) => toast(e.message));
+    loadConfig().catch((e) => toast(e.message));
   }
 
   $('#login-form').addEventListener('submit', async (e) => {

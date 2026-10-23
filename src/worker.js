@@ -2,6 +2,8 @@
    - La app (/) solo se entrega a dispositivos activados con un código válido.
    - /activar: página para cargar el código que llega por mail con la compra.
    - /admin: página para crear, revocar y liberar códigos (protegida con ADMIN_TOKEN).
+   - /comprar: cobra con Mercado Pago (Checkout Pro). Con el pago aprobado se crea el código solo
+     y se muestra en /gracias; los reembolsos y contracargos lo revocan.
    Los códigos viven en el KV "LICENSES" con la clave "code:DULCE-XXXX-XXXX-XXXX". */
 
 const COOKIE = 'dc_lic';
@@ -11,10 +13,12 @@ const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const PROTECTED = new Set(['/', '/index', '/index.html']);
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
     try {
+      if (path === '/comprar' || path === '/comprar/') return await comprar(request, env, url);
+      if (path === '/api/mp/webhook') return await mpWebhook(request, env, url, ctx);
       if (path.startsWith('/api/')) return await api(request, env, url);
       /* /activar y /admin los sirve el gestor de archivos (activar.html y admin.html). */
       if (PROTECTED.has(path)) {
@@ -57,6 +61,13 @@ async function api(request, env, url) {
     return json({ ok: true }, 200, { 'Set-Cookie': cookie(token, url) });
   }
 
+  if (path === '/api/venta' && method === 'GET') {
+    const cfg = await getConfig(env);
+    return json({ open: salesOpen(env, cfg), price: cfg.price || 0, title: cfg.title });
+  }
+
+  if (path === '/api/compra' && method === 'GET') return compraStatus(env, url);
+
   if (path === '/api/licencia' && method === 'GET') {
     const lic = await readLicense(request, env);
     if (!lic) return json({ error: 'sin-licencia' }, 401);
@@ -83,6 +94,22 @@ async function admin(request, env, url) {
   if (!(await safeEqual(given, env.ADMIN_TOKEN))) return json({ error: 'no-autorizado', message: 'Clave de administración incorrecta.' }, 401);
   const path = url.pathname;
   const method = request.method;
+
+  if (path === '/api/admin/config' && method === 'GET') return json(await adminConfig(env, url));
+  if (path === '/api/admin/config' && method === 'PUT') {
+    const body = await readJSON(request);
+    const cfg = await getConfig(env);
+    const price = Math.round(Number(String(body.price ?? cfg.price).replace(',', '.')) * 100) / 100;
+    if (!(price >= 0) || price > 100000000) return json({ error: 'precio', message: 'El precio no es válido.' }, 400);
+    const next = {
+      ...cfg,
+      price,
+      title: String(body.title ?? cfg.title).trim().slice(0, 120) || DEFAULT_CONFIG.title,
+      maxDevices: Math.min(Math.max(parseInt(body.maxDevices ?? cfg.maxDevices, 10) || DEFAULT_DEVICES, 1), 20)
+    };
+    await env.LICENSES.put('config', JSON.stringify(next));
+    return json(await adminConfig(env, url));
+  }
 
   if (path === '/api/admin/codes' && method === 'GET') {
     const out = [];
@@ -151,7 +178,7 @@ function normalizeCode(raw) {
   if (s.length !== 12 || [...s].some((c) => !ALPHABET.includes(c))) return null;
   return `DULCE-${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
 }
-const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0 });
+const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0 });
 async function getCode(env, code) {
   return env.LICENSES.get('code:' + code, { type: 'json' });
 }
@@ -221,6 +248,153 @@ function b64url(bytes) {
 function unb64url(s) {
   const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4));
   return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+}
+
+/* ======================= Venta con Mercado Pago ======================= */
+const DEFAULT_CONFIG = { price: 0, title: 'Dulce Cuenta · acceso a la app', currency: 'ARS', maxDevices: DEFAULT_DEVICES };
+const PRODUCT = 'dulce-cuenta';
+/* MP_API_BASE solo se usa para probar en local con un Mercado Pago simulado. */
+const mpApi = (env) => env.MP_API_BASE || 'https://api.mercadopago.com';
+async function getConfig(env) {
+  const saved = await env.LICENSES.get('config', { type: 'json' });
+  return { ...DEFAULT_CONFIG, ...(saved || {}) };
+}
+const salesOpen = (env, cfg) => !!env.MP_ACCESS_TOKEN && cfg.price > 0;
+async function adminConfig(env, url) {
+  const cfg = await getConfig(env);
+  const token = env.MP_ACCESS_TOKEN || '';
+  return {
+    ...cfg,
+    open: salesOpen(env, cfg),
+    buyUrl: `${url.origin}/comprar`,
+    webhookUrl: `${url.origin}/api/mp/webhook`,
+    mercadopago: token ? (token.startsWith('TEST-') ? 'prueba' : 'real') : 'sin-configurar',
+    webhookSecret: !!env.MP_WEBHOOK_SECRET,
+    email: !!(env.RESEND_API_KEY && env.MAIL_FROM)
+  };
+}
+async function mp(env, method, path, body, extraHeaders = {}) {
+  const res = await fetch(mpApi(env) + path, {
+    method,
+    headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}`, 'Content-Type': 'application/json', ...extraHeaders },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(`Mercado Pago respondió ${res.status}`); e.status = res.status; e.data = data; throw e; }
+  return data;
+}
+/* /comprar: crea la preferencia de pago y lleva a la compradora a Mercado Pago. */
+async function comprar(request, env, url) {
+  const cfg = await getConfig(env);
+  if (!salesOpen(env, cfg)) return redirect(new URL('/gracias?estado=cerrado', url));
+  const ref = `dc-${b64url(crypto.getRandomValues(new Uint8Array(12)))}`;
+  try {
+    const pref = await mp(env, 'POST', '/checkout/preferences', {
+      items: [{ id: PRODUCT, title: cfg.title, description: 'Calculadora de costos y ganancias para tortas', quantity: 1, currency_id: cfg.currency, unit_price: cfg.price }],
+      back_urls: { success: `${url.origin}/gracias`, pending: `${url.origin}/gracias`, failure: `${url.origin}/gracias` },
+      auto_return: 'approved',
+      notification_url: `${url.origin}/api/mp/webhook`,
+      external_reference: ref,
+      statement_descriptor: 'DULCE CUENTA',
+      metadata: { product: PRODUCT }
+    }, { 'X-Idempotency-Key': ref });
+    return redirect(new URL(pref.init_point));
+  } catch (e) {
+    return redirect(new URL('/gracias?estado=error', url));
+  }
+}
+/* /api/compra: la página /gracias pregunta cómo salió el pago y, si se aprobó, recibe el código. */
+async function compraStatus(env, url) {
+  const id = (url.searchParams.get('payment_id') || url.searchParams.get('collection_id') || '').replace(/\D/g, '');
+  const ref = url.searchParams.get('ref') || url.searchParams.get('external_reference') || '';
+  if (!id || !ref) return json({ status: 'desconocido' }, 400);
+  if (!env.MP_ACCESS_TOKEN) return json({ status: 'error' }, 503);
+  let pay;
+  try { pay = await mp(env, 'GET', `/v1/payments/${id}`); } catch (e) { return json({ status: e.status === 404 ? 'desconocido' : 'error' }, e.status === 404 ? 404 : 502); }
+  /* La referencia es secreta y única por compra: sin ella no se entrega el código. */
+  if (pay.external_reference !== ref || !isOurs(pay)) return json({ status: 'desconocido' }, 404);
+  if (pay.status === 'approved') {
+    const rec = await ensureLicense(env, pay, url.origin);
+    return json({ status: 'aprobado', code: rec.code, email: rec.email || '', emailSent: !!rec.emailSentAt, maxDevices: rec.maxDevices });
+  }
+  if (pay.status === 'pending' || pay.status === 'in_process' || pay.status === 'authorized') return json({ status: 'pendiente' });
+  return json({ status: 'rechazado' });
+}
+const isOurs = (pay) => (pay.metadata && pay.metadata.product === PRODUCT) || String(pay.external_reference || '').startsWith('dc-');
+/* Aviso de Mercado Pago. Se valida la firma, se responde enseguida y el pago se procesa después. */
+async function mpWebhook(request, env, url, ctx) {
+  if (request.method !== 'POST') return json({ ok: true });
+  const body = await readJSON(request);
+  const type = body.type || body.topic || url.searchParams.get('type') || url.searchParams.get('topic');
+  const dataId = String(url.searchParams.get('data.id') || (body.data && body.data.id) || '');
+  if (env.MP_WEBHOOK_SECRET && !(await validSignature(request, env.MP_WEBHOOK_SECRET, dataId))) return json({ error: 'firma' }, 401);
+  if (type === 'payment' && /^\d+$/.test(dataId) && env.MP_ACCESS_TOKEN) {
+    const work = processPayment(env, dataId, url.origin).catch(() => {});
+    if (ctx && ctx.waitUntil) ctx.waitUntil(work); else await work;
+  }
+  return json({ ok: true });
+}
+async function validSignature(request, secret, dataId) {
+  const header = request.headers.get('x-signature') || '';
+  const requestId = request.headers.get('x-request-id') || '';
+  const parts = Object.fromEntries(header.split(',').map((p) => p.split('=').map((s) => s.trim())));
+  if (!parts.ts || !parts.v1 || !dataId) return false;
+  const id = /^[a-z0-9]+$/i.test(dataId) ? dataId.toLowerCase() : dataId;
+  const manifest = `id:${id};request-id:${requestId};ts:${parts.ts};`;
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(manifest)));
+  const hex = Array.from(mac, (b) => b.toString(16).padStart(2, '0')).join('');
+  return safeEqual(hex, parts.v1.toLowerCase());
+}
+/* Siempre se consulta el pago a Mercado Pago: el aviso solo trae el número. */
+async function processPayment(env, id, origin) {
+  const pay = await mp(env, 'GET', `/v1/payments/${id}`);
+  if (!isOurs(pay)) return;
+  if (pay.status === 'approved') { await ensureLicense(env, pay, origin); return; }
+  if (['refunded', 'charged_back', 'cancelled'].includes(pay.status)) {
+    const code = await codeForPayment(env, pay.id);
+    const rec = await getCode(env, code);
+    if (rec && !rec.revoked) {
+      rec.revoked = true;
+      rec.revokedReason = pay.status === 'charged_back' ? 'contracargo' : 'reembolso';
+      await putCode(env, rec);
+    }
+  }
+}
+/* El código sale del número de pago y la clave secreta: el aviso y /gracias llegan al mismo código. */
+async function codeForPayment(env, paymentId) {
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', await hmacKey(env), new TextEncoder().encode(`mp:${paymentId}`)));
+  const chars = Array.from(sig.slice(0, 12), (b) => ALPHABET[b % 32]).join('');
+  return `DULCE-${chars.slice(0, 4)}-${chars.slice(4, 8)}-${chars.slice(8, 12)}`;
+}
+async function ensureLicense(env, pay, origin) {
+  const code = await codeForPayment(env, pay.id);
+  let rec = await getCode(env, code);
+  if (!rec) {
+    const cfg = await getConfig(env);
+    rec = {
+      code, email: String((pay.payer && pay.payer.email) || '').slice(0, 120), note: `Mercado Pago #${pay.id}`,
+      maxDevices: cfg.maxDevices || DEFAULT_DEVICES, devices: [], revoked: false, createdAt: Date.now(),
+      source: 'mercadopago', paymentId: String(pay.id), amount: pay.transaction_amount || 0
+    };
+    await putCode(env, rec);
+  }
+  if (!rec.emailSentAt && rec.email && env.RESEND_API_KEY && env.MAIL_FROM) {
+    const sent = await sendCodeMail(env, rec, origin).catch(() => false);
+    if (sent) { rec.emailSentAt = Date.now(); await putCode(env, rec); }
+  }
+  return rec;
+}
+async function sendCodeMail(env, rec, origin) {
+  const link = `${origin}/activar?codigo=${encodeURIComponent(rec.code)}`;
+  const text = `¡Hola! Gracias por comprar Dulce Cuenta.\n\nTu código de acceso es:\n${rec.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link}\n\nPuedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
+  const html = `<div style="font-family:Arial,sans-serif;color:#3A2228;max-width:520px;margin:0 auto;padding:24px"><p style="font-size:22px;font-weight:800;color:#A82756;margin:0 0 16px">Dulce Cuenta</p><p>¡Hola! Gracias por tu compra.</p><p>Tu código de acceso es:</p><p style="font-size:24px;font-weight:800;letter-spacing:2px;background:#FFE6EE;padding:14px 18px;border-radius:14px;display:inline-block">${rec.code}</p><p><a href="${link}" style="display:inline-block;background:#C42F65;color:#fff;font-weight:800;padding:14px 22px;border-radius:14px;text-decoration:none">Activar Dulce Cuenta</a></p><p style="color:#7A5860;font-size:14px">Puedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.</p></div>`;
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `code-${rec.code}` },
+    body: JSON.stringify({ from: env.MAIL_FROM, to: [rec.email], subject: 'Tu acceso a Dulce Cuenta', text, html })
+  });
+  return res.ok;
 }
 
 /* ======================= Utilidades HTTP ======================= */

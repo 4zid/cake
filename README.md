@@ -31,6 +31,26 @@ Funciona en el navegador, sin cuentas. Cada compradora recibe por mail un **cód
 | `src/worker.js` | Servidor de Cloudflare: valida códigos y solo entrega la app a dispositivos activados. |
 | `wrangler.jsonc` | Configuración de Cloudflare: producción (`cake`) y pruebas (`cake-staging`), cada una con su base de códigos. |
 
+## Venta con Mercado Pago
+
+1. La compradora toca el botón **Comprar** de tu landing (Framer o Webflow), que apunta a `https://TU-DOMINIO/comprar`.
+2. Paga en Mercado Pago (Checkout Pro).
+3. Vuelve a `/gracias`, que le muestra **su código** y un botón **Activar ahora**.
+4. Mercado Pago también avisa al servidor (`/api/mp/webhook`). El código se crea aunque ella cierre la página antes de volver. Cada aviso se valida con la firma de Mercado Pago y el pago se confirma consultándolo a Mercado Pago, así que un aviso falso no crea códigos.
+5. Si el pago se reembolsa o tiene un contracargo, el código se revoca solo.
+
+Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al mismo tiempo. En `/admin` ves cada compra con su número de pago y el monto.
+
+### Configurar (una vez por Worker)
+
+1. En **Mercado Pago Developers → Tus integraciones**, crea una aplicación de pagos online (Checkout Pro).
+2. Copia el **Access Token** y guárdalo en Cloudflare como Secret `MP_ACCESS_TOKEN`:
+   - en `cake`, las credenciales **de producción**;
+   - en `cake-staging`, las **de prueba**, para probar con tarjetas de prueba sin cobrar de verdad.
+3. En la aplicación de Mercado Pago, ve a **Webhooks → Configurar notificaciones**, pega la URL que muestra `/admin` (`https://TU-DOMINIO/api/mp/webhook`), marca el evento **Pagos** y guarda. Copia la **clave secreta** y guárdala como Secret `MP_WEBHOOK_SECRET`.
+4. En `/admin` carga el precio. Cuando todo está en verde dice **Venta abierta**. Copia el enlace de compra y ponlo en el botón de tu landing.
+5. **Mail automático con el código (opcional):** necesita un dominio propio verificado en [Resend](https://resend.com). Guarda los Secrets `RESEND_API_KEY` y `MAIL_FROM` (por ejemplo `Dulce Cuenta <hola@tudominio.com>`). Sin esto, el código se ve en `/gracias` y puedes reenviarlo desde `/admin` con **Copiar mail**.
+
 ## Cómo funcionan los códigos
 
 1. Alguien te compra la app.

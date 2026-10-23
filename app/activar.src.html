@@ -77,6 +77,7 @@ input[aria-invalid="true"] { border-color: var(--red); }
     </div>
     <p class="msg" id="msg" role="alert" aria-live="assertive"></p>
     <button class="btn" type="submit" id="go">Activar</button>
+    <p class="help" id="buy" hidden>¿Todavía no la tienes? <a href="/comprar" style="color:var(--accent);font-weight:800">Cómprala acá</a><span id="buy-price"></span>.</p>
     <p class="help" id="help">Puedes usar el mismo código en tu teléfono y en tu computadora. ¿No lo encuentras? Busca <b>Dulce Cuenta</b> en tu correo o responde el mail de tu compra.</p>
   </form>
 </main>
@@ -145,6 +146,11 @@ input[aria-invalid="true"] { border-color: var(--red); }
     btn.textContent = 'Activar';
   });
   if (!q) input.focus();
+  fetch('/api/venta', { cache: 'no-store' }).then((r) => r.json()).then((v) => {
+    if (!v.open) return;
+    document.getElementById('buy').hidden = false;
+    if (v.price) document.getElementById('buy-price').textContent = ' por ' + new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v.price).replace(/\s/, '');
+  }).catch(() => {});
 })();
 </script>
 </body>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gracias por tu compra</title>
+<meta name="description" content="Tu compra de Dulce Cuenta.">
+<meta name="theme-color" content="#FFE6EE">
+<meta name="robots" content="noindex">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400..800&display=swap">
+<style>
+:root { --ink: #3A2228; --ink2: #7A5860; --btn: #C42F65; --accent: #A82756; --glaze: #FFE6EE; --soft: #FFF4F7; --line: #F5D5DF; --field: #B07F8D; --red: #C0292F; --redbg: #FFE3E3; --green: #2F6B40; --greenbg: #E5F4E8; --display: 'Bagel Fat One', 'Cooper Black', Georgia, serif; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: #FFFFFF; color: var(--ink); font: 16px/1.5 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.art { position: relative; display: flex; flex-direction: column; padding: 40px 48px; background: var(--glaze); }
+.art::after { content: ''; position: absolute; top: 0; bottom: 0; right: -12px; width: 12px; background: radial-gradient(circle at 0 10px, var(--glaze) 9.5px, transparent 10.5px) 0 0 / 12px 20px repeat-y; }
+.brand { margin: 0; font-family: var(--display); font-size: 28px; line-height: 1; color: var(--accent); }
+.cake { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+.cake svg { width: min(440px, 100%); height: auto; overflow: visible; animation: drop .7s cubic-bezier(.2, .9, .3, 1.25) both; }
+main { display: flex; align-items: center; padding: 40px 48px 40px 60px; }
+.box { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 20px; animation: rise .4s cubic-bezier(.2, .8, .3, 1) both; }
+h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 46px; line-height: 1.05; text-wrap: balance; }
+h1 span { color: var(--btn); }
+.lead { margin: 0; font-size: 17px; color: var(--ink2); }
+label { font-size: 15px; font-weight: 700; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+input { width: 100%; height: 60px; padding: 0 16px; border: 2px solid var(--field); border-radius: 14px; background: #FFFFFF; color: var(--ink); font: inherit; font-size: 20px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; transition: border-color .15s, box-shadow .15s; }
+input::placeholder { color: #C9A9B2; letter-spacing: .04em; }
+input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(196, 47, 101, .25); }
+input[aria-invalid="true"] { border-color: var(--red); }
+.btn { min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid var(--ink); border-radius: 16px; background: var(--btn); color: #FFFFFF; box-shadow: 0 4px 0 var(--ink); font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; transition: transform .1s, box-shadow .1s; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.btn[disabled] { opacity: .7; cursor: progress; }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.spin { width: 18px; height: 18px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .4); border-top-color: #FFFFFF; animation: spin .8s linear infinite; }
+.msg { margin: 0; padding: 12px 14px; border-radius: 14px; font-size: 15px; font-weight: 600; }
+.msg.err { background: var(--redbg); color: var(--red); }
+.msg.ok { background: var(--greenbg); color: var(--green); }
+.msg:empty { display: none; }
+.help { margin: 0; font-size: 14px; color: var(--ink2); }
+.help b { color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.code-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-radius: 18px; background: var(--glaze); }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 22px; font-weight: 800; letter-spacing: .06em; overflow-wrap: anywhere; }
+.copy { flex: none; min-height: 44px; padding: 0 14px; border: 2px solid var(--ink); border-radius: 12px; background: #FFFFFF; color: var(--ink); font: inherit; font-weight: 800; cursor: pointer; }
+.btn-alt { background: #FFFFFF; color: var(--ink); }
+a.btn { text-decoration: none; padding: 0 22px; }
+.state[hidden] { display: none !important; }
+h1:focus { outline: none; }
+@media (max-width: 420px) { .code { font-size: 17px; white-space: nowrap; } .code-box { padding: 14px; } }
+.state { display: flex; flex-direction: column; gap: 18px; }
+.dots span { animation: blink 1.2s infinite; } .dots span:nth-child(2) { animation-delay: .2s; } .dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 50% { opacity: .2; } }
+@keyframes drop { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.shake { animation: shake .35s ease; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+@media (max-width: 859px) {
+  body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .art { padding: 18px 16px 10px; }
+  .art::after { top: 100%; bottom: auto; left: 0; right: 0; width: auto; height: 12px; background: radial-gradient(circle at 10px 0, var(--glaze) 9.5px, transparent 10.5px) 0 0 / 20px 12px repeat-x; }
+  .brand { font-size: 22px; }
+  .cake { padding: 8px 0; }
+  .cake svg { width: 220px; }
+  main { align-items: flex-start; padding: 32px 16px calc(24px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 32px; }
+  .lead { font-size: 15px; }
+}
+</style>
+</head>
+<body>
+<div class="art" aria-hidden="true">
+  <p class="brand">Dulce Cuenta</p>
+  <div class="cake"><!--CAKE--></div>
+</div>
+<main>
+  <div class="box" aria-live="polite">
+    <section class="state" id="s-cargando">
+      <h1>Un momento<span class="dots"><span>.</span><span>.</span><span>.</span></span></h1>
+      <p class="lead">Estamos confirmando tu pago con Mercado Pago.</p>
+    </section>
+    <section class="state" id="s-aprobado" hidden>
+      <h1>¡Gracias por <span>tu compra!</span></h1>
+      <p class="lead">Este es tu código de acceso. Guárdalo: lo vas a usar para activar la app en tu teléfono y en tu computadora.</p>
+      <div class="code-box"><span class="code" id="code"></span><button class="copy" type="button" id="copy">Copiar</button></div>
+      <a class="btn" id="go" href="/activar">Activar ahora</a>
+      <p class="help" id="mail-note"></p>
+    </section>
+    <section class="state" id="s-pendiente" hidden>
+      <h1>Tu pago está <span>en proceso</span></h1>
+      <p class="lead">Mercado Pago todavía no lo confirmó. Algunos medios de pago tardan un rato. Deja esta página abierta: se actualiza sola.</p>
+      <p class="help">Cuando se acredite, tu código aparece acá. Si cerraste la página, responde el mail de tu compra y te lo enviamos.</p>
+    </section>
+    <section class="state" id="s-rechazado" hidden>
+      <h1>El pago <span>no se completó</span></h1>
+      <p class="lead">Mercado Pago no aprobó el pago y no se te cobró nada. Puedes intentar con otro medio de pago.</p>
+      <a class="btn" href="/comprar">Intentar de nuevo</a>
+    </section>
+    <section class="state" id="s-cerrado" hidden>
+      <h1>Las ventas <span>abren pronto</span></h1>
+      <p class="lead">Todavía no se puede comprar Dulce Cuenta desde acá. Vuelve en un rato.</p>
+      <a class="btn btn-alt" href="/activar">Ya tengo un código</a>
+    </section>
+    <section class="state" id="s-error" hidden>
+      <h1>Algo <span>no salió bien</span></h1>
+      <p class="lead" id="err-text">No pudimos confirmar tu pago. Si ya pagaste, no te preocupes: tu compra quedó registrada. Recarga esta página en unos minutos.</p>
+      <a class="btn btn-alt" href="" id="retry">Volver a intentar</a>
+    </section>
+  </div>
+</main>
+<script>
+(() => {
+  'use strict';
+  const q = new URLSearchParams(location.search);
+  const show = (id) => { document.querySelectorAll('.state').forEach((s) => { s.hidden = s.id !== 's-' + id; }); const h = document.querySelector('#s-' + id + ' h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } };
+  const estado = q.get('estado');
+  if (estado === 'cerrado') return show('cerrado');
+  if (estado === 'error') { document.getElementById('err-text').textContent = 'No pudimos abrir Mercado Pago. No se te cobró nada. Prueba de nuevo en un rato.'; document.getElementById('retry').href = '/comprar'; return show('error'); }
+  const id = q.get('payment_id') || q.get('collection_id');
+  const ref = q.get('external_reference');
+  const status = q.get('status') || q.get('collection_status');
+  if (!id || id === 'null' || !ref) return show(status === 'rejected' || status === 'null' || status === 'failure' ? 'rechazado' : 'error');
+  let tries = 0;
+  const check = async () => {
+    tries++;
+    try {
+      const res = await fetch('/api/compra?payment_id=' + encodeURIComponent(id) + '&ref=' + encodeURIComponent(ref), { cache: 'no-store' });
+      const d = await res.json().catch(() => ({}));
+      if (d.status === 'aprobado') {
+        document.getElementById('code').textContent = d.code;
+        document.getElementById('go').href = '/activar?codigo=' + encodeURIComponent(d.code);
+        document.getElementById('mail-note').textContent = d.emailSent && d.email ? 'También te lo enviamos a ' + d.email + '.' : 'Puedes usarlo en hasta ' + (d.maxDevices || 3) + ' dispositivos.';
+        document.getElementById('copy').onclick = async (ev) => { try { await navigator.clipboard.writeText(d.code); ev.target.textContent = '¡Copiado!'; } catch (e) { prompt('Copia tu código:', d.code); } };
+        return show('aprobado');
+      }
+      if (d.status === 'pendiente') { show('pendiente'); if (tries < 40) setTimeout(check, 8000); return; }
+      if (d.status === 'rechazado') return show('rechazado');
+      if (tries < 4) { setTimeout(check, 3000); return; }
+      show('error');
+    } catch (e) {
+      if (tries < 4) { setTimeout(check, 3000); return; }
+      show('error');
+    }
+  };
+  check();
+})();
+</script>
+</body>
+</html>

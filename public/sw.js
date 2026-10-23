@@ -1,5 +1,5 @@
 // Dulce Cuenta: permite abrir la app sin conexión una vez activada en este dispositivo.
-const CACHE = 'dulce-cuenta-v2';
+const CACHE = 'dulce-cuenta-v3';
 const FILES = ['./', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -19,7 +19,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  if (url.pathname.startsWith('/api/') || /^\/(activar|admin)/.test(url.pathname)) return;
+  if (url.pathname.startsWith('/api/') || /^\/(activar|admin|comprar|gracias)/.test(url.pathname)) return;
   e.respondWith(
     fetch(e.request)
       .then((res) => {

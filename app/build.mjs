@@ -13,10 +13,10 @@ const js = jsFiles.map((f) => read(join('js', f))).join('\n');
 const app = read('shell.html').replace('/*CSS*/', () => read('style.css')).replace('//JS', () => js);
 writeFileSync(join(root, 'public/index.html'), app);
 
-// La página de activación lleva la misma torta dibujada, generada con el código de la app.
+// Las páginas de activación y de compra llevan la misma torta dibujada, generada con el código de la app.
 const pre = `const clamp=(x,a,b)=>Math.min(Math.max(x,a),b);const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const reducedMotion=()=>true;const ingKind=()=>'otro';`;
 const cakeHTML = new Function(pre + read('js/01-art-data.js') + read('js/03-art.js') + '\nreturn cakeHTML;')();
 const cake = cakeHTML({ masa: 3, relleno: true, cobertura: 'rosa', sabor: 'vainilla', rellenoSabor: 'frutilla', frutillas: true, velas: true }, 'Torta con frutillas y velas');
-writeFileSync(join(root, 'public/activar.html'), read('activar.src.html').replace('<!--CAKE-->', () => cake));
+for (const page of ['activar', 'gracias']) writeFileSync(join(root, `public/${page}.html`), read(`${page}.src.html`).replace('<!--CAKE-->', () => cake));
 
 console.log(`index.html ${app.length} bytes · ${jsFiles.length} archivos JS`);
