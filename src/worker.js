@@ -389,7 +389,7 @@ async function comprar(request, env, url, ctx) {
   const ref = `dc-${b64url(crypto.getRandomValues(new Uint8Array(12)))}`;
   try {
     const pref = await mp(env, 'POST', '/checkout/preferences', {
-      items: [{ id: PRODUCT, title: cfg.title, description: 'Calculadora de costos y ganancias para tortas', quantity: 1, currency_id: cfg.currency, unit_price: cfg.price }],
+      items: [{ id: PRODUCT, title: cfg.title, description: 'Calculadora de costos y ganancias para tortas', category_id: 'services', quantity: 1, currency_id: cfg.currency, unit_price: cfg.price }],
       back_urls: { success: `${url.origin}/gracias`, pending: `${url.origin}/gracias`, failure: `${url.origin}/gracias` },
       auto_return: 'approved',
       notification_url: `${url.origin}/api/mp/webhook`,
