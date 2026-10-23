@@ -23,7 +23,8 @@ Funciona en el navegador, sin cuentas. Cada compradora recibe por mail un **cód
 
 | Archivo | Para qué |
 | --- | --- |
-| `public/index.html` | La app completa (HTML, CSS y JS en un archivo). |
+| `app/` | El código fuente de la app: `shell.html` (estructura), `style.css`, `js/` (en orden: ilustraciones, datos y cálculos, pantallas, editor, hojas, bienvenida, arranque) y `activar.src.html`. |
+| `public/index.html` | La app armada en un solo archivo. **No se edita a mano**: se genera con `npm run build`. |
 | `public/activar.html` | Página donde la compradora escribe su código (`/activar`). |
 | `public/admin.html` | Tu panel para crear y gestionar códigos (`/admin`). |
 | `public/manifest.webmanifest`, `public/sw.js`, `public/icon.svg` | Instalación como app y uso sin conexión. |
@@ -69,6 +70,8 @@ Para publicar: los cambios se suben primero a `staging` y, cuando están probado
 3. Cuando termine el primer deploy, agrega su propio secreto `ADMIN_TOKEN`, que puede ser distinto al de producción.
 
 ## Desarrollo local
+
+Los cambios se hacen en `app/` y después se arma con `npm run build`, que regenera `public/index.html` y `public/activar.html`. Hay que subir los dos (fuente y armado), porque Cloudflare publica `public/` tal cual.
 
 ```bash
 npm install
