@@ -1,4 +1,4 @@
-// Arma public/index.html y public/activar.html a partir de las piezas de app/.
+// Arma public/index.html, la landing y las páginas de activación y compra a partir de las piezas de app/.
 // Uso: npm run build
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -15,8 +15,17 @@ writeFileSync(join(root, 'public/index.html'), app);
 
 // Las páginas de activación y de compra llevan la misma torta dibujada, generada con el código de la app.
 const pre = `const clamp=(x,a,b)=>Math.min(Math.max(x,a),b);const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const reducedMotion=()=>true;const ingKind=()=>'otro';`;
-const cakeHTML = new Function(pre + read('js/01-art-data.js') + read('js/03-art.js') + '\nreturn cakeHTML;')();
+const art = read('js/01-art-data.js') + read('js/03-art.js');
+const { cakeHTML, ingArt } = new Function(pre + art + '\nreturn { cakeHTML, ingArt };')();
 const cake = cakeHTML({ masa: 3, relleno: true, cobertura: 'rosa', sabor: 'vainilla', rellenoSabor: 'frutilla', frutillas: true, velas: true }, 'Torta con frutillas y velas');
 for (const page of ['activar', 'gracias']) writeFileSync(join(root, `public/${page}.html`), read(`${page}.src.html`).replace('<!--CAKE-->', () => cake));
+
+// Landing: tortas e ingredientes dibujados de antemano y el código de las ilustraciones para la demo interactiva.
+const live = pre.replace('const reducedMotion=()=>true;', "const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;");
+const landing = read('landing.src.html')
+  .replace(/<!--CAKE:(\{.*?\})-->/g, (_, p) => cakeHTML(JSON.parse(p)))
+  .replace(/<!--ING:(\w+)-->/g, (_, k) => ingArt(k))
+  .replace('/*ART*/', () => live + art);
+writeFileSync(join(root, 'public/landing.html'), landing);
 
 console.log(`index.html ${app.length} bytes · ${jsFiles.length} archivos JS`);

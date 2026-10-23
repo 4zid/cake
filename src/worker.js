@@ -1,5 +1,6 @@
 /* Dulce Cuenta · servidor de licencias.
-   - La app (/) solo se entrega a dispositivos activados con un código válido.
+   - La app (/) solo se entrega a dispositivos activados con un código válido; al resto se le muestra
+     la landing de venta (landing.html) con el precio actual.
    - /activar: página para cargar el código que llega por mail con la compra.
    - /admin: página para crear, revocar y liberar códigos (protegida con ADMIN_TOKEN).
    - /comprar: cobra con Mercado Pago (Checkout Pro). Con el pago aprobado se crea el código solo
@@ -11,6 +12,7 @@ const COOKIE_DAYS = 400;
 const DEFAULT_DEVICES = 3;
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const PROTECTED = new Set(['/', '/index', '/index.html']);
+const LANDING = new Set(['/landing', '/landing.html']);
 
 export default {
   async fetch(request, env, ctx) {
@@ -23,10 +25,11 @@ export default {
       /* /activar y /admin los sirve el gestor de archivos (activar.html y admin.html). */
       if (PROTECTED.has(path)) {
         const lic = await readLicense(request, env);
-        if (!lic) return redirect(new URL('/activar', url));
+        if (!lic) return await landing(request, env, url);
         const res = await env.ASSETS.fetch(new Request(new URL('/', url), request));
         return withHeaders(res, { 'Cache-Control': 'private, no-cache' });
       }
+      if (LANDING.has(path)) return await landing(request, env, url);
       return env.ASSETS.fetch(request);
     } catch (e) {
       return json({ error: 'server', message: 'Algo falló del lado del servidor. Prueba de nuevo en un rato.' }, 500);
@@ -411,6 +414,23 @@ function getCookie(request, name) {
 }
 async function readJSON(request) {
   try { return await request.json(); } catch (e) { return {}; }
+}
+/* Landing de venta: el precio y si la venta está abierta se escriben en el servidor, sin parpadeos. */
+async function landing(request, env, url) {
+  /* Sin los encabezados condicionales del navegador: el HTML cambia con el precio, así que nunca va un 304. */
+  const res = await env.ASSETS.fetch(new URL('/landing', url));
+  const cfg = await getConfig(env);
+  const open = salesOpen(env, cfg);
+  const price = open ? '$' + String(Math.round(cfg.price)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : 'Próximamente';
+  /* X-Dulce-Page le avisa al service worker que no guarde esta página en lugar de la app. */
+  const out = withHeaders(res, { 'Cache-Control': 'private, no-cache', 'X-Dulce-Page': 'landing' });
+  out.headers.delete('ETag');
+  return new HTMLRewriter()
+    .on('[data-price]', { element(e) { e.setInnerContent(price); } })
+    .on('body', { element(e) { if (!open) e.setAttribute('class', 'is-closed'); } })
+    /* WhatsApp y las redes necesitan la dirección completa de la imagen para mostrar la vista previa. */
+    .on('meta[property="og:image"]', { element(e) { e.setAttribute('content', `${url.origin}/og.png`); } })
+    .transform(out);
 }
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers } });

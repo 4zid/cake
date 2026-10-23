@@ -23,8 +23,10 @@ Funciona en el navegador, sin cuentas. Cada compradora recibe por mail un **cód
 
 | Archivo | Para qué |
 | --- | --- |
-| `app/` | El código fuente de la app: `shell.html` (estructura), `style.css`, `js/` (en orden: ilustraciones, datos y cálculos, pantallas, editor, hojas, bienvenida, arranque) y `activar.src.html`. |
+| `app/` | El código fuente de la app: `shell.html` (estructura), `style.css`, `js/` (en orden: ilustraciones, datos y cálculos, pantallas, editor, hojas, bienvenida, arranque) y las páginas `landing.src.html`, `activar.src.html` y `gracias.src.html`. |
 | `public/index.html` | La app armada en un solo archivo. **No se edita a mano**: se genera con `npm run build`. |
+| `public/landing.html` | Landing de venta. Se muestra en `/` a quien no tiene la app activada; el Worker escribe el precio configurado en `/admin` (o "Próximamente" si la venta está cerrada). |
+| `public/og.png` | Imagen de vista previa al compartir el enlace (WhatsApp, Instagram, Facebook). |
 | `public/activar.html` | Página donde la compradora escribe su código (`/activar`). |
 | `public/admin.html` | Tu panel para crear y gestionar códigos (`/admin`). |
 | `public/manifest.webmanifest`, `public/sw.js`, `public/icon.svg` | Instalación como app y uso sin conexión. |
@@ -63,7 +65,7 @@ Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al m
 
    La compradora también puede liberar un lugar desde **Ajustes → Desactivar este dispositivo**.
 
-El servidor guarda los códigos en Cloudflare KV. La app solo se entrega a dispositivos con una cookie firmada de un código válido. Sin código, cualquier visita a la app va a `/activar`.
+El servidor guarda los códigos en Cloudflare KV. La app solo se entrega a dispositivos con una cookie firmada de un código válido. Sin código, quien entra a `/` ve la landing de venta; `/activar` sigue disponible para cargar un código.
 
 ## Ramas y ambientes
 
@@ -91,7 +93,7 @@ Para publicar: los cambios se suben primero a `staging` y, cuando están probado
 
 ## Desarrollo local
 
-Los cambios se hacen en `app/` y después se arma con `npm run build`, que regenera `public/index.html` y `public/activar.html`. Hay que subir los dos (fuente y armado), porque Cloudflare publica `public/` tal cual.
+Los cambios se hacen en `app/` y después se arma con `npm run build`, que regenera `public/index.html`, `public/landing.html`, `public/activar.html` y `public/gracias.html`. Hay que subir los dos (fuente y armado), porque Cloudflare publica `public/` tal cual.
 
 ```bash
 npm install
