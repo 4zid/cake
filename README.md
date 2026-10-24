@@ -153,4 +153,12 @@ npm run dev                                        # http://localhost:8787
 
 ## Video promocional
 
-`promo/dulce-cuenta-promo.mp4` es un video vertical 1080×1920 (Reels, TikTok, Stories) de 44 segundos. **Muestra el diseño anterior de la app.** `promo/promo.html` y `promo/render.mjs` lo generaban tocando la app vieja, así que hay que adaptarlos a las pantallas nuevas antes de volver a grabarlo.
+`promo/cuanto-cobro-promo.mp4` es un video vertical 1080×1920 (Reels, TikTok, Stories) de 41 segundos que muestra la app real dentro de un celular: la pregunta, armar una torta, extras y horas, el precio y la ganancia, y cierra con cuantocobro.app.
+
+Para regenerarlo después de cambiar la app (necesita Playwright y ffmpeg):
+
+```bash
+npm run build
+python3 -m http.server 8765 --bind 127.0.0.1   # en otra terminal, desde la raíz del repo
+node promo/render.mjs
+```
