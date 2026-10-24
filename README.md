@@ -60,7 +60,12 @@ Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al m
 
 Con el Secret `MAILERLITE_API_KEY`, cada compra aprobada (y cada código creado a mano en `/admin` con un mail) agrega a la compradora al grupo "Compradores Cuánto Cobro" de MailerLite (se crea solo; `MAILERLITE_GROUP_ID` fija otro), con los campos `codigo`, `link_activar`, `garantia_dias` y `estado`. La automatización de MailerLite manda los 4 mails: entrega, primeros pasos, opinión y próxima app. Si devuelve la compra, sale del grupo y `estado` pasa a `reembolso`. Los textos, las pausas y los campos están en [`docs/mails-mailerlite.md`](docs/mails-mailerlite.md), y los 4 mails en HTML con el diseño del sitio, en [`docs/mails/`](docs/mails/) (las imágenes salen de `public/email/`). Sin MailerLite, el código igual se ve en `/gracias` (y se manda con Resend si está configurado).
 
-## Garantía
+## Garantía y arrepentimiento
+
+- **Botón de arrepentimiento** en `/arrepentimiento` (enlazado al pie de la landing), como pide la Resolución 424/2020: sin registrarse, con el mail de la compra y el código o el número de operación. Siempre da un número de trámite. Dentro del plazo devuelve solo; si no puede, queda como "Pidió devolución" en el panel.
+- El plazo para devolver nunca es menor a **10 días corridos** (Ley 24.240, art. 34), aunque en el panel se elija menos.
+- Páginas `/terminos` y `/privacidad` (fuentes en `app/legal/`). Falta sumar la razón social o el nombre del titular y el CUIT, y el formulario de Data Fiscal de ARCA, si corresponde.
+
 
 En `/admin` eliges los días de garantía (7 por defecto; 0 la apaga). La landing, la página de gracias y los Ajustes de la app lo muestran.
 

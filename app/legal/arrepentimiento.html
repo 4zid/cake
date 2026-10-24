@@ -1,0 +1,46 @@
+<!-- TITLE: Botón de arrepentimiento -->
+<!-- DESC: Arrepiéntete de tu compra de Cuánto Cobro dentro de los 10 días y recibe la devolución completa. -->
+<h1>Botón de arrepentimiento</h1>
+<p class="lead">Tienes <b>10 días corridos</b> desde la compra para arrepentirte, sin explicaciones. Te devolvemos el total por el mismo medio de pago.</p>
+
+<form id="arr" novalidate>
+  <label>Mail con el que compraste<input type="email" id="a-email" name="email" autocomplete="email" required></label>
+  <label>Código de acceso o número de operación de Mercado Pago<small>El código empieza con COBRO-. El número de operación está en el comprobante de Mercado Pago.</small><input id="a-ref" name="ref" autocomplete="off" autocapitalize="characters" spellcheck="false" required></label>
+  <label>Comentario (opcional)<textarea id="a-msg" name="msg" maxlength="500"></textarea></label>
+  <button class="btn" type="submit" id="a-go">Arrepentirme de la compra</button>
+</form>
+<div id="a-out" role="status" aria-live="polite"></div>
+
+<h2>Qué pasa después</h2>
+<ul>
+  <li>Si estás dentro de los 10 días, la devolución se pide a Mercado Pago en el momento y el código se desactiva.</li>
+  <li>Siempre te mostramos un <b>número de trámite</b>. Guárdalo: sirve para cualquier consulta.</li>
+  <li>Si la devolución no se puede hacer sola, la hacemos a mano en un máximo de 48 horas hábiles y te escribimos al mail de la compra.</li>
+  <li>¿Prefieres hacerlo desde la app? Entra a <b>Ajustes → Pedir devolución</b>.</li>
+</ul>
+<p>Dudas: <a href="mailto:hola@cuantocobro.app">hola@cuantocobro.app</a>. Condiciones completas en <a href="/terminos">términos y condiciones</a>.</p>
+
+<script>
+(() => {
+  const form = document.getElementById('arr');
+  const out = document.getElementById('a-out');
+  const btn = document.getElementById('a-go');
+  const show = (cls, html) => { out.innerHTML = `<div class="callout ${cls}">${html}</div>`; out.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('a-email').value.trim();
+    const ref = document.getElementById('a-ref').value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email) || !ref) { show('err', '<p>Completa el mail de la compra y el código o el número de operación.</p>'); return; }
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/arrepentimiento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, ref, msg: document.getElementById('a-msg').value }) });
+      const d = await res.json().catch(() => ({}));
+      const esc = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      if (!res.ok) { show('err', `<p>${esc(d.message || 'No pudimos registrar el pedido. Prueba de nuevo o escríbenos a hola@cuantocobro.app.')}</p>`); return; }
+      show(d.refunded ? 'ok' : '', `<p><b>${esc(d.message)}</b></p><p>Número de trámite: <span class="code">${esc(d.tramite)}</span></p>`);
+      form.hidden = true;
+    } catch (err) { show('err', '<p>No hay conexión. Prueba de nuevo en un rato.</p>'); }
+    finally { btn.disabled = false; }
+  });
+})();
+</script>

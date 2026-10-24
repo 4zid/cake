@@ -28,4 +28,13 @@ const landing = read('landing.src.html')
   .replace('/*ART*/', () => live + art);
 writeFileSync(join(root, 'public/landing.html'), landing);
 
+// Páginas legales: términos, privacidad y botón de arrepentimiento, con el mismo marco.
+const shell = read('legal/shell.html');
+for (const slug of ['terminos', 'privacidad', 'arrepentimiento']) {
+  const src = read(`legal/${slug}.html`);
+  const meta = (k) => (src.match(new RegExp(`<!-- ${k}: (.*?) -->`)) || [])[1] || '';
+  const body = src.replace(/<!-- (TITLE|DESC): .*? -->\n/g, '');
+  writeFileSync(join(root, `public/${slug}.html`), shell.replace('{{TITLE}}', meta('TITLE')).replace('{{DESC}}', meta('DESC')).replace('{{SLUG}}', slug).replace('{{BODY}}', () => body));
+}
+
 console.log(`index.html ${app.length} bytes · ${jsFiles.length} archivos JS`);

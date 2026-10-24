@@ -111,6 +111,37 @@ async function api(request, env, url, ctx) {
   }
 
   /* Garantía: la compradora pide la devolución desde Ajustes y se reembolsa sola. */
+  /* Botón de arrepentimiento: sin registrarse, con el mail de la compra y el código o el número de operación.
+     Siempre devuelve un número de trámite; dentro del plazo la devolución sale sola. */
+  if (path === '/api/arrepentimiento' && method === 'POST') {
+    const body = await readJSON(request);
+    const email = String(body.email || '').trim().toLowerCase().slice(0, 120);
+    const ref = String(body.ref || '').trim().slice(0, 40);
+    if (!/^\S+@\S+\.\S+$/.test(email) || !ref) return json({ error: 'datos', message: 'Completa el mail de la compra y el código o el número de operación.' }, 400);
+    let rec = null;
+    const code = normalizeCode(ref);
+    if (code) rec = await getCode(env, code);
+    else if (/^\d{6,20}$/.test(ref.replace(/\D/g, '')) && ref.replace(/[\d\s.-]/g, '') === '') rec = await getCode(env, await codeForPayment(env, ref.replace(/\D/g, '')));
+    if (!rec || String(rec.email || '').toLowerCase() !== email) return json({ error: 'no-encontrado', message: 'No encontramos una compra con ese mail y ese código o número de operación. Revisa los datos o escríbenos a hola@cuantocobro.app.' }, 404);
+    const tramite = rec.arrepentimiento?.tramite || `ARR-${b64url(crypto.getRandomValues(new Uint8Array(5))).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)}`;
+    if (rec.refundedAt) return json({ ok: true, refunded: true, tramite, message: 'Esta compra ya fue devuelta. Mercado Pago acredita el dinero según tu medio de pago.' });
+    rec.arrepentimiento = { tramite, at: rec.arrepentimiento?.at || Date.now(), msg: String(body.msg || '').slice(0, 500) };
+    const g = guaranteeInfo(env, await savedConfig(env), rec);
+    if (g.refundable) {
+      try {
+        await refundLicense(env, rec, 'arrepentimiento');
+        track(env, ctx, request, 'reembolso', { sid: rec.code, src: 'arrepentimiento', val: rec.amount });
+        return json({ ok: true, refunded: true, tramite, message: 'Listo: pedimos la devolución completa a Mercado Pago y tu código quedó desactivado.' });
+      } catch (e) { /* queda pendiente para hacerla a mano */ }
+    }
+    rec.refundRequestedAt = rec.refundRequestedAt || Date.now();
+    await putCode(env, rec);
+    track(env, ctx, request, 'arrepentimiento', { sid: rec.code, src: g.refundable ? 'manual' : 'fuera-de-plazo' });
+    return json({ ok: true, refunded: false, tramite, message: g.until && Date.now() > g.until
+      ? `Recibimos tu pedido. Pasaron más de ${g.days} días desde la compra: lo revisamos y te escribimos al mail de la compra en 48 horas hábiles.`
+      : 'Recibimos tu pedido. Hacemos la devolución a mano en un máximo de 48 horas hábiles y te escribimos al mail de la compra.' });
+  }
+
   if (path === '/api/devolucion' && method === 'POST') {
     const lic = await readLicense(request, env);
     if (!lic) return json({ error: 'sin-licencia', message: 'Esta app no está activada en este dispositivo.' }, 401);
@@ -247,7 +278,7 @@ function normalizeCode(raw) {
   if (s.length !== 12 || [...s].some((c) => !ALPHABET.includes(c))) return null;
   return `${prefix}-${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
 }
-const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0, mailerliteAt: rec.mailerliteAt || 0, revokedReason: rec.revokedReason || '', refundedAt: rec.refundedAt || 0, refundRequestedAt: rec.refundRequestedAt || 0 });
+const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0, mailerliteAt: rec.mailerliteAt || 0, revokedReason: rec.revokedReason || '', refundedAt: rec.refundedAt || 0, refundRequestedAt: rec.refundRequestedAt || 0, tramite: (rec.arrepentimiento && rec.arrepentimiento.tramite) || '' });
 async function getCode(env, code) {
   const rec = await env.LICENSES.get('code:' + code, { type: 'json' });
   /* Un código viejo escrito sin su prefijo DULCE llega como COBRO: se busca también con el prefijo anterior. */
@@ -612,8 +643,10 @@ async function mlRemoveBuyer(env, rec) {
 }
 
 /* ======================= Garantía ======================= */
+/* Derecho de arrepentimiento (Ley 24.240, art. 34): 10 días corridos aunque la garantía configurada sea menor. */
+const LEGAL_DAYS = 10;
 function guaranteeInfo(env, cfg, rec) {
-  const days = cfg.guaranteeDays || 0;
+  const days = Math.max(cfg.guaranteeDays || 0, LEGAL_DAYS);
   const until = rec.source === 'mercadopago' && days ? (rec.createdAt || 0) + days * 86400e3 : 0;
   return { days, until, requested: !!rec.refundRequestedAt, refundable: !!(until && Date.now() < until && !rec.revoked && rec.paymentId && env.MP_ACCESS_TOKEN) };
 }

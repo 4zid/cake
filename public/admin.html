@@ -341,7 +341,7 @@ textarea { width: 100%; min-height: 130px; padding: 12px 14px; border: 2px solid
           <div class="card-body fields">
             <label class="field wide"><span>Nombre que ve al pagar</span><input id="c-title" maxlength="120"></label>
             <label class="field"><span>Dispositivos por compra</span><select id="c-max"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
-            <label class="field"><span>Garantía</span><select id="c-days"><option value="0">Sin garantía</option><option value="3">3 días</option><option value="7">7 días</option><option value="14">14 días</option><option value="30">30 días</option></select></label>
+            <label class="field"><span>Garantía</span><select id="c-days" aria-describedby="days-note"><option value="0">Sin garantía</option><option value="3">3 días</option><option value="7">7 días</option><option value="10">10 días</option><option value="14">14 días</option><option value="30">30 días</option></select><small id="days-note">Por ley, la devolución por arrepentimiento vale 10 días aunque elijas menos.</small></label>
           </div>
           <div class="savebar"><span class="note" id="save-note"></span><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
         </section>
@@ -449,6 +449,7 @@ textarea { width: 100%; min-height: 130px; padding: 12px 14px; border: 2px solid
     $('#rows').innerHTML = list.length ? list.map((c) => {
       const sub = [c.source === 'mercadopago' ? `Mercado Pago · ${peso(c.amount)}` : (c.note || 'Creado a mano')];
       if (c.source === 'mercadopago' && c.note && !/^Mercado Pago #/.test(c.note)) sub.push(c.note);
+      if (c.tramite) sub.push(`Arrepentimiento ${c.tramite}`);
       const mails = c.mailerliteAt ? '<span class="ml">✓ en MailerLite</span>' : c.emailSentAt ? '<span class="ml">✓ mail enviado</span>' : '';
       const id = esc(c.code);
       return `<tr>

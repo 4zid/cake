@@ -79,6 +79,7 @@ input[aria-invalid="true"] { border-color: var(--red); }
     <button class="btn" type="submit" id="go">Activar</button>
     <p class="help" id="buy" hidden>¿Todavía no la tienes? <a href="/comprar" style="color:var(--accent);font-weight:800">Cómprala acá</a><span id="buy-price"></span>.</p>
     <p class="help" id="help">Puedes usar el mismo código en tu teléfono y en tu computadora. ¿No lo encuentras? Busca <b>Cuánto Cobro</b> en tu correo o responde el mail de tu compra.</p>
+    <p class="help" id="ios-note" hidden><b>En iPhone:</b> si después agregas la app a la pantalla de inicio (Compartir → Agregar a inicio), ábrela desde ahí y escribe el código otra vez. iPhone la trata como otro dispositivo y no comparte los datos con Safari.</p>
   </form>
 </main>
 <script>
@@ -98,6 +99,9 @@ input[aria-invalid="true"] { border-color: var(--red); }
     const parts = [s.slice(0, 4), s.slice(4, 8), s.slice(8, 12)].filter(Boolean);
     return parts.length ? prefix + '-' + parts.join('-') : '';
   };
+  /* En iPhone/iPad, Safari y la app agregada al inicio guardan datos por separado. */
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios && !navigator.standalone) document.getElementById('ios-note').hidden = false;
   const device = () => {
     const k = 'dulce-cuenta:device';
     try {
