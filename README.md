@@ -108,6 +108,8 @@ El servidor guarda los códigos en Cloudflare KV. La app solo se entrega a dispo
 
 Para publicar: los cambios se suben primero a `staging` y, cuando están probados, se pasan a `prod` (merge de `staging` en `prod`). Los códigos de prueba viven en la base de staging y no sirven en producción.
 
+El repositorio es `4zid/cuantocobro` (antes `4zid/cake`) y su rama por defecto es `prod`. Los Workers conservan los nombres `cake` y `cake-staging`: cambiarlos obligaría a mover dominios, secretos y bases, y no se ven desde afuera.
+
 ## Puesta en marcha (una sola vez)
 
 **Producción (Worker `cake`)**, en Workers & Pages → `cake` → Settings:
@@ -119,7 +121,7 @@ Para publicar: los cambios se suben primero a `staging` y, cuando están probado
 
 **Pruebas (Worker `cake-staging`)**:
 
-1. Workers & Pages → Create → Import a repository → `4zid/cake`. Nombre del proyecto: `cake-staging`.
+1. Workers & Pages → Create → Import a repository → `4zid/cuantocobro` (antes `4zid/cake`). Nombre del proyecto: `cake-staging`.
 2. Comando de deploy: `npx wrangler deploy --env staging`, sin build command. Rama de producción: `staging`.
 3. Cuando termine el primer deploy, agrega su propio secreto `ADMIN_TOKEN`, que puede ser distinto al de producción.
 
