@@ -99,18 +99,36 @@ input:focus, select:focus { outline: none; border-color: var(--ink); box-shadow:
 .day:focus-visible { box-shadow: 0 0 0 2px var(--ink); border-radius: 4px; }
 .day-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--ink2); }
 .tip { position: absolute; z-index: 5; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--ink); color: #FFFFFF; font-size: 12.5px; line-height: 1.4; white-space: nowrap; transform: translate(-50%, -100%); }
-.more { border-radius: 22px; background: #FFFFFF; border: 1px solid var(--line); }
-.more > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; font-weight: 800; cursor: pointer; list-style: none; }
+.more { border-radius: 22px; background: #FFFFFF; border: 1px solid var(--line); transition: border-color .15s; }
+.more:hover { border-color: var(--field); }
+.more > summary { display: flex; align-items: center; gap: 14px; padding: 16px 18px 16px 22px; cursor: pointer; list-style: none; border-radius: 22px; }
 .more > summary::-webkit-details-marker { display: none; }
-.more > summary::after { content: '+'; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--soft); color: var(--accent); font-size: 20px; transition: transform .2s; }
-.more[open] > summary::after { transform: rotate(45deg); }
-.more-in { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; padding: 0 22px 22px; }
-.more-in h3 { margin-bottom: 8px; font-size: 14px; font-weight: 800; }
+.more-title { flex: 1 1 auto; min-width: 0; }
+.more-title b { display: block; font-size: 17px; font-weight: 800; }
+.more-title small { display: block; margin-top: 1px; font-size: 13.5px; color: var(--ink2); }
+.more-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--glaze); color: var(--accent); }
+.more-btn { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 2px solid var(--ink); border-radius: 12px; box-shadow: 0 2px 0 var(--ink); background: #FFFFFF; font-weight: 800; font-size: 14px; }
+.more-btn svg { transition: transform .2s; }
+.more[open] .more-btn svg { transform: rotate(180deg); }
+.more .when-open { display: none; }
+.more[open] .when-open { display: inline; }
+.more[open] .when-closed { display: none; }
+.more > summary:hover .more-btn { background: var(--soft); }
+.more > summary:active .more-btn { transform: translateY(2px); box-shadow: 0 0 0 var(--ink); }
+.box { padding: 16px; border-radius: 18px; background: var(--soft); }
+.box h3 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; font-size: 14px; font-weight: 800; }
+.box h3 small { font-size: 12px; font-weight: 700; color: var(--ink2); }
+.rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.rank li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: baseline; font-size: 14px; }
+.rank .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.rank .val { font-weight: 800; font-variant-numeric: tabular-nums; }
+.rank .val small { margin-left: 4px; font-weight: 600; color: var(--ink2); }
+.rank .bar { grid-column: 1 / -1; height: 6px; border-radius: 0 3px 3px 0; background: #FFFFFF; overflow: hidden; }
+.rank .bar i { display: block; height: 100%; min-width: 2px; border-radius: 0 3px 3px 0; background: var(--btn); }
+.rank .sub { grid-column: 1 / -1; margin-top: -2px; font-size: 12.5px; color: var(--ink2); }
+.box .note { margin: 0; }
+.more-in { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; padding: 4px 18px 18px; border-top: 1px solid var(--line); padding-top: 18px; }
 .note { font-size: 13.5px; color: var(--ink2); }
-.mini { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.mini th, .mini td { padding: 7px 8px; text-align: left; border-top: 1px solid var(--line); }
-.mini thead th { border-top: 0; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
-.mini .n { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* Compradoras */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -249,16 +267,21 @@ textarea { width: 100%; min-height: 130px; padding: 12px 14px; border: 2px solid
       <section class="card" aria-labelledby="h-funnel"><h2 id="h-funnel">Embudo de compra</h2><p>De cada 100 visitas, cuántas llegan a cada paso.</p><div class="card-body funnel" id="funnel"></div></section>
       <section class="card" aria-labelledby="h-days"><h2 id="h-days">Visitas por día</h2><p>Pasa el mouse por una barra para ver el detalle.</p><div class="card-body"><div class="days" id="days" role="list"></div><div class="day-axis" id="days-axis"></div></div></section>
     </div>
-    <details class="more">
-      <summary>Más detalle: de dónde vienen, dispositivo, botón y país</summary>
+    <details class="more" id="more">
+      <summary>
+        <span class="more-ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+        <span class="more-title"><b>Más detalle</b><small>De dónde vienen, dispositivo, botón que tocaron y país</small></span>
+        <span class="more-btn" aria-hidden="true"><span class="when-closed">Ver detalle</span><span class="when-open">Ocultar</span><svg width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l4.5 4.5 4.5-4.5"/></svg></span>
+      </summary>
       <div class="more-in">
-        <div><h3>De dónde vienen</h3><div id="t-src"></div></div>
-        <div><h3>Dispositivo</h3><div id="t-dev"></div></div>
-        <div><h3>Botón que tocaron</h3><div id="t-cta"></div></div>
-        <div><h3>País</h3><div id="t-country"></div></div>
+        <section class="box" aria-labelledby="h-src"><h3 id="h-src">De dónde vienen <small>visitas</small></h3><div id="t-src"></div></section>
+        <section class="box" aria-labelledby="h-dev"><h3 id="h-dev">Dispositivo <small>visitas</small></h3><div id="t-dev"></div></section>
+        <section class="box" aria-labelledby="h-cta"><h3 id="h-cta">Botón que tocaron <small>toques</small></h3><div id="t-cta"></div></section>
+        <section class="box" aria-labelledby="h-country"><h3 id="h-country">País <small>visitas</small></h3><div id="t-country"></div></section>
       </div>
       <p class="note" style="padding:0 22px 20px">Las visitas cuentan personas (una por pestaña), sin cookies. Para saber de dónde viene cada visita, comparte el enlace con <span class="code">?utm_source=instagram</span> (o el nombre de la red). Velocidad de carga y páginas vistas: Cloudflare → Web Analytics.</p>
     </details>
+    <div id="health-ok"></div>
   </section>
 
   <!-- ============ Compradoras ============ -->
@@ -389,8 +412,8 @@ textarea { width: 100%; min-height: 130px; padding: 12px 14px; border: 2px solid
     const parts = [];
     if (pend) parts.push(`<div class="alert warn"><span class="grow">${pend === 1 ? 'Una clienta pidió la devolución' : `${pend} clientas pidieron la devolución`} y Mercado Pago no la hizo sola.</span><a class="btn btn-sm" href="#compradoras" data-goto="pendientes">Ver</a></div>`);
     if (issues.length) parts.push(`<div class="alert warn"><span class="grow"><ul>${issues.map((i) => `<li>! ${esc(i)}</li>`).join('')}</ul></span><a class="btn btn-sm" href="#ajustes">Revisar</a></div>`);
-    else parts.push(`<div class="alert ok"><span class="grow">✓ Todo funciona: Mercado Pago cobra, el código se entrega solo${cfg.mailerlite ? ' y MailerLite manda los mails' : ''}. Hoy se cobra <b>${peso(cfg.now.price)}</b>.</span></div>`);
     $('#health').innerHTML = parts.join('');
+    $('#health-ok').innerHTML = issues.length ? '' : `<div class="alert ok"><span class="grow">✓ Todo funciona: Mercado Pago cobra, el código se entrega solo${cfg.mailerlite ? ' y MailerLite manda los mails' : ''}. Hoy se cobra <b>${peso(cfg.now.price)}</b>.</span><a class="btn btn-sm" href="#ajustes">Ajustes</a></div>`;
     $('#tab-badge').hidden = !pend; $('#tab-badge').textContent = pend;
   }
   $('#health').addEventListener('click', (e) => { const a = e.target.closest('[data-goto]'); if (a) setFilter(a.dataset.goto); });
@@ -571,9 +594,17 @@ textarea { width: 100%; min-height: 130px; padding: 12px 14px; border: 2px solid
     }
     return [...m.values()].sort((a, b) => b.visita - a.visita || b.pago - a.pago);
   }
-  const mini = (head, rows) => rows.length
-    ? `<table class="mini"><thead><tr>${head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="n"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`
-    : '<p class="note">Sin datos todavía.</p>';
+  /* Lista ordenada con barra proporcional al mayor valor. items: [{ label, value, sub }] */
+  const rank = (items, empty) => {
+    if (!items.length) return `<p class="note">${empty || 'Sin datos todavía.'}</p>`;
+    const max = Math.max(1, ...items.map((i) => i.value));
+    const total = items.reduce((a, i) => a + i.value, 0);
+    return `<ul class="rank">${items.map((i) => `<li><span class="lbl" title="${esc(i.label)}">${esc(i.label)}</span><span class="val">${num(i.value)}<small>${pct(i.value, total)}</small></span><span class="bar" aria-hidden="true"><i style="width:${(i.value / max) * 100}%"></i></span>${i.sub ? `<span class="sub">${esc(i.sub)}</span>` : ''}</li>`).join('')}</ul>`;
+  };
+  const COUNTRY = (() => { try { const dn = new Intl.DisplayNames(['es'], { type: 'region' }); return (k) => (k && k !== '?' ? dn.of(k) || k : 'Sin dato'); } catch (e) { return (k) => k; } })();
+  const DEVICE = { celular: 'Celular', compu: 'Computadora', tablet: 'Tablet', '?': 'Sin dato' };
+  const SOURCE = { directo: 'Directo (sin enlace)', instagram: 'Instagram', facebook: 'Facebook', whatsapp: 'WhatsApp', tiktok: 'TikTok', 'google.com': 'Google', google: 'Google' };
+  const sales = (o) => (o.pago ? `${num(o.pago)} ${o.pago === 1 ? 'venta' : 'ventas'}` : 'sin ventas');
   async function loadStats() {
     const d = await call('GET', '/api/admin/stats?dias=' + range);
     if (!d.enabled) { $('#st-empty').textContent = 'Las estadísticas no están conectadas en este Worker.'; $('#st-empty').hidden = false; return; }
@@ -606,10 +637,10 @@ textarea { width: 100%; min-height: 130px; padding: 12px 14px; border: 2px solid
       return `<div class="day" role="listitem" tabindex="0" aria-label="${esc(text)}" data-tip="${esc(text)}"><i style="height:${((o.visita || 0) / max) * 100}%"></i></div>`;
     }).join('');
     $('#days-axis').innerHTML = `<span>${fmtDay(days[0])}</span><span>máx. ${num(max)} por día</span><span>${fmtDay(days[days.length - 1])}</span>`;
-    $('#t-src').innerHTML = mini(['Fuente', 'Visitas', 'Ventas'], pivot(d.sources || []).slice(0, 10).map((o) => [esc(o.k), num(o.visita), num(o.pago)]));
-    $('#t-dev').innerHTML = mini(['Dispositivo', 'Visitas', 'Ventas'], pivot(d.devices || []).map((o) => [esc(o.k === '?' ? 'sin dato' : o.k), num(o.visita), num(o.pago)]));
-    $('#t-cta').innerHTML = mini(['Botón', 'Toques'], (d.places || []).map((r) => [esc(PLACES[r.k] || r.k), num(r.n)]));
-    $('#t-country').innerHTML = mini(['País', 'Visitas'], (d.countries || []).map((r) => [esc(r.k), num(r.u)]));
+    $('#t-src').innerHTML = rank(pivot(d.sources || []).slice(0, 8).map((o) => ({ label: SOURCE[o.k] || o.k, value: o.visita, sub: sales(o) })));
+    $('#t-dev').innerHTML = rank(pivot(d.devices || []).map((o) => ({ label: DEVICE[o.k] || o.k, value: o.visita, sub: sales(o) })));
+    $('#t-cta').innerHTML = rank((d.places || []).map((r) => ({ label: PLACES[r.k] || r.k, value: r.n })), 'Nadie tocó comprar todavía.');
+    $('#t-country').innerHTML = rank((d.countries || []).map((r) => ({ label: COUNTRY(r.k), value: r.u })));
   }
   let tip = null;
   const showTip = (el) => {
