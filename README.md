@@ -56,6 +56,10 @@ Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al m
    - **Precio original tachado** (opcional): si es mayor que el precio que se cobra, la landing muestra "Precio de lanzamiento", el precio anterior tachado y el porcentaje de descuento. Para terminar el lanzamiento, borra el precio original o iguala los dos.
 5. **Mail automático con el código (opcional):** necesita un dominio propio verificado en [Resend](https://resend.com). Guarda los Secrets `RESEND_API_KEY` y `MAIL_FROM` (por ejemplo `Cuánto Cobro <hola@cuantocobro.app>`). Sin esto, el código se ve en `/gracias` y puedes reenviarlo desde `/admin` con **Copiar mail**.
 
+## Mails a las compradoras (MailerLite)
+
+Con los Secrets `MAILERLITE_API_KEY` y `MAILERLITE_GROUP_ID`, cada compra aprobada (y cada código creado a mano en `/admin` con un mail) agrega a la compradora al grupo de compradores de MailerLite, con los campos `codigo`, `link_activar`, `garantia_dias` y `estado`. La automatización de MailerLite manda los 4 mails: entrega, primeros pasos, opinión y próxima app. Si devuelve la compra, sale del grupo y `estado` pasa a `reembolso`. Los textos, las pausas y los campos están en [`docs/mails-mailerlite.md`](docs/mails-mailerlite.md). Sin MailerLite, el código igual se ve en `/gracias` (y se manda con Resend si está configurado).
+
 ## Garantía
 
 En `/admin` eliges los días de garantía (7 por defecto; 0 la apaga). La landing, la página de gracias y los Ajustes de la app lo muestran.

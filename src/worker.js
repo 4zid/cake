@@ -8,6 +8,8 @@
    - Garantía: dentro de los días configurados, la compradora pide la devolución desde Ajustes y se
      reembolsa sola en Mercado Pago (el código queda revocado).
    - Medición: los pasos de la venta se guardan en D1 (binding DB) y se ven en /admin → Estadísticas.
+   - Mails: con MAILERLITE_API_KEY y MAILERLITE_GROUP_ID, cada compradora entra al grupo de MailerLite con su
+     código y su link, y MailerLite le manda la secuencia (entrega, primeros pasos, opinión, próxima app).
    Los códigos viven en el KV "LICENSES" con la clave "code:COBRO-XXXX-XXXX-XXXX"
    (los primeros códigos, de cuando la app se llamaba Dulce Cuenta, empiezan con DULCE y siguen valiendo). */
 
@@ -191,6 +193,7 @@ async function admin(request, env, url, ctx) {
       let code;
       do { code = newCode(); } while (await env.LICENSES.get('code:' + code));
       const rec = { code, email, note, maxDevices, devices: [], revoked: false, createdAt: Date.now() };
+      if (email && mlOn(env) && body.mailerlite !== false && (await mlAddBuyer(env, rec, url.origin, '').then(() => true, () => false))) rec.mailerliteAt = Date.now();
       await putCode(env, rec);
       created.push(summary(rec));
     }
@@ -242,7 +245,7 @@ function normalizeCode(raw) {
   if (s.length !== 12 || [...s].some((c) => !ALPHABET.includes(c))) return null;
   return `${prefix}-${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
 }
-const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0, revokedReason: rec.revokedReason || '', refundedAt: rec.refundedAt || 0, refundRequestedAt: rec.refundRequestedAt || 0 });
+const summary = (rec) => ({ code: rec.code, email: rec.email || '', note: rec.note || '', maxDevices: rec.maxDevices || DEFAULT_DEVICES, devices: (rec.devices || []).length, revoked: !!rec.revoked, createdAt: rec.createdAt || 0, source: rec.source || 'manual', paymentId: rec.paymentId || '', amount: rec.amount || 0, emailSentAt: rec.emailSentAt || 0, mailerliteAt: rec.mailerliteAt || 0, revokedReason: rec.revokedReason || '', refundedAt: rec.refundedAt || 0, refundRequestedAt: rec.refundRequestedAt || 0 });
 async function getCode(env, code) {
   const rec = await env.LICENSES.get('code:' + code, { type: 'json' });
   /* Un código viejo escrito sin su prefijo DULCE llega como COBRO: se busca también con el prefijo anterior. */
@@ -377,7 +380,8 @@ async function adminConfig(env, url) {
     webhookUrl: `${url.origin}/api/mp/webhook`,
     mercadopago: token ? (token.startsWith('TEST-') ? 'prueba' : 'real') : 'sin-configurar',
     webhookSecret: !!env.MP_WEBHOOK_SECRET,
-    email: !!(env.RESEND_API_KEY && env.MAIL_FROM)
+    email: !!(env.RESEND_API_KEY && env.MAIL_FROM),
+    mailerlite: mlOn(env)
   };
 }
 async function mp(env, method, path, body, extraHeaders = {}) {
@@ -430,7 +434,7 @@ async function compraStatus(env, url, request, ctx) {
   if (pay.status === 'approved') {
     const rec = await ensureLicense(env, pay, url.origin);
     const cfg = await savedConfig(env);
-    return json({ status: 'aprobado', code: rec.code, email: rec.email || '', emailSent: !!rec.emailSentAt, maxDevices: rec.maxDevices, amount: rec.amount || 0, paymentId: rec.paymentId, guaranteeDays: env.MP_ACCESS_TOKEN ? cfg.guaranteeDays : 0 });
+    return json({ status: 'aprobado', code: rec.code, email: rec.email || '', emailSent: !!(rec.emailSentAt || rec.mailerliteAt), maxDevices: rec.maxDevices, amount: rec.amount || 0, paymentId: rec.paymentId, guaranteeDays: env.MP_ACCESS_TOKEN ? cfg.guaranteeDays : 0 });
   }
   if (pay.status === 'pending' || pay.status === 'in_process' || pay.status === 'authorized') return json({ status: 'pendiente' });
   const md = pay.metadata || {};
@@ -480,6 +484,7 @@ async function processPayment(env, id, origin) {
         await track(env, null, null, pay.status === 'charged_back' ? 'contracargo' : 'reembolso', { sid: rec.code, src: 'mercadopago', val: rec.amount });
       }
       await putCode(env, rec);
+      await mlRemoveBuyer(env, rec).catch(() => {});
     }
   }
 }
@@ -503,7 +508,12 @@ async function ensureLicense(env, pay, origin) {
     const md = pay.metadata || {};
     await track(env, null, null, 'pago', { sid: md.sid, src: md.src, dev: md.dev || '?', country: md.country, val: rec.amount });
   }
-  if (!rec.emailSentAt && rec.email && env.RESEND_API_KEY && env.MAIL_FROM) {
+  if (!rec.mailerliteAt && rec.email && mlOn(env)) {
+    const p = pay.payer || {};
+    const name = p.first_name || (pay.additional_info && pay.additional_info.payer && pay.additional_info.payer.first_name) || '';
+    const ok = await mlAddBuyer(env, rec, origin, name).then(() => true, () => false);
+    if (ok) { rec.mailerliteAt = Date.now(); await putCode(env, rec); }
+  } else if (!rec.emailSentAt && rec.email && !mlOn(env) && env.RESEND_API_KEY && env.MAIL_FROM) {
     const sent = await sendCodeMail(env, rec, origin).catch(() => false);
     if (sent) { rec.emailSentAt = Date.now(); await putCode(env, rec); }
   }
@@ -512,13 +522,56 @@ async function ensureLicense(env, pay, origin) {
 async function sendCodeMail(env, rec, origin) {
   const link = `${origin}/activar?codigo=${encodeURIComponent(rec.code)}`;
   const text = `¡Hola! Gracias por comprar Cuánto Cobro.\n\nTu código de acceso es:\n${rec.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link}\n\nPuedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
-  const html = `<div style="font-family:Arial,sans-serif;color:#3A2228;max-width:520px;margin:0 auto;padding:24px"><p style="font-size:22px;font-weight:800;color:#A82756;margin:0 0 16px">Cuánto Cobro</p><p>¡Hola! Gracias por tu compra.</p><p>Tu código de acceso es:</p><p style="font-size:24px;font-weight:800;letter-spacing:2px;background:#FFE6EE;padding:14px 18px;border-radius:14px;display:inline-block">${rec.code}</p><p><a href="${link}" style="display:inline-block;background:#C42F65;color:#fff;font-weight:800;padding:14px 22px;border-radius:14px;text-decoration:none">Activar Dulce Cuenta</a></p><p style="color:#7A5860;font-size:14px">Puedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.</p></div>`;
+  const html = `<div style="font-family:Arial,sans-serif;color:#3A2228;max-width:520px;margin:0 auto;padding:24px"><p style="font-size:22px;font-weight:800;color:#A82756;margin:0 0 16px">Cuánto Cobro</p><p>¡Hola! Gracias por tu compra.</p><p>Tu código de acceso es:</p><p style="font-size:24px;font-weight:800;letter-spacing:2px;background:#FFE6EE;padding:14px 18px;border-radius:14px;display:inline-block">${rec.code}</p><p><a href="${link}" style="display:inline-block;background:#C42F65;color:#fff;font-weight:800;padding:14px 22px;border-radius:14px;text-decoration:none">Activar Cuánto Cobro</a></p><p style="color:#7A5860;font-size:14px">Puedes usarlo en hasta ${rec.maxDevices} dispositivos. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.</p></div>`;
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `code-${rec.code}` },
     body: JSON.stringify({ from: env.MAIL_FROM, to: [rec.email], subject: 'Tu acceso a Cuánto Cobro', text, html })
   });
   return res.ok;
+}
+
+/* ======================= MailerLite: secuencia de 4 mails ======================= */
+/* La compradora entra al grupo de compradores con sus datos en campos propios, que los mails usan como
+   {$codigo}, {$link_activar} y {$garantia_dias}. Si devuelve la compra, sale del grupo y queda marcada. */
+const mlOn = (env) => !!(env.MAILERLITE_API_KEY && env.MAILERLITE_GROUP_ID);
+const ML_FIELDS = ['codigo', 'link_activar', 'garantia_dias', 'estado'];
+async function ml(env, method, path, body) {
+  const res = await fetch(`${env.MAILERLITE_API_BASE || 'https://connect.mailerlite.com'}/api${path}`, {
+    method,
+    headers: { Authorization: `Bearer ${env.MAILERLITE_API_KEY}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = res.status === 204 ? {} : await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(`MailerLite respondió ${res.status}`); e.status = res.status; e.data = data; throw e; }
+  return data;
+}
+/* Los campos propios se crean una vez si faltan. */
+let mlFieldsReady = null;
+function mlEnsureFields(env) {
+  if (!mlFieldsReady) {
+    mlFieldsReady = (async () => {
+      const have = new Set(((await ml(env, 'GET', '/fields?limit=100')).data || []).map((f) => f.key));
+      for (const key of ML_FIELDS) if (!have.has(key)) await ml(env, 'POST', '/fields', { name: key, type: 'text' });
+    })().catch((e) => { mlFieldsReady = null; throw e; });
+  }
+  return mlFieldsReady;
+}
+async function mlAddBuyer(env, rec, origin, name) {
+  await mlEnsureFields(env);
+  const cfg = await savedConfig(env);
+  await ml(env, 'POST', '/subscribers', {
+    email: rec.email,
+    fields: { name: name || '', codigo: rec.code, link_activar: `${origin}/activar?codigo=${encodeURIComponent(rec.code)}`, garantia_dias: String(cfg.guaranteeDays || 0), estado: 'activo' },
+    groups: [String(env.MAILERLITE_GROUP_ID)]
+  });
+}
+async function mlRemoveBuyer(env, rec) {
+  if (!mlOn(env) || !rec.email || !rec.mailerliteAt) return;
+  const sub = (await ml(env, 'GET', `/subscribers/${encodeURIComponent(rec.email)}`)).data;
+  if (!sub) return;
+  await ml(env, 'PUT', `/subscribers/${sub.id}`, { fields: { estado: rec.revokedReason || 'devuelto' } });
+  await ml(env, 'DELETE', `/subscribers/${sub.id}/groups/${env.MAILERLITE_GROUP_ID}`);
 }
 
 /* ======================= Garantía ======================= */
@@ -540,6 +593,7 @@ async function refundLicense(env, rec, by) {
   rec.revoked = true;
   rec.revokedReason = 'reembolso';
   await putCode(env, rec);
+  await mlRemoveBuyer(env, rec).catch(() => {});
 }
 
 /* ======================= Medición (D1) ======================= */
