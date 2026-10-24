@@ -64,7 +64,7 @@ Con el Secret `MAILERLITE_API_KEY`, cada compra aprobada (y cada código creado 
 
 - **Botón de arrepentimiento** en `/arrepentimiento` (enlazado al pie de la landing), como pide la Resolución 424/2020: sin registrarse, con el mail de la compra y el código o el número de operación. Siempre da un número de trámite. Dentro del plazo devuelve solo; si no puede, queda como "Pidió devolución" en el panel.
 - El plazo para devolver nunca es menor a **10 días corridos** (Ley 24.240, art. 34), aunque en el panel se elija menos.
-- Páginas `/terminos` y `/privacidad` (fuentes en `app/legal/`). El titular (CUIT 20-41903976-5, Monotributo, Río Grande, Tierra del Fuego) figura en términos, privacidad y el pie de las páginas. Falta el nombre completo del titular y el QR de Data Fiscal de ARCA.
+- Páginas `/terminos` y `/privacidad` (fuentes en `app/legal/`). El titular (Lautaro Lacaze, CUIT 20-41903976-5, Monotributo, Río Grande, Tierra del Fuego) figura en términos, privacidad y el pie de las páginas. Falta el QR de Data Fiscal de ARCA.
 
 
 En `/admin` eliges los días de garantía (7 por defecto; 0 la apaga). La landing, la página de gracias y los Ajustes de la app lo muestran.
