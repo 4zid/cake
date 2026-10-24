@@ -58,7 +58,7 @@ Cada pago da siempre el mismo código, aunque el aviso y `/gracias` lleguen al m
 
 ## Mails a las compradoras (MailerLite)
 
-Con el Secret `MAILERLITE_API_KEY`, cada compra aprobada (y cada código creado a mano en `/admin` con un mail) agrega a la compradora al grupo "Compradores Cuánto Cobro" de MailerLite (se crea solo; `MAILERLITE_GROUP_ID` fija otro), con los campos `codigo`, `link_activar`, `garantia_dias` y `estado`. La automatización de MailerLite manda los 4 mails: entrega, primeros pasos, opinión y próxima app. Si devuelve la compra, sale del grupo y `estado` pasa a `reembolso`. Los textos, las pausas y los campos están en [`docs/mails-mailerlite.md`](docs/mails-mailerlite.md). Sin MailerLite, el código igual se ve en `/gracias` (y se manda con Resend si está configurado).
+Con el Secret `MAILERLITE_API_KEY`, cada compra aprobada (y cada código creado a mano en `/admin` con un mail) agrega a la compradora al grupo "Compradores Cuánto Cobro" de MailerLite (se crea solo; `MAILERLITE_GROUP_ID` fija otro), con los campos `codigo`, `link_activar`, `garantia_dias` y `estado`. La automatización de MailerLite manda los 4 mails: entrega, primeros pasos, opinión y próxima app. Si devuelve la compra, sale del grupo y `estado` pasa a `reembolso`. Los textos, las pausas y los campos están en [`docs/mails-mailerlite.md`](docs/mails-mailerlite.md), y los 4 mails en HTML con el diseño del sitio, en [`docs/mails/`](docs/mails/) (las imágenes salen de `public/email/`). Sin MailerLite, el código igual se ve en `/gracias` (y se manda con Resend si está configurado).
 
 ## Garantía
 

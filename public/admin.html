@@ -13,169 +13,323 @@
 <style>
 :root { --ink: #3A2228; --ink2: #7A5860; --btn: #C42F65; --accent: #A82756; --glaze: #FFE6EE; --soft: #FFF4F7; --line: #F5D5DF; --field: #B07F8D; --red: #C0292F; --redbg: #FFE3E3; --green: #2F6B40; --greenbg: #E5F4E8; --amber: #845A08; --amberbg: #FFF3D6; color-scheme: light; }
 * { box-sizing: border-box; }
-body { margin: 0; background: #FFFFFF; color: var(--ink); font: 15px/1.5 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-header { position: relative; padding: 20px 24px 18px; background: var(--glaze); }
-header::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 12px; background: radial-gradient(circle at 10px 0, var(--glaze) 9.5px, transparent 10.5px) 0 0 / 20px 12px repeat-x; }
-.hwrap { max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-.brand { margin: 0; font-family: 'Bagel Fat One', Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1; color: var(--accent); }
-.brand small { display: block; margin-top: 6px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink2); }
-main { max-width: 1080px; margin: 0 auto; padding: 36px 24px 60px; display: flex; flex-direction: column; gap: 24px; }
-h2 { margin: 0; font-size: 19px; font-weight: 800; }
-.card { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 24px; border: 1.5px solid var(--line); }
-.soft { background: var(--soft); border-color: var(--soft); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field span { font-weight: 700; }
-input, select { width: 100%; height: 48px; padding: 0 14px; border: 2px solid var(--field); border-radius: 14px; background: #FFFFFF; color: var(--ink); font: inherit; font-size: 16px; }
-input:focus, select:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(196, 47, 101, .25); }
-.btn { min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 2px solid var(--ink); border-radius: 14px; background: #FFFFFF; color: var(--ink); box-shadow: 0 3px 0 var(--ink); font: inherit; font-weight: 800; cursor: pointer; text-decoration: none; white-space: nowrap; transition: transform .1s, box-shadow .1s; }
+body { margin: 0; background: var(--soft); color: var(--ink); font: 15px/1.5 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--ink2); }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .03em; }
+h1, h2, h3, p { margin: 0; }
+
+/* Barra superior: marca, pestañas y estado */
+.top { position: sticky; top: 0; z-index: 20; background: var(--glaze); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1120px; margin: 0 auto; padding: 0 24px; min-height: 64px; display: flex; align-items: center; gap: 20px; }
+.brand { display: flex; align-items: baseline; gap: 10px; font-family: 'Bagel Fat One', Georgia, serif; font-weight: 400; font-size: 24px; line-height: 1; color: var(--accent); white-space: nowrap; }
+.brand small { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink2); }
+.tabs { display: flex; gap: 4px; align-self: stretch; }
+.tabs a { position: relative; display: flex; align-items: center; padding: 0 14px; font-weight: 800; color: var(--ink2); text-decoration: none; }
+.tabs a[aria-current="page"] { color: var(--ink); }
+.tabs a[aria-current="page"]::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--btn); }
+.tabs .badge { margin-left: 6px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--amber); color: #FFFFFF; font-size: 12px; line-height: 20px; text-align: center; }
+.top-end { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+main { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; }
+.view { display: flex; flex-direction: column; gap: 20px; }
+.view-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.view-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -.01em; }
+.view-head p { margin-top: 2px; color: var(--ink2); }
+.card { padding: 22px; border-radius: 22px; background: #FFFFFF; border: 1px solid var(--line); }
+.card > h2 { font-size: 17px; font-weight: 800; }
+.card > h2 + p { margin-top: 2px; color: var(--ink2); font-size: 14px; }
+.card-body { margin-top: 16px; }
+
+/* Controles */
+.btn { min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 2px solid var(--ink); border-radius: 13px; background: #FFFFFF; color: var(--ink); box-shadow: 0 3px 0 var(--ink); font: inherit; font-weight: 800; cursor: pointer; text-decoration: none; white-space: nowrap; transition: transform .1s, box-shadow .1s; }
 .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
 .btn-primary { background: var(--btn); color: #FFFFFF; }
-.btn-sm { min-height: 38px; padding: 0 12px; font-size: 13.5px; border-radius: 11px; box-shadow: 0 2px 0 var(--ink); }
-.btn-danger { color: var(--red); }
-.btn:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.muted { color: var(--ink2); }
-.msg { margin: 0; padding: 12px 14px; border-radius: 14px; font-weight: 600; }
-.msg.err { background: var(--redbg); color: var(--red); }
-.msg.ok { background: var(--greenbg); color: var(--green); }
-.msg:empty { display: none; }
-.result { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 18px; background: var(--greenbg); animation: rise .3s ease both; }
-.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; }
-.big-code { font-size: 24px; }
-textarea { width: 100%; min-height: 150px; padding: 12px 14px; border: 2px solid var(--field); border-radius: 14px; font: inherit; font-size: 14px; resize: vertical; background: #FFFFFF; }
-.table-wrap { border-radius: 20px; border: 1.5px solid var(--line); overflow-x: auto; }
-table { width: 100%; min-width: 760px; border-collapse: collapse; }
-th, td { padding: 10px 12px; text-align: left; vertical-align: middle; }
-thead tr { background: var(--soft); }
-thead th { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
-tbody tr { border-top: 1px solid var(--line); }
-tr > :first-child { padding-left: 18px; }
-tr > :last-child { padding-right: 18px; }
-.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.btn-sm { min-height: 36px; padding: 0 12px; font-size: 13.5px; border-radius: 10px; box-shadow: 0 2px 0 var(--ink); }
+.btn-ghost { border-color: transparent; box-shadow: none; background: transparent; color: var(--ink2); }
+.btn-ghost:hover { background: rgba(58, 34, 40, .06); color: var(--ink); }
+.btn:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > span { font-size: 14px; font-weight: 700; }
+.field small { color: var(--ink2); font-size: 12.5px; }
+input, select { width: 100%; height: 46px; padding: 0 14px; border: 2px solid var(--field); border-radius: 13px; background: #FFFFFF; color: var(--ink); font: inherit; font-size: 16px; }
+input:focus, select:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(196, 47, 101, .22); }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.fields .wide { grid-column: 1 / -1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 800; white-space: nowrap; }
 .pill.on { background: var(--greenbg); color: var(--green); }
 .pill.off { background: var(--redbg); color: var(--red); }
-.pill.full { background: var(--amberbg); color: var(--amber); }
-.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.checks li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 700; }
-.checks .ok { background: var(--greenbg); color: var(--green); }
-.checks .no { background: var(--amberbg); color: var(--amber); }
-.actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
-[hidden] { display: none !important; }
-/* Estadísticas */
-h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
-.seg { display: inline-flex; padding: 4px; gap: 4px; border-radius: 14px; background: var(--soft); }
-.seg button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: var(--ink2); font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: #FFFFFF; color: var(--ink); box-shadow: 0 1px 0 var(--line), 0 0 0 1.5px var(--line); }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.kpi { padding: 14px 16px; border-radius: 18px; background: var(--soft); }
-.kpi span { display: block; font-size: 13px; font-weight: 700; color: var(--ink2); }
-.kpi b { display: block; margin-top: 2px; font-size: 26px; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.kpi small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink2); }
-.kpi.main { background: var(--glaze); }
-.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
-.split3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.funnel { display: flex; flex-direction: column; gap: 10px; }
-.fstep { display: grid; grid-template-columns: 150px minmax(0, 1fr) 92px; align-items: center; gap: 10px; font-size: 14px; }
-.fstep .track { height: 14px; border-radius: 0 4px 4px 0; background: var(--soft); overflow: hidden; }
+.pill.warn { background: var(--amberbg); color: var(--amber); }
+.pill.mute { background: var(--soft); color: var(--ink2); }
+.seg { display: inline-flex; padding: 4px; gap: 4px; border-radius: 13px; background: #FFFFFF; border: 1px solid var(--line); }
+.seg button { min-height: 34px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--ink2); font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #FFFFFF; }
+
+/* Avisos */
+.alert { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 18px; font-weight: 700; }
+.alert.warn { background: var(--amberbg); color: var(--amber); }
+.alert.ok { background: var(--greenbg); color: var(--green); }
+.alert a { color: inherit; }
+.alert .grow { flex: 1 1 auto; }
+.alert ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 16px; font-weight: 600; font-size: 14px; }
+
+/* Resumen */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.kpi { padding: 18px 20px; border-radius: 20px; background: #FFFFFF; border: 1px solid var(--line); }
+.kpi span { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink2); }
+.kpi b { display: block; margin-top: 6px; font-family: 'Bagel Fat One', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.05; color: var(--ink); font-variant-numeric: tabular-nums; }
+.kpi small { display: block; margin-top: 4px; font-size: 13px; color: var(--ink2); }
+.kpi.main { background: var(--glaze); border-color: var(--glaze); }
+.kpi.main b { color: var(--accent); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.funnel { display: flex; flex-direction: column; gap: 12px; }
+.fstep { display: grid; grid-template-columns: 140px minmax(0, 1fr) 86px; align-items: center; gap: 12px; font-size: 14px; }
+.fstep .track { height: 12px; border-radius: 0 4px 4px 0; background: var(--soft); overflow: hidden; }
 .fstep .bar { height: 100%; min-width: 2px; border-radius: 0 4px 4px 0; background: var(--btn); }
 .fstep b { text-align: right; font-variant-numeric: tabular-nums; }
-.fstep b small { margin-left: 4px; font-weight: 600; color: var(--ink2); }
-.days { position: relative; display: flex; align-items: flex-end; gap: 2px; height: 160px; padding-top: 8px; border-bottom: 1px solid var(--line); }
-.day { position: relative; flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; cursor: default; outline: none; }
+.fstep b small { margin-left: 5px; font-weight: 600; color: var(--ink2); }
+.days { position: relative; display: flex; align-items: flex-end; gap: 2px; height: 170px; border-bottom: 1px solid var(--line); }
+.day { position: relative; flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; outline: none; }
 .day i { display: block; width: 100%; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--btn); }
 .day:hover i, .day:focus-visible i { background: var(--accent); }
 .day:focus-visible { box-shadow: 0 0 0 2px var(--ink); border-radius: 4px; }
 .day-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--ink2); }
 .tip { position: absolute; z-index: 5; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--ink); color: #FFFFFF; font-size: 12.5px; line-height: 1.4; white-space: nowrap; transform: translate(-50%, -100%); }
-.mini { min-width: 0; font-size: 13.5px; }
-.mini th, .mini td { padding: 6px 8px; }
-.mini td.n, .mini th.n { text-align: right; font-variant-numeric: tabular-nums; }
-.mini-wrap { border-radius: 16px; border: 1.5px solid var(--line); overflow-x: auto; }
-.mini-wrap table { min-width: 0; }
-@media (max-width: 860px) { .split, .split3 { grid-template-columns: 1fr; } .fstep { grid-template-columns: 112px minmax(0, 1fr) 84px; font-size: 13px; } }
-.app-wrap { display: flex; flex-direction: column; gap: 24px; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 12px 18px; border-radius: 14px; background: var(--ink); color: #FFFFFF; font-weight: 700; animation: rise .25s ease both; }
-@keyframes rise { from { opacity: 0; transform: translate(var(--tx, 0), 8px); } to { opacity: 1; transform: translate(var(--tx, 0), 0); } }
-.toast { --tx: -50%; }
+.more { border-radius: 22px; background: #FFFFFF; border: 1px solid var(--line); }
+.more > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; font-weight: 800; cursor: pointer; list-style: none; }
+.more > summary::-webkit-details-marker { display: none; }
+.more > summary::after { content: '+'; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--soft); color: var(--accent); font-size: 20px; transition: transform .2s; }
+.more[open] > summary::after { transform: rotate(45deg); }
+.more-in { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; padding: 0 22px 22px; }
+.more-in h3 { margin-bottom: 8px; font-size: 14px; font-weight: 800; }
+.note { font-size: 13.5px; color: var(--ink2); }
+.mini { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.mini th, .mini td { padding: 7px 8px; text-align: left; border-top: 1px solid var(--line); }
+.mini thead th { border-top: 0; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.mini .n { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Compradoras */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.toolbar .search { flex: 1 1 260px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: #FFFFFF; color: var(--ink2); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+.chips b { margin-left: 4px; font-weight: 800; }
+.list { border-radius: 22px; background: #FFFFFF; border: 1px solid var(--line); overflow: hidden; }
+.list table { width: 100%; border-collapse: collapse; }
+.list th, .list td { padding: 13px 14px; text-align: left; vertical-align: middle; }
+.list thead th { background: var(--soft); font-size: 11.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ink2); }
+.list tbody tr { border-top: 1px solid var(--line); }
+.list tr > :first-child { padding-left: 20px; }
+.list tr > :last-child { padding-right: 16px; text-align: right; }
+.who b { display: block; font-weight: 700; }
+.who small { display: block; color: var(--ink2); font-size: 13px; }
+.who .ml { color: var(--green); font-weight: 700; }
+.menu { position: relative; display: inline-block; }
+.menu > summary { list-style: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 20px; line-height: 1; color: var(--ink2); }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu > summary:hover, .menu[open] > summary { background: var(--soft); color: var(--ink); }
+.menu-in { position: absolute; right: 0; top: calc(100% + 4px); z-index: 10; min-width: 200px; padding: 6px; border-radius: 14px; background: #FFFFFF; border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(58, 34, 40, .14); text-align: left; }
+.menu-in button { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--ink); font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+.menu-in button:hover, .menu-in button:focus-visible { background: var(--soft); outline: none; }
+.menu-in .danger { color: var(--red); }
+.menu-in hr { margin: 4px 6px; border: 0; border-top: 1px solid var(--line); }
+.empty { padding: 28px 20px; color: var(--ink2); text-align: center; }
+.manual { border-radius: 22px; background: #FFFFFF; border: 1px solid var(--line); }
+.manual > summary { padding: 16px 22px; font-weight: 800; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; }
+.manual > summary::-webkit-details-marker { display: none; }
+.manual > summary::before { content: '+'; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--btn); color: #FFFFFF; font-size: 18px; transition: transform .2s; }
+.manual[open] > summary::before { transform: rotate(45deg); }
+.manual-in { padding: 0 22px 22px; display: flex; flex-direction: column; gap: 14px; }
+.manual-in .fields { grid-template-columns: 2fr 2fr 1fr 1fr; align-items: end; }
+.result { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border-radius: 16px; background: var(--greenbg); }
+.result .code { font-size: 22px; }
+textarea { width: 100%; min-height: 130px; padding: 12px 14px; border: 2px solid var(--field); border-radius: 13px; font: inherit; font-size: 14px; resize: vertical; background: #FFFFFF; }
+
+/* Ajustes */
+.settings > *, .stack > *, .split > * { min-width: 0; }
+.settings { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.stack { display: flex; flex-direction: column; gap: 20px; }
+.preview { margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--glaze); }
+.preview b { font-family: 'Bagel Fat One', Georgia, serif; font-weight: 400; font-size: 26px; color: var(--accent); }
+.preview s { margin-left: 8px; color: var(--ink2); font-weight: 700; }
+.preview p { margin-top: 4px; font-size: 13.5px; color: var(--ink2); }
+.savebar { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 18px; }
+.conn { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; }
+.conn li { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.conn li:first-child { border-top: 0; padding-top: 0; }
+.conn .dot { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #FFFFFF; background: var(--green); }
+.conn .dot.no { background: var(--amber); }
+.conn b { display: block; }
+.conn small { display: block; color: var(--ink2); font-size: 13px; }
+.copyrow { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; border-radius: 13px; background: var(--soft); }
+.copyrow div { flex: 1 1 auto; min-width: 0; }
+.copyrow small { display: block; color: var(--ink2); font-size: 12.5px; font-weight: 700; }
+.copyrow .code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+
+/* Entrar */
+.login { max-width: 440px; margin: 10vh auto 0; }
+.login form { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+.msg { padding: 12px 14px; border-radius: 13px; font-weight: 600; }
+.msg.err { background: var(--redbg); color: var(--red); }
+.msg:empty { display: none; }
+.toast { position: fixed; left: 50%; bottom: 24px; z-index: 50; transform: translateX(-50%); padding: 12px 18px; border-radius: 14px; background: var(--ink); color: #FFFFFF; font-weight: 700; animation: rise .25s ease both; }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+@media (max-width: 900px) {
+  .top-in { flex-wrap: wrap; gap: 0 12px; padding: 10px 16px 0; min-height: 0; }
+  .brand small { display: none; }
+  .tabs { order: 3; width: 100%; overflow-x: auto; }
+  .tabs a { padding: 12px 12px; }
+  main { padding: 20px 16px 48px; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi b { font-size: 28px; }
+  .split, .settings { grid-template-columns: 1fr; }
+  .more-in { grid-template-columns: 1fr 1fr; }
+  .fstep { grid-template-columns: 112px minmax(0, 1fr) 76px; font-size: 13px; }
+  .manual-in .fields, .fields { grid-template-columns: 1fr; }
+  .list thead { display: none; }
+  .list table, .list tbody, .list tr, .list td { display: block; }
+  .list tbody tr { position: relative; padding: 14px 16px; }
+  .list td { padding: 2px 0 !important; text-align: left !important; }
+  .list td.who { padding-right: 44px !important; }
+  .list td.inl { display: inline-block; margin: 6px 12px 0 0; vertical-align: middle; font-size: 13.5px; color: var(--ink2); }
+  .list td.act { position: absolute; top: 10px; right: 10px; }
+  .top-end #site { display: none; }
+}
+@media (max-width: 520px) { .more-in { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-<header><div class="hwrap"><h1 class="brand">Cuánto Cobro<small>Ventas, estadísticas y códigos</small></h1><button class="btn btn-sm" id="logout" type="button" hidden>Salir</button></div></header>
+<header class="top">
+  <div class="top-in">
+    <span class="brand">Cuánto Cobro <small>Panel</small></span>
+    <nav class="tabs" aria-label="Secciones" id="tabs" hidden>
+      <a href="#resumen" data-tab="resumen">Resumen</a>
+      <a href="#compradoras" data-tab="compradoras">Compradoras<span class="badge" id="tab-badge" hidden></span></a>
+      <a href="#ajustes" data-tab="ajustes">Ajustes</a>
+    </nav>
+    <div class="top-end">
+      <span id="sale-state"></span>
+      <a class="btn btn-sm btn-ghost" href="/" target="_blank" rel="noopener" id="site" hidden>Ver sitio ↗</a>
+      <button class="btn btn-sm" id="logout" type="button" hidden>Salir</button>
+    </div>
+  </div>
+</header>
+
 <main>
-  <section class="card" id="login" aria-labelledby="login-h">
-    <h2 id="login-h">Entrar</h2>
-    <p class="muted">Usa la clave que guardaste como <b>ADMIN_TOKEN</b> en Cloudflare. Se recuerda solo mientras esta pestaña esté abierta.</p>
-    <form class="row" id="login-form">
-      <label class="field" style="flex:1 1 280px"><span>Clave de administración</span><input type="password" id="token" autocomplete="current-password" required></label>
-      <button class="btn btn-primary" type="submit" style="align-self:flex-end">Entrar</button>
+  <section class="card login" id="login" aria-labelledby="login-h">
+    <h2 id="login-h">Entrar al panel</h2>
+    <p class="muted" style="margin-top:4px">Usa la clave que guardaste como <b>ADMIN_TOKEN</b> en Cloudflare. Se recuerda mientras esta pestaña esté abierta.</p>
+    <form id="login-form">
+      <label class="field"><span>Clave de administración</span><input type="password" id="token" autocomplete="current-password" required></label>
+      <button class="btn btn-primary" type="submit">Entrar</button>
+      <p class="msg" id="login-msg" role="alert"></p>
     </form>
-    <p class="msg" id="login-msg" role="alert"></p>
   </section>
 
-  <div id="app" class="app-wrap" hidden>
-    <section class="card" aria-labelledby="st-h">
-      <div class="row" style="justify-content:space-between"><h2 id="st-h">Estadísticas de la venta</h2>
-        <div class="seg" role="group" aria-label="Período" id="st-range"><button type="button" data-d="1" aria-pressed="false">Hoy</button><button type="button" data-d="7" aria-pressed="false">7 días</button><button type="button" data-d="30" aria-pressed="true">30 días</button><button type="button" data-d="90" aria-pressed="false">90 días</button></div>
+  <!-- ============ Resumen ============ -->
+  <section class="view" id="v-resumen" data-view="resumen" hidden aria-labelledby="h-resumen">
+    <div class="view-head">
+      <div><h1 id="h-resumen">Resumen</h1><p>Cómo viene la venta.</p></div>
+      <div class="seg" role="group" aria-label="Período" id="st-range"><button type="button" data-d="1" aria-pressed="false">Hoy</button><button type="button" data-d="7" aria-pressed="false">7 días</button><button type="button" data-d="30" aria-pressed="true">30 días</button><button type="button" data-d="90" aria-pressed="false">90 días</button></div>
+    </div>
+    <div id="health"></div>
+    <div class="kpis" id="kpis"></div>
+    <p class="note" id="st-empty" hidden></p>
+    <div class="split">
+      <section class="card" aria-labelledby="h-funnel"><h2 id="h-funnel">Embudo de compra</h2><p>De cada 100 visitas, cuántas llegan a cada paso.</p><div class="card-body funnel" id="funnel"></div></section>
+      <section class="card" aria-labelledby="h-days"><h2 id="h-days">Visitas por día</h2><p>Pasa el mouse por una barra para ver el detalle.</p><div class="card-body"><div class="days" id="days" role="list"></div><div class="day-axis" id="days-axis"></div></div></section>
+    </div>
+    <details class="more">
+      <summary>Más detalle: de dónde vienen, dispositivo, botón y país</summary>
+      <div class="more-in">
+        <div><h3>De dónde vienen</h3><div id="t-src"></div></div>
+        <div><h3>Dispositivo</h3><div id="t-dev"></div></div>
+        <div><h3>Botón que tocaron</h3><div id="t-cta"></div></div>
+        <div><h3>País</h3><div id="t-country"></div></div>
       </div>
-      <p class="muted" id="st-empty" hidden></p>
-      <div class="kpis" id="kpis"></div>
-      <div class="split">
-        <div><h3>Embudo de compra</h3><div class="funnel" id="funnel"></div></div>
-        <div><h3>Visitas por día</h3><div class="days" id="days" role="list"></div><div class="day-axis" id="days-axis"></div></div>
-      </div>
-      <div class="split3">
-        <div><h3>De dónde vienen</h3><div class="mini-wrap" id="t-src"></div></div>
-        <div><h3>Dispositivo</h3><div class="mini-wrap" id="t-dev"></div></div>
-        <div><h3>Botón que tocaron</h3><div class="mini-wrap" id="t-cta"></div><h3 style="margin-top:16px">País</h3><div class="mini-wrap" id="t-country"></div></div>
-      </div>
-      <p class="muted" style="margin:0">Las visitas cuentan personas (una por pestaña), sin cookies. Para saber de dónde viene cada visita, agrega <span class="code">?utm_source=instagram</span> (o el nombre de la red) al enlace que compartes. Velocidad de carga y páginas vistas: Cloudflare → Web Analytics.</p>
-    </section>
+      <p class="note" style="padding:0 22px 20px">Las visitas cuentan personas (una por pestaña), sin cookies. Para saber de dónde viene cada visita, comparte el enlace con <span class="code">?utm_source=instagram</span> (o el nombre de la red). Velocidad de carga y páginas vistas: Cloudflare → Web Analytics.</p>
+    </details>
+  </section>
 
-    <section class="card" aria-labelledby="sale-h">
-      <div class="row" style="justify-content:space-between"><h2 id="sale-h">Venta con Mercado Pago</h2><span id="sale-state"></span></div>
-      <ul class="checks" id="checks"></ul>
-      <form id="cfg-form" class="grid">
-        <label class="field"><span>Moneda del precio</span><select id="c-mode"><option value="usd">Dólares</option><option value="ars">Pesos</option></select></label>
-        <label class="field" data-mode="usd"><span>Dólar de referencia</span><select id="c-dolar"><option value="oficial">Oficial</option><option value="blue">Blue</option><option value="bolsa">MEP</option><option value="tarjeta">Tarjeta</option></select></label>
-        <label class="field"><span>Precio que se cobra (<span class="cur">USD</span>)</span><input type="number" id="c-price" min="0" step="0.01" inputmode="decimal" required></label>
-        <label class="field"><span>Precio original tachado (<span class="cur">USD</span>, opcional)</span><input type="number" id="c-list" min="0" step="0.01" inputmode="decimal"></label>
-        <label class="field" style="grid-column:span 2"><span>Nombre que ve al pagar</span><input id="c-title" maxlength="120"></label>
-        <label class="field"><span>Dispositivos por compra</span><select id="c-max"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
-        <label class="field"><span>Garantía (días)</span><select id="c-days"><option value="0">Sin garantía</option><option>3</option><option>7</option><option>14</option><option>30</option></select></label>
-        <button class="btn btn-primary" type="submit">Guardar</button>
+  <!-- ============ Compradoras ============ -->
+  <section class="view" id="v-compradoras" data-view="compradoras" hidden aria-labelledby="h-compradoras">
+    <div class="view-head">
+      <div><h1 id="h-compradoras">Compradoras</h1><p id="count-line">Cada compra con su código de acceso.</p></div>
+    </div>
+    <div class="toolbar">
+      <label class="field search"><span class="sr">Buscar</span><input type="search" id="q" placeholder="Buscar por código, mail o nota"></label>
+      <div class="chips" role="group" aria-label="Filtrar" id="filters">
+        <button type="button" data-f="todas" aria-pressed="true">Todas<b id="f-todas"></b></button>
+        <button type="button" data-f="activas" aria-pressed="false">Activas<b id="f-activas"></b></button>
+        <button type="button" data-f="pendientes" aria-pressed="false">Pidieron devolución<b id="f-pendientes"></b></button>
+        <button type="button" data-f="bajas" aria-pressed="false">Devueltas o revocadas<b id="f-bajas"></b></button>
+      </div>
+    </div>
+    <div class="list">
+      <table>
+        <caption class="sr">Compradoras y códigos</caption>
+        <thead><tr><th scope="col">Clienta</th><th scope="col">Código</th><th scope="col">Dispositivos</th><th scope="col">Estado</th><th scope="col">Fecha</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead>
+        <tbody id="rows"><tr><td colspan="6" class="empty">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+    <details class="manual" id="manual">
+      <summary>Crear un código a mano</summary>
+      <div class="manual-in">
+        <p class="note">Para ventas por fuera de Mercado Pago o regalos. Si pones un mail, la clienta entra a MailerLite y recibe los mails como si hubiera comprado.</p>
+        <form id="new-form" class="fields">
+          <label class="field"><span>Mail de la clienta</span><input type="email" id="n-email" placeholder="clienta@mail.com" autocomplete="off"></label>
+          <label class="field"><span>Nota (opcional)</span><input id="n-note" placeholder="Ej: venta por Instagram" autocomplete="off"></label>
+          <label class="field"><span>Dispositivos</span><select id="n-max"><option>1</option><option>2</option><option selected>3</option><option>5</option></select></label>
+          <label class="field"><span>Cantidad</span><input type="number" id="n-count" value="1" min="1" max="50"></label>
+          <div class="wide"><button class="btn btn-primary" type="submit">Crear código</button></div>
+        </form>
+        <div id="created"></div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ Ajustes ============ -->
+  <section class="view" id="v-ajustes" data-view="ajustes" hidden aria-labelledby="h-ajustes">
+    <div class="view-head"><div><h1 id="h-ajustes">Ajustes</h1><p>Precio, producto y conexiones.</p></div></div>
+    <div class="settings">
+      <form id="cfg-form" class="stack">
+        <section class="card" aria-labelledby="h-price">
+          <h2 id="h-price">Precio</h2><p>Lo que se cobra en Mercado Pago y se muestra en la landing.</p>
+          <div class="card-body fields">
+            <label class="field"><span>Moneda</span><select id="c-mode"><option value="usd">Dólares</option><option value="ars">Pesos</option></select><small data-mode="usd">Se cobra en pesos al dólar del día.</small></label>
+            <label class="field" data-mode="usd"><span>Dólar de referencia</span><select id="c-dolar"><option value="oficial">Oficial</option><option value="blue">Blue</option><option value="bolsa">MEP</option><option value="tarjeta">Tarjeta</option></select></label>
+            <label class="field"><span>Precio que se cobra (<span class="cur">USD</span>)</span><input type="number" id="c-price" min="0" step="0.01" inputmode="decimal" required></label>
+            <label class="field"><span>Precio original tachado (<span class="cur">USD</span>)</span><input type="number" id="c-list" min="0" step="0.01" inputmode="decimal"><small>Opcional. Si es mayor, la landing muestra “Precio de lanzamiento”.</small></label>
+          </div>
+          <div class="preview" id="now-price" role="status"></div>
+        </section>
+        <section class="card" aria-labelledby="h-prod">
+          <h2 id="h-prod">Producto</h2><p>Lo que recibe cada compradora.</p>
+          <div class="card-body fields">
+            <label class="field wide"><span>Nombre que ve al pagar</span><input id="c-title" maxlength="120"></label>
+            <label class="field"><span>Dispositivos por compra</span><select id="c-max"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
+            <label class="field"><span>Garantía</span><select id="c-days"><option value="0">Sin garantía</option><option value="3">3 días</option><option value="7">7 días</option><option value="14">14 días</option><option value="30">30 días</option></select></label>
+          </div>
+          <div class="savebar"><span class="note" id="save-note"></span><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
+        </section>
       </form>
-      <p class="muted" id="now-price" role="status"></p>
-      <div class="row"><span class="muted">Enlace para tu botón “Comprar”:</span><span class="code" id="buy-url"></span><button class="btn btn-sm" type="button" id="copy-buy">Copiar enlace</button></div>
-      <div class="row"><span class="muted">URL de notificaciones (Mercado Pago → Webhooks):</span><span class="code" id="hook-url"></span><button class="btn btn-sm" type="button" id="copy-hook">Copiar</button></div>
-    </section>
-
-    <section class="card soft" aria-labelledby="new-h">
-      <h2 id="new-h">Nuevo código para una compra</h2>
-      <form id="new-form" class="grid">
-        <label class="field"><span>Mail de la clienta</span><input type="email" id="n-email" placeholder="clienta@mail.com" autocomplete="off"></label>
-        <label class="field"><span>Nota (opcional)</span><input id="n-note" placeholder="Ej: compra por Instagram" autocomplete="off"></label>
-        <label class="field"><span>Dispositivos</span><select id="n-max"><option>1</option><option>2</option><option selected>3</option><option>5</option></select></label>
-        <label class="field"><span>Cantidad</span><input type="number" id="n-count" value="1" min="1" max="50"></label>
-        <button class="btn btn-primary" type="submit">Crear código</button>
-      </form>
-      <div id="created"></div>
-    </section>
-
-    <section class="card" aria-labelledby="list-h">
-      <div class="row" style="justify-content:space-between">
-        <h2 id="list-h">Códigos <span class="muted" id="count"></span></h2>
-        <label class="field" style="flex:0 1 320px"><span class="sr">Buscar</span><input type="search" id="q" placeholder="Buscar por código, mail o nota"></label>
+      <div class="stack">
+        <section class="card" aria-labelledby="h-conn">
+          <h2 id="h-conn">Conexiones</h2><p>Todo en verde: la venta funciona sola.</p>
+          <ul class="conn" id="checks"></ul>
+        </section>
+        <section class="card" aria-labelledby="h-links">
+          <h2 id="h-links">Enlaces</h2><p>Para botones externos y para Mercado Pago.</p>
+          <div class="copyrow"><div><small>Comprar</small><span class="code" id="buy-url"></span></div><button class="btn btn-sm" type="button" id="copy-buy">Copiar</button></div>
+          <div class="copyrow"><div><small>Notificaciones de Mercado Pago</small><span class="code" id="hook-url"></span></div><button class="btn btn-sm" type="button" id="copy-hook">Copiar</button></div>
+        </section>
       </div>
-      <div class="table-wrap"><table>
-        <caption class="sr">Códigos creados</caption>
-        <thead><tr><th scope="col">Código</th><th scope="col">Clienta</th><th scope="col">Dispositivos</th><th scope="col">Estado</th><th scope="col">Creado</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead>
-        <tbody id="rows"><tr><td colspan="6" class="muted">Cargando…</td></tr></tbody>
-      </table></div>
-    </section>
-  </div>
+    </div>
+  </section>
 </main>
 <script>
 (() => {
@@ -186,11 +340,18 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
   let token = '';
   try { token = sessionStorage.getItem(KEY) || ''; } catch (e) { /* sin almacenamiento */ }
   let codes = [];
+  let cfg = null;
+  let ml = null;
+  let filter = 'todas';
 
   const toast = (t) => { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2400); };
   const copy = async (text, label) => { try { await navigator.clipboard.writeText(text); toast(label || 'Copiado'); } catch (e) { prompt('Copia este texto:', text); } };
   const link = (code) => `${location.origin}/activar?codigo=${encodeURIComponent(code)}`;
   const mailBody = (c) => `¡Hola! Gracias por comprar Cuánto Cobro.\n\nTu código de acceso es:\n${c.code}\n\nPara empezar, entra a este enlace desde tu teléfono o computadora:\n${link(c.code)}\n\nPuedes usarlo en hasta ${c.maxDevices} ${c.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}. Tus datos se guardan en tu navegador; desde Ajustes puedes descargar un respaldo cuando quieras.\n\n¡Que vendas muchas tortas!`;
+  const peso = (n) => '$' + Math.round(n || 0).toLocaleString('es-AR');
+  const num = (n) => Math.round(n || 0).toLocaleString('es-AR');
+  const pct = (a, b) => (b ? `${Math.round((a / b) * 1000) / 10}%` : '—');
+  const date = (t) => (t ? new Date(t).toLocaleDateString('es', { day: 'numeric', month: 'short' }) : '');
 
   async function call(method, path, body) {
     const res = await fetch(path, { method, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
@@ -198,38 +359,137 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
     if (!res.ok) { const err = new Error(data.message || 'No se pudo completar.'); err.status = res.status; throw err; }
     return data;
   }
+
+  /* ---------- Pestañas ---------- */
+  const TABS = ['resumen', 'compradoras', 'ajustes'];
+  function showTab() {
+    const tab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'resumen';
+    document.querySelectorAll('[data-view]').forEach((v) => { v.hidden = v.dataset.view !== tab; });
+    document.querySelectorAll('#tabs a').forEach((a) => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  }
+  window.addEventListener('hashchange', showTab);
+
+  /* ---------- Estado general (aviso arriba del resumen) ---------- */
+  function paintHealth() {
+    if (!cfg) return;
+    const issues = [];
+    if (cfg.mercadopago === 'sin-configurar') issues.push('Falta conectar Mercado Pago');
+    else if (cfg.mercadopago === 'prueba') issues.push('Mercado Pago está en modo prueba');
+    if (!cfg.webhookSecret) issues.push('Falta la firma de notificaciones');
+    if (!(cfg.now?.price > 0)) issues.push('Falta el precio');
+    if (cfg.mailerlite && ml && !ml.connected) issues.push(ml.error || 'MailerLite no responde');
+    if (!cfg.mailerlite && !cfg.email) issues.push('Los mails a compradoras están apagados');
+    const pend = codes.filter(isPending).length;
+    const parts = [];
+    if (pend) parts.push(`<div class="alert warn"><span class="grow">${pend === 1 ? 'Una clienta pidió la devolución' : `${pend} clientas pidieron la devolución`} y Mercado Pago no la hizo sola.</span><a class="btn btn-sm" href="#compradoras" data-goto="pendientes">Ver</a></div>`);
+    if (issues.length) parts.push(`<div class="alert warn"><span class="grow"><ul>${issues.map((i) => `<li>! ${esc(i)}</li>`).join('')}</ul></span><a class="btn btn-sm" href="#ajustes">Revisar</a></div>`);
+    else parts.push(`<div class="alert ok"><span class="grow">✓ Todo funciona: Mercado Pago cobra, el código se entrega solo${cfg.mailerlite ? ' y MailerLite manda los mails' : ''}. Hoy se cobra <b>${peso(cfg.now.price)}</b>.</span></div>`);
+    $('#health').innerHTML = parts.join('');
+    $('#tab-badge').hidden = !pend; $('#tab-badge').textContent = pend;
+  }
+  $('#health').addEventListener('click', (e) => { const a = e.target.closest('[data-goto]'); if (a) setFilter(a.dataset.goto); });
+
+  /* ---------- Compradoras ---------- */
+  const isPending = (c) => c.refundRequestedAt && !c.refundedAt && !c.revoked;
+  const isOff = (c) => c.revoked || c.refundedAt;
+  const FILTERS = { todas: () => true, activas: (c) => !isOff(c), pendientes: isPending, bajas: isOff };
+  function state(c) {
+    if (c.refundedAt || c.revokedReason === 'reembolso') return '<span class="pill off">Devuelta</span>';
+    if (c.revokedReason === 'contracargo') return '<span class="pill off">Contracargo</span>';
+    if (c.revoked) return '<span class="pill off">Revocada</span>';
+    if (c.refundRequestedAt) return '<span class="pill warn">Pidió devolución</span>';
+    if (!c.devices) return '<span class="pill mute">Sin activar</span>';
+    return '<span class="pill on">Activa</span>';
+  }
   async function load() {
-    const data = await call('GET', '/api/admin/codes');
-    codes = data.codes || [];
+    codes = (await call('GET', '/api/admin/codes')).codes || [];
+    paint();
+    paintHealth();
+  }
+  function setFilter(f) {
+    filter = f;
+    document.querySelectorAll('#filters button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
     paint();
   }
   function paint() {
     const q = $('#q').value.trim().toLowerCase();
-    const list = codes.filter((c) => !q || [c.code, c.email, c.note].join(' ').toLowerCase().includes(q));
-    $('#count').textContent = `· ${codes.length}`;
+    for (const f of Object.keys(FILTERS)) $('#f-' + f).textContent = codes.filter(FILTERS[f]).length;
+    const sold = codes.filter((c) => c.source === 'mercadopago' && !c.refundedAt);
+    $('#count-line').textContent = codes.length ? `${codes.length} ${codes.length === 1 ? 'código' : 'códigos'} · ${sold.length} ${sold.length === 1 ? 'venta' : 'ventas'} por Mercado Pago (${peso(sold.reduce((a, c) => a + (c.amount || 0), 0))})` : 'Cada compra con su código de acceso.';
+    const list = codes.filter(FILTERS[filter]).filter((c) => !q || [c.code, c.email, c.note].join(' ').toLowerCase().includes(q));
     $('#rows').innerHTML = list.length ? list.map((c) => {
-      const state = c.refundedAt || c.revokedReason === 'reembolso' ? '<span class="pill off">Devuelto</span>' : c.revokedReason === 'contracargo' ? '<span class="pill off">Contracargo</span>' : c.revoked ? '<span class="pill off">Revocado</span>' : c.refundRequestedAt ? '<span class="pill full">Pidió devolución</span>' : c.devices >= c.maxDevices ? '<span class="pill full">Completo</span>' : '<span class="pill on">Activo</span>';
+      const sub = [c.source === 'mercadopago' ? `Mercado Pago · ${peso(c.amount)}` : (c.note || 'Creado a mano')];
+      if (c.source === 'mercadopago' && c.note && !/^Mercado Pago #/.test(c.note)) sub.push(c.note);
+      const mails = c.mailerliteAt ? '<span class="ml">✓ en MailerLite</span>' : c.emailSentAt ? '<span class="ml">✓ mail enviado</span>' : '';
+      const id = esc(c.code);
       return `<tr>
-        <td><span class="code">${esc(c.code)}</span></td>
-        <td>${esc(c.email) || '<span class="muted">—</span>'}${c.note ? `<br><small class="muted">${esc(c.note)}</small>` : ''}${c.source === 'mercadopago' ? `<br><small class="muted">Pagó ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(c.amount || 0).replace(/\s/, '')}${c.emailSentAt ? ' · mail enviado' : ''}</small>` : ''}</td>
-        <td>${c.devices} de ${c.maxDevices}</td>
-        <td>${state}</td>
-        <td>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('es') : ''}</td>
-        <td><div class="actions">
-          <button class="btn btn-sm" type="button" data-a="mail" data-c="${esc(c.code)}" aria-label="Copiar mail para ${esc(c.code)}">Copiar mail</button>
-          ${c.devices ? `<button class="btn btn-sm" type="button" data-a="liberar" data-c="${esc(c.code)}" aria-label="Liberar dispositivos de ${esc(c.code)}">Liberar</button>` : ''}
-          ${c.source === 'mercadopago' && !c.refundedAt ? `<button class="btn btn-sm btn-danger" type="button" data-a="reembolsar" data-c="${esc(c.code)}" aria-label="Devolver el dinero de ${esc(c.code)}">Devolver dinero</button>` : ''}
-          <button class="btn btn-sm ${c.revoked ? '' : 'btn-danger'}" type="button" data-a="${c.revoked ? 'reactivar' : 'revocar'}" data-c="${esc(c.code)}" aria-label="${c.revoked ? 'Reactivar' : 'Revocar'} ${esc(c.code)}">${c.revoked ? 'Reactivar' : 'Revocar'}</button>
-        </div></td></tr>`;
-    }).join('') : `<tr><td colspan="6" class="muted">${codes.length ? 'Ningún código coincide con la búsqueda.' : 'Todavía no creaste códigos.'}</td></tr>`;
+        <td class="who"><b>${esc(c.email) || '<span class="muted">Sin mail</span>'}</b><small>${esc(sub.join(' · '))}${mails ? ' · ' + mails : ''}</small></td>
+        <td><span class="code">${id}</span></td>
+        <td class="inl">${c.devices} de ${c.maxDevices} disp.</td>
+        <td class="inl">${state(c)}</td>
+        <td class="inl">${date(c.createdAt)}</td>
+        <td class="act"><details class="menu"><summary aria-label="Acciones para ${id}">⋯</summary><div class="menu-in">
+          <button type="button" data-a="mail" data-c="${id}">Copiar mail con el código</button>
+          <button type="button" data-a="link" data-c="${id}">Copiar enlace de activación</button>
+          ${c.devices ? `<button type="button" data-a="liberar" data-c="${id}">Liberar dispositivos</button>` : ''}
+          <hr>
+          ${c.source === 'mercadopago' && !c.refundedAt ? `<button type="button" class="danger" data-a="reembolsar" data-c="${id}">Devolver el dinero</button>` : ''}
+          <button type="button" class="${c.revoked ? '' : 'danger'}" data-a="${c.revoked ? 'reactivar' : 'revocar'}" data-c="${id}">${c.revoked ? 'Reactivar código' : 'Revocar código'}</button>
+        </div></details></td></tr>`;
+    }).join('') : `<tr><td colspan="6" class="empty">${codes.length ? 'Nada coincide con la búsqueda o el filtro.' : 'Todavía no hay compradoras. Aparecen acá apenas alguien compra.'}</td></tr>`;
   }
-  const peso = (n) => '$' + Math.round(n).toLocaleString('es-AR');
+  $('#q').addEventListener('input', paint);
+  $('#filters').addEventListener('click', (e) => { const b = e.target.closest('button[data-f]'); if (b) setFilter(b.dataset.f); });
+  /* Cierra los menús al tocar afuera o abrir otro */
+  document.addEventListener('click', (e) => { document.querySelectorAll('details.menu[open]').forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
+  $('#rows').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-a]');
+    if (!b) return;
+    const c = codes.find((x) => x.code === b.dataset.c);
+    if (!c) return;
+    b.closest('details').open = false;
+    const a = b.dataset.a;
+    if (a === 'mail') { copy(mailBody(c), 'Mail copiado'); return; }
+    if (a === 'link') { copy(link(c.code), 'Enlace copiado'); return; }
+    if (a === 'revocar' && !confirm(`¿Revocar ${c.code}? La clienta deja de poder abrir la app.`)) return;
+    if (a === 'reembolsar' && !confirm(`¿Devolver ${c.amount ? peso(c.amount) : 'el pago'} a ${c.email || c.code}? Mercado Pago reembolsa el pago completo y el código se revoca.`)) return;
+    if (a === 'liberar' && !confirm(`¿Liberar los dispositivos de ${c.code}? Tendrá que volver a escribir el código en cada uno.`)) return;
+    try { await call('POST', '/api/admin/codes/' + encodeURIComponent(c.code), { action: a }); toast('Listo'); await load(); }
+    catch (err) { toast(err.message); }
+  });
+  $('#new-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.submitter; if (btn) btn.disabled = true;
+    try {
+      const data = await call('POST', '/api/admin/codes', { email: $('#n-email').value, note: $('#n-note').value, maxDevices: $('#n-max').value, count: $('#n-count').value });
+      const made = data.created || [];
+      const first = made[0];
+      const toMl = made.some((c) => c.mailerliteAt);
+      $('#created').innerHTML = `<div class="result" role="status">
+        <b>${made.length === 1 ? 'Código creado' : `${made.length} códigos creados`}${toMl ? ' · la clienta ya entró a MailerLite y le llega el mail de entrega' : ''}</b>
+        ${made.map((c) => `<span class="code">${esc(c.code)}</span>`).join('')}
+        ${made.length === 1 && !toMl ? `<label class="field"><span>Mail para enviarle a mano</span><textarea id="mail-text">${esc(mailBody(first))}</textarea></label>
+        <div class="toolbar"><button class="btn btn-primary btn-sm" type="button" id="copy-mail">Copiar mail</button><button class="btn btn-sm" type="button" id="copy-link">Copiar enlace</button></div>` : ''}
+        ${made.length > 1 ? '<div><button class="btn btn-primary btn-sm" type="button" id="copy-all">Copiar todos</button></div>' : ''}
+      </div>`;
+      const cm = $('#copy-mail'); if (cm) cm.onclick = () => copy($('#mail-text').value, 'Mail copiado');
+      const cl = $('#copy-link'); if (cl) cl.onclick = () => copy(link(first.code), 'Enlace copiado');
+      const ca = $('#copy-all'); if (ca) ca.onclick = () => copy(made.map((c) => c.code).join('\n'), 'Códigos copiados');
+      $('#n-email').value = ''; $('#n-note').value = ''; $('#n-count').value = 1;
+      await load();
+      if (toMl) loadMailerlite();
+    } catch (err) { toast(err.message); }
+    if (btn) btn.disabled = false;
+  });
+
+  /* ---------- Ajustes ---------- */
   function paintMode() {
     const usd = $('#c-mode').value === 'usd';
     document.querySelectorAll('[data-mode="usd"]').forEach((el) => { el.hidden = !usd; });
     document.querySelectorAll('#cfg-form .cur').forEach((el) => { el.textContent = usd ? 'USD' : 'ARS'; });
   }
   function paintConfig(c) {
+    cfg = c;
     const usd = c.mode === 'usd';
     $('#c-mode').value = usd ? 'usd' : 'ars';
     $('#c-dolar').value = c.dolar || 'oficial';
@@ -237,43 +497,55 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
     $('#c-list').value = (usd ? c.usdList : c.listPrice) || '';
     paintMode();
     const n = c.now || {};
-    $('#now-price').textContent = n.price > 0
-      ? `Hoy se cobra ${peso(n.price)}${n.listPrice ? ` (antes ${peso(n.listPrice)}, ${n.off}% OFF)` : ''}${usd ? ` · dólar ${$('#c-dolar').selectedOptions[0].textContent.toLowerCase()} a ${peso(n.rate)}, se actualiza cada 6 horas` : ''}.`
-      : usd && !n.rate ? 'No se pudo obtener la cotización del dólar. Prueba en un rato o usa un precio en pesos.' : '';
+    $('#now-price').innerHTML = n.price > 0
+      ? `<span class="note">Hoy se cobra</span><br><b>${peso(n.price)}</b>${n.listPrice ? `<s>${peso(n.listPrice)}</s> <span class="pill on">${n.off}% OFF</span>` : ''}${usd ? `<p>Dólar ${esc($('#c-dolar').selectedOptions[0].textContent.toLowerCase())} a ${peso(n.rate)}. Se actualiza solo cada 6 horas.</p>` : ''}`
+      : `<p>${usd && !n.rate ? 'No se pudo obtener la cotización del dólar. Prueba en un rato o usa un precio en pesos.' : 'Carga un precio para abrir la venta.'}</p>`;
     $('#c-title').value = c.title || '';
     $('#c-max').value = String(c.maxDevices || 3);
     $('#c-days').value = String(c.guaranteeDays ?? 7);
     $('#buy-url').textContent = c.buyUrl;
     $('#hook-url').textContent = c.webhookUrl;
-    $('#sale-state').innerHTML = c.open ? '<span class="pill on">Venta abierta</span>' : '<span class="pill full">Venta cerrada</span>';
-    const item = (ok, text) => `<li class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '!'} ${text}</li>`;
-    $('#checks').innerHTML = [
-      item(c.mercadopago !== 'sin-configurar', c.mercadopago === 'real' ? 'Mercado Pago: cobros reales' : c.mercadopago === 'prueba' ? 'Mercado Pago: modo prueba' : 'Falta MP_ACCESS_TOKEN'),
-      item(c.webhookSecret, c.webhookSecret ? 'Firma de notificaciones' : 'Falta MP_WEBHOOK_SECRET'),
-      item(c.now?.price > 0, c.now?.price > 0 ? 'Precio cargado' : 'Falta el precio'),
-      item(c.mailerlite || c.email, c.mailerlite ? 'MailerLite: revisando…' : c.email ? 'Mail automático (Resend)' : 'Mails desactivados: falta MailerLite')
-    ].join('');
-    if (c.mailerlite) call('GET', '/api/admin/mailerlite').then((m) => {
-      const li = [...document.querySelectorAll('#checks li')].pop();
-      li.className = m.connected ? 'ok' : 'no';
-      li.textContent = m.connected ? `✓ MailerLite: “${m.group.name}”${m.group.active != null ? ` · ${m.group.active} en el grupo` : ''}` : `! ${m.error || 'MailerLite sin conectar'}`;
-    }).catch(() => {});
+    $('#sale-state').innerHTML = c.open ? '<span class="pill on">● Venta abierta</span>' : '<span class="pill warn">● Venta cerrada</span>';
+    paintChecks();
+    paintHealth();
   }
-  async function loadConfig() { paintConfig(await call('GET', '/api/admin/config')); }
+  function paintChecks() {
+    const c = cfg;
+    const item = (ok, title, sub) => `<li><span class="dot${ok ? '' : ' no'}" aria-hidden="true">${ok ? '✓' : '!'}</span><div><b>${title}</b><small>${sub}</small></div></li>`;
+    const mlRow = !c.mailerlite
+      ? item(!!c.email, c.email ? 'Mail con el código (Resend)' : 'Mails a compradoras', c.email ? 'Sale un mail con el código en cada compra.' : 'Falta MAILERLITE_API_KEY en Cloudflare.')
+      : !ml ? item(true, 'MailerLite', 'Revisando…')
+      : ml.connected ? item(true, 'MailerLite', `Grupo “${esc(ml.group.name)}”${ml.group.active != null ? ` · ${num(ml.group.active)} ${ml.group.active === 1 ? 'persona' : 'personas'}` : ''}. Las compradoras entran solas.`)
+      : item(false, 'MailerLite', esc(ml.error || 'No responde.'));
+    $('#checks').innerHTML = [
+      item(c.mercadopago === 'real', 'Mercado Pago', c.mercadopago === 'real' ? 'Cobros reales.' : c.mercadopago === 'prueba' ? 'Modo prueba: no cobra de verdad.' : 'Falta MP_ACCESS_TOKEN.'),
+      item(c.webhookSecret, 'Firma de notificaciones', c.webhookSecret ? 'Los avisos de pago se verifican.' : 'Falta MP_WEBHOOK_SECRET.'),
+      item(c.now?.price > 0, 'Precio', c.now?.price > 0 ? `${peso(c.now.price)} por compra.` : 'Sin precio la venta queda cerrada.'),
+      mlRow
+    ].join('');
+  }
+  async function loadConfig() { paintConfig(await call('GET', '/api/admin/config')); if (cfg.mailerlite) loadMailerlite(); }
+  async function loadMailerlite() {
+    try { ml = await call('GET', '/api/admin/mailerlite'); } catch (e) { ml = { connected: false, error: e.message }; }
+    paintChecks(); paintHealth();
+  }
   $('#cfg-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const usd = $('#c-mode').value === 'usd';
     const amounts = usd ? { usd: $('#c-price').value || 0, usdList: $('#c-list').value || 0 } : { price: $('#c-price').value || 0, listPrice: $('#c-list').value || 0 };
-    try { paintConfig(await call('PUT', '/api/admin/config', { mode: $('#c-mode').value, dolar: $('#c-dolar').value, ...amounts, title: $('#c-title').value, maxDevices: $('#c-max').value, guaranteeDays: $('#c-days').value })); toast('Venta guardada'); }
-    catch (err) { toast(err.message); }
+    try {
+      paintConfig(await call('PUT', '/api/admin/config', { mode: $('#c-mode').value, dolar: $('#c-dolar').value, ...amounts, title: $('#c-title').value, maxDevices: $('#c-max').value, guaranteeDays: $('#c-days').value }));
+      $('#save-note').textContent = 'Guardado. La landing ya muestra el cambio.';
+      toast('Cambios guardados');
+    } catch (err) { toast(err.message); }
   });
+  $('#cfg-form').addEventListener('input', () => { $('#save-note').textContent = 'Hay cambios sin guardar.'; });
   $('#c-mode').addEventListener('change', paintMode);
   $('#copy-buy').addEventListener('click', () => copy($('#buy-url').textContent, 'Enlace copiado'));
   $('#copy-hook').addEventListener('click', () => copy($('#hook-url').textContent, 'URL copiada'));
-  /* ---------- Estadísticas ---------- */
+
+  /* ---------- Resumen ---------- */
   let range = 30;
-  const num = (n) => Math.round(n || 0).toLocaleString('es-AR');
-  const pct = (a, b) => (b ? `${Math.round((a / b) * 1000) / 10}%` : '—');
   const STEPS = [['visita', 'Visitaron'], ['demo', 'Probaron la demo'], ['precio', 'Vieron el precio'], ['clic', 'Tocaron comprar'], ['checkout', 'Llegaron a pagar'], ['pago', 'Pagaron']];
   const PLACES = { top: 'Barra de arriba', hero: 'Portada', card: 'Tarjeta de precio', final: 'Cierre', bar: 'Barra del celular' };
   function pivot(rows) {
@@ -287,53 +559,50 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
   }
   const mini = (head, rows) => rows.length
     ? `<table class="mini"><thead><tr>${head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="n"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`
-    : '<p class="muted" style="margin:10px 12px">Sin datos todavía.</p>';
+    : '<p class="note">Sin datos todavía.</p>';
   async function loadStats() {
     const d = await call('GET', '/api/admin/stats?dias=' + range);
     if (!d.enabled) { $('#st-empty').textContent = 'Las estadísticas no están conectadas en este Worker.'; $('#st-empty').hidden = false; return; }
     const step = Object.fromEntries((d.steps || []).map((r) => [r.name, r]));
     const u = (k) => (k === 'pago' || k === 'reembolso' ? step[k]?.n : step[k]?.u) || 0;
     const visits = u('visita');
+    const gross = step.pago?.v || 0, refunds = step.reembolso?.v || 0;
     $('#st-empty').hidden = visits > 0;
     $('#st-empty').textContent = 'Todavía no hay visitas en este período. Aparecen apenas alguien entra a la landing.';
     $('#kpis').innerHTML = [
-      ['Visitas', num(visits), 'personas distintas', true],
-      ['Probaron la demo', num(u('demo')), pct(u('demo'), visits) + ' de las visitas'],
-      ['Tocaron comprar', num(u('clic')), pct(u('clic'), visits) + ' de las visitas'],
-      ['Ventas', num(u('pago')), 'conversión ' + pct(u('pago'), visits), true],
-      ['Ingresos', peso(step.pago?.v || 0), u('reembolso') ? `${num(u('reembolso'))} devueltos (${peso(step.reembolso?.v || 0)})` : 'sin devoluciones'],
-      ['Usan la app', num(d.activeWeek), 'en los últimos 7 días']
+      ['Ingresos', peso(gross - refunds), u('reembolso') ? `${peso(gross)} cobrados · ${num(u('reembolso'))} ${u('reembolso') === 1 ? 'devolución' : 'devoluciones'}` : 'sin devoluciones', true],
+      ['Ventas', num(u('pago')), `${num(d.activeWeek)} ${d.activeWeek === 1 ? 'persona usó' : 'personas usaron'} la app esta semana`, true],
+      ['Conversión', pct(u('pago'), visits), 'de visita a venta'],
+      ['Visitas', num(visits), `${pct(u('clic'), visits)} tocaron comprar`]
     ].map(([t, v, sub, main]) => `<div class="kpi${main ? ' main' : ''}"><span>${t}</span><b>${v}</b><small>${esc(sub)}</small></div>`).join('');
     $('#funnel').innerHTML = STEPS.map(([k, label]) => {
       const v = u(k);
       return `<div class="fstep"><span>${label}</span><div class="track" aria-hidden="true"><div class="bar" style="width:${visits ? Math.max(0, Math.min(100, (v / visits) * 100)) : 0}%"></div></div><b>${num(v)}<small>${k === 'visita' ? '' : pct(v, visits)}</small></b></div>`;
     }).join('');
-    /* Visitas por día, con un día por barra aunque no haya datos. */
     const byDay = new Map();
-    for (const r of d.daily || []) { const o = byDay.get(r.day) || {}; o[r.name] = r.name === 'pago' ? r.n : r.u; if (r.name === 'pago') o.ingresos = r.v || 0; byDay.set(r.day, o); }
+    for (const r of d.daily || []) { const o = byDay.get(r.day) || {}; o[r.name] = r.name === 'pago' ? r.n : r.u; byDay.set(r.day, o); }
     const days = [];
     for (let t = new Date(d.since + 'T12:00:00Z'), i = 0; i < d.dias; i++, t = new Date(t.getTime() + 86400e3)) days.push(t.toISOString().slice(0, 10));
     const max = Math.max(1, ...days.map((k) => byDay.get(k)?.visita || 0));
     const fmtDay = (k) => new Date(k + 'T12:00:00Z').toLocaleDateString('es', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const pl = (n, one, many) => `${num(n)} ${n === 1 ? one : many}`;
     $('#days').innerHTML = days.map((k) => {
       const o = byDay.get(k) || {};
-      const pl = (n, one, many) => `${num(n)} ${n === 1 ? one : many}`;
       const text = `${fmtDay(k)}: ${pl(o.visita || 0, 'visita', 'visitas')}, ${pl(o.clic || 0, 'tocó', 'tocaron')} comprar, ${pl(o.pago || 0, 'venta', 'ventas')}`;
       return `<div class="day" role="listitem" tabindex="0" aria-label="${esc(text)}" data-tip="${esc(text)}"><i style="height:${((o.visita || 0) / max) * 100}%"></i></div>`;
     }).join('');
     $('#days-axis').innerHTML = `<span>${fmtDay(days[0])}</span><span>máx. ${num(max)} por día</span><span>${fmtDay(days[days.length - 1])}</span>`;
-    $('#t-src').innerHTML = mini(['Fuente', 'Visitas', 'Compra', 'Ventas'], pivot(d.sources || []).slice(0, 10).map((o) => [esc(o.k), num(o.visita), num(o.clic), num(o.pago)]));
-    $('#t-dev').innerHTML = mini(['Dispositivo', 'Visitas', 'Ventas', 'Conv.'], pivot(d.devices || []).map((o) => [esc(o.k === '?' ? 'sin dato' : o.k), num(o.visita), num(o.pago), pct(o.pago, o.visita)]));
+    $('#t-src').innerHTML = mini(['Fuente', 'Visitas', 'Ventas'], pivot(d.sources || []).slice(0, 10).map((o) => [esc(o.k), num(o.visita), num(o.pago)]));
+    $('#t-dev').innerHTML = mini(['Dispositivo', 'Visitas', 'Ventas'], pivot(d.devices || []).map((o) => [esc(o.k === '?' ? 'sin dato' : o.k), num(o.visita), num(o.pago)]));
     $('#t-cta').innerHTML = mini(['Botón', 'Toques'], (d.places || []).map((r) => [esc(PLACES[r.k] || r.k), num(r.n)]));
     $('#t-country').innerHTML = mini(['País', 'Visitas'], (d.countries || []).map((r) => [esc(r.k), num(r.u)]));
   }
-  /* Detalle de cada día al pasar el mouse o al enfocar con teclado. */
   let tip = null;
   const showTip = (el) => {
-    if (!tip) { tip = document.createElement('div'); tip.className = 'tip'; tip.setAttribute('aria-hidden', 'true'); $('#days').appendChild(tip); }
+    if (!tip || !tip.isConnected) { tip = document.createElement('div'); tip.className = 'tip'; tip.setAttribute('aria-hidden', 'true'); $('#days').appendChild(tip); }
     tip.textContent = el.dataset.tip;
     const box = $('#days').getBoundingClientRect(), r = el.getBoundingClientRect();
-    tip.style.left = `${Math.min(Math.max(r.left - box.left + r.width / 2, 90), box.width - 90)}px`;
+    tip.style.left = `${Math.min(Math.max(r.left - box.left + r.width / 2, 100), box.width - 100)}px`;
     tip.style.top = `${r.top - box.top + r.height - (el.firstElementChild.offsetHeight || 0) - 6}px`;
     tip.hidden = false;
   };
@@ -346,17 +615,18 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
     const b = e.target.closest('button[data-d]'); if (!b) return;
     range = Number(b.dataset.d);
     document.querySelectorAll('#st-range button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    tip = null;
     loadStats().catch((err) => toast(err.message));
   });
 
+  /* ---------- Entrar ---------- */
   function showApp() {
-    $('#login').hidden = true; $('#app').hidden = false; $('#logout').hidden = false;
+    $('#login').hidden = true;
+    $('#tabs').hidden = false; $('#logout').hidden = false; $('#site').hidden = false;
+    showTab();
     load().catch((e) => toast(e.message));
     loadConfig().catch((e) => toast(e.message));
     loadStats().catch((e) => toast(e.message));
   }
-
   $('#login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     token = $('#token').value.trim();
@@ -371,47 +641,7 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
     }
   });
   $('#logout').addEventListener('click', () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* nada */ } location.reload(); });
-  $('#q').addEventListener('input', paint);
-  $('#new-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = e.submitter; if (btn) btn.disabled = true;
-    try {
-      const data = await call('POST', '/api/admin/codes', { email: $('#n-email').value, note: $('#n-note').value, maxDevices: $('#n-max').value, count: $('#n-count').value });
-      const made = data.created || [];
-      const first = made[0];
-      const subject = encodeURIComponent('Tu acceso a Cuánto Cobro');
-      $('#created').innerHTML = `<div class="result" role="status">
-        <b>${made.length === 1 ? 'Código creado' : `${made.length} códigos creados`}</b>
-        ${made.map((c) => `<span class="code big-code">${esc(c.code)}</span>`).join('')}
-        ${made.length === 1 ? `<label class="field"><span>Mail para enviarle</span><textarea id="mail-text">${esc(mailBody(first))}</textarea></label>
-        <div class="row"><button class="btn btn-primary" type="button" id="copy-mail">Copiar mail</button><button class="btn" type="button" id="copy-link">Copiar enlace</button>${first.email ? `<a class="btn" href="mailto:${encodeURIComponent(first.email)}?subject=${subject}&body=${encodeURIComponent(mailBody(first))}">Abrir en mi correo</a>` : ''}</div>`
-        : `<div class="row"><button class="btn btn-primary" type="button" id="copy-all">Copiar todos</button></div>`}
-      </div>`;
-      const cm = $('#copy-mail'); if (cm) cm.onclick = () => copy($('#mail-text').value, 'Mail copiado');
-      const cl = $('#copy-link'); if (cl) cl.onclick = () => copy(link(first.code), 'Enlace copiado');
-      const ca = $('#copy-all'); if (ca) ca.onclick = () => copy(made.map((c) => c.code).join('\n'), 'Códigos copiados');
-      $('#n-email').value = ''; $('#n-note').value = ''; $('#n-count').value = 1;
-      await load();
-    } catch (err) { toast(err.message); }
-    if (btn) btn.disabled = false;
-  });
-  $('#rows').addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-a]');
-    if (!b) return;
-    const c = codes.find((x) => x.code === b.dataset.c);
-    if (!c) return;
-    const a = b.dataset.a;
-    if (a === 'mail') { copy(mailBody(c), 'Mail copiado'); return; }
-    if (a === 'revocar' && !confirm(`¿Revocar ${c.code}? La clienta deja de poder abrir la app.`)) return;
-    if (a === 'reembolsar' && !confirm(`¿Devolver ${c.amount ? peso(c.amount) : 'el pago'} a ${c.email || c.code}? Mercado Pago reembolsa el pago completo y el código se revoca.`)) return;
-    if (a === 'liberar' && !confirm(`¿Liberar los dispositivos de ${c.code}? Tendrá que volver a escribir el código en cada uno.`)) return;
-    try { await call('POST', '/api/admin/codes/' + encodeURIComponent(c.code), { action: a }); toast('Listo'); await load(); }
-    catch (err) { toast(err.message); }
-  });
-
-  if (token) {
-    call('GET', '/api/admin/codes').then(showApp).catch(() => { token = ''; });
-  }
+  if (token) call('GET', '/api/admin/codes').then(showApp).catch(() => { token = ''; });
 })();
 </script>
 </body>
