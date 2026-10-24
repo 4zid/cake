@@ -251,8 +251,13 @@ h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
       item(c.mercadopago !== 'sin-configurar', c.mercadopago === 'real' ? 'Mercado Pago: cobros reales' : c.mercadopago === 'prueba' ? 'Mercado Pago: modo prueba' : 'Falta MP_ACCESS_TOKEN'),
       item(c.webhookSecret, c.webhookSecret ? 'Firma de notificaciones' : 'Falta MP_WEBHOOK_SECRET'),
       item(c.now?.price > 0, c.now?.price > 0 ? 'Precio cargado' : 'Falta el precio'),
-      item(c.mailerlite || c.email, c.mailerlite ? 'Mails por MailerLite' : c.email ? 'Mail automático (Resend)' : 'Mails desactivados: falta MailerLite')
+      item(c.mailerlite || c.email, c.mailerlite ? 'MailerLite: revisando…' : c.email ? 'Mail automático (Resend)' : 'Mails desactivados: falta MailerLite')
     ].join('');
+    if (c.mailerlite) call('GET', '/api/admin/mailerlite').then((m) => {
+      const li = [...document.querySelectorAll('#checks li')].pop();
+      li.className = m.connected ? 'ok' : 'no';
+      li.textContent = m.connected ? `✓ MailerLite: “${m.group.name}”${m.group.active != null ? ` · ${m.group.active} en el grupo` : ''}` : `! ${m.error || 'MailerLite sin conectar'}`;
+    }).catch(() => {});
   }
   async function loadConfig() { paintConfig(await call('GET', '/api/admin/config')); }
   $('#cfg-form').addEventListener('submit', async (e) => {

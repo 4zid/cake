@@ -8,8 +8,8 @@
    - Garantía: dentro de los días configurados, la compradora pide la devolución desde Ajustes y se
      reembolsa sola en Mercado Pago (el código queda revocado).
    - Medición: los pasos de la venta se guardan en D1 (binding DB) y se ven en /admin → Estadísticas.
-   - Mails: con MAILERLITE_API_KEY y MAILERLITE_GROUP_ID, cada compradora entra al grupo de MailerLite con su
-     código y su link, y MailerLite le manda la secuencia (entrega, primeros pasos, opinión, próxima app).
+   - Mails: con MAILERLITE_API_KEY, cada compradora entra al grupo "Compradores Cuánto Cobro" de MailerLite
+     (se crea solo si no existe) con su código y su link, y MailerLite le manda la secuencia de 4 mails.
    Los códigos viven en el KV "LICENSES" con la clave "code:COBRO-XXXX-XXXX-XXXX"
    (los primeros códigos, de cuando la app se llamaba Dulce Cuenta, empiezan con DULCE y siguen valiendo). */
 
@@ -167,6 +167,8 @@ async function admin(request, env, url, ctx) {
     await env.LICENSES.put('config', JSON.stringify(next));
     return json(await adminConfig(env, url));
   }
+
+  if (path === '/api/admin/mailerlite' && method === 'GET') return json(await mlStatus(env));
 
   if (path === '/api/admin/stats' && method === 'GET') return json(await stats(env, parseInt(url.searchParams.get('dias'), 10) || 30));
 
@@ -534,7 +536,8 @@ async function sendCodeMail(env, rec, origin) {
 /* ======================= MailerLite: secuencia de 4 mails ======================= */
 /* La compradora entra al grupo de compradores con sus datos en campos propios, que los mails usan como
    {$codigo}, {$link_activar} y {$garantia_dias}. Si devuelve la compra, sale del grupo y queda marcada. */
-const mlOn = (env) => !!(env.MAILERLITE_API_KEY && env.MAILERLITE_GROUP_ID);
+const mlOn = (env) => !!env.MAILERLITE_API_KEY;
+const ML_GROUP = 'Compradores Cuánto Cobro';
 const ML_FIELDS = ['codigo', 'link_activar', 'garantia_dias', 'estado'];
 async function ml(env, method, path, body) {
   const res = await fetch(`${env.MAILERLITE_API_BASE || 'https://connect.mailerlite.com'}/api${path}`, {
@@ -557,21 +560,55 @@ function mlEnsureFields(env) {
   }
   return mlFieldsReady;
 }
+/* El grupo de compradores se busca por nombre (o se crea) y su número queda guardado en KV.
+   MAILERLITE_GROUP_ID permite fijar otro grupo. */
+let mlGroupId = null;
+async function mlGroup(env) {
+  if (env.MAILERLITE_GROUP_ID) return String(env.MAILERLITE_GROUP_ID);
+  if (mlGroupId) return mlGroupId;
+  const saved = await env.LICENSES.get('ml:group');
+  if (saved) return (mlGroupId = saved);
+  const found = ((await ml(env, 'GET', `/groups?limit=50&filter[name]=${encodeURIComponent(ML_GROUP)}`)).data || []).find((g) => g.name === ML_GROUP);
+  const id = String(found ? found.id : (await ml(env, 'POST', '/groups', { name: ML_GROUP })).data.id);
+  await env.LICENSES.put('ml:group', id);
+  return (mlGroupId = id);
+}
+const mlForgetGroup = (env) => { mlGroupId = null; return env.LICENSES.delete('ml:group'); };
 async function mlAddBuyer(env, rec, origin, name) {
   await mlEnsureFields(env);
   const cfg = await savedConfig(env);
-  await ml(env, 'POST', '/subscribers', {
+  const body = (group) => ({
     email: rec.email,
     fields: { name: name || '', codigo: rec.code, link_activar: `${origin}/activar?codigo=${encodeURIComponent(rec.code)}`, garantia_dias: String(cfg.guaranteeDays || 0), estado: 'activo' },
-    groups: [String(env.MAILERLITE_GROUP_ID)]
+    groups: [group]
   });
+  try {
+    await ml(env, 'POST', '/subscribers', body(await mlGroup(env)));
+  } catch (e) {
+    /* Si borraron el grupo, se busca o se crea de nuevo y se reintenta una vez. */
+    if (env.MAILERLITE_GROUP_ID || ![404, 422].includes(e.status)) throw e;
+    await mlForgetGroup(env);
+    await ml(env, 'POST', '/subscribers', body(await mlGroup(env)));
+  }
+}
+/* Estado para el panel: grupo, compradoras activas y campos. */
+async function mlStatus(env) {
+  if (!mlOn(env)) return { connected: false };
+  try {
+    await mlEnsureFields(env);
+    const id = await mlGroup(env);
+    const g = (await ml(env, 'GET', `/groups?limit=50&filter[name]=${encodeURIComponent(ML_GROUP)}`)).data?.find((x) => String(x.id) === id);
+    return { connected: true, group: { id, name: g ? g.name : ML_GROUP, active: g ? g.active_count : null } };
+  } catch (e) {
+    return { connected: false, error: e.status === 401 ? 'MailerLite rechazó la clave (MAILERLITE_API_KEY).' : `MailerLite respondió ${e.status || 'con un error'}.` };
+  }
 }
 async function mlRemoveBuyer(env, rec) {
   if (!mlOn(env) || !rec.email || !rec.mailerliteAt) return;
   const sub = (await ml(env, 'GET', `/subscribers/${encodeURIComponent(rec.email)}`)).data;
   if (!sub) return;
   await ml(env, 'PUT', `/subscribers/${sub.id}`, { fields: { estado: rec.revokedReason || 'devuelto' } });
-  await ml(env, 'DELETE', `/subscribers/${sub.id}/groups/${env.MAILERLITE_GROUP_ID}`);
+  await ml(env, 'DELETE', `/subscribers/${sub.id}/groups/${await mlGroup(env)}`);
 }
 
 /* ======================= Garantía ======================= */
