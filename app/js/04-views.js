@@ -188,7 +188,7 @@ views.recipes = () => `<div class="page">
   <header class="phead">
     <div><h1>Tus tortas</h1><p class="lead">Cada torta guarda su receta. Si cambia el precio de un ingrediente, el costo se actualiza solo.</p></div>
     <button type="button" class="btn btn-primary btn-sm" data-act="new-recipe">${I.plus}<span>Armar torta</span></button>
-    ${state.recipes.length ? `<div class="ctl"><label class="search"><span class="sr">Buscar torta</span>${I.search}<input type="search" id="recipe-search" data-in="search" placeholder="Buscar torta" value="${esc(ui.q)}"></label></div>` : ''}
+    ${state.recipes.length ? `<div class="ctl"><label class="search"><span class="sr">Buscar torta</span>${I.search}<input type="search" enterkeyhint="search" id="recipe-search" data-in="search" placeholder="Buscar torta" value="${esc(ui.q)}"></label></div>` : ''}
   </header>
   <div class="pbody"><div id="recipe-list">${recipeList()}</div></div>
 </div>`;
@@ -214,7 +214,7 @@ views.ingredients = () => {
         <p class="lead only-m">${stats.join(' · ')}</p></div>
       <button type="button" class="btn btn-primary btn-sm" data-act="new-ing">${I.plus}<span>Nuevo<span class="only-d"> ingrediente</span></span></button>
       <div class="ctl">
-        <label class="search"><span class="sr">Buscar ingrediente</span>${I.search}<input type="search" id="ing-search" data-in="isearch" placeholder="Buscar" value="${esc(ui.iq)}"></label>
+        <label class="search"><span class="sr">Buscar ingrediente</span>${I.search}<input type="search" enterkeyhint="search" id="ing-search" data-in="isearch" placeholder="Buscar" value="${esc(ui.iq)}"></label>
         <p class="ctl-stats only-d">${stats.join(' · ')}${old ? ` · ${old} sin actualizar hace más de un mes` : ''}</p>
         <div class="seg seg-dark" role="group" aria-label="Cómo ver la despensa">
           <button type="button" data-act="dview" data-v="estantes" aria-pressed="${ui.dview === 'estantes'}">${I.grid}Estantes</button>

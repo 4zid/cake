@@ -218,7 +218,9 @@ function repaintPanel() {
   const r = cur();
   const p = $('#ed-panel');
   if (!r || !p) return;
+  const y = p.scrollTop;
   p.innerHTML = panelHTML(r, stepOf());
+  p.scrollTop = y;
   updateOut();
 }
 function refreshCake(r, floatText, animate = true) {

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Cuánto Cobro</title>
 <meta name="description" content="Calcula cuánto te cuesta cada torta, a cuánto venderla y cuánto ganas.">
 <meta name="theme-color" content="#FFE6EE">
@@ -45,9 +45,10 @@
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: #FFFFFF; color: var(--ink); font: 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+body { margin: 0; overflow-x: clip; background: #FFFFFF; color: var(--ink); font: 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
+a, button, input, select, textarea, label, summary { touch-action: manipulation; }
 button:disabled { cursor: default; }
 h1, h2, h3, p { margin: 0; }
 svg { flex: none; }
@@ -132,7 +133,7 @@ textarea.inp { height: auto; padding: 12px 14px; resize: vertical; line-height: 
 .money-lg input { padding-right: 90px; }
 .search { position: relative; display: block; flex: 1 1 220px; min-width: 0; max-width: 360px; }
 .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink2); pointer-events: none; }
-.search input { width: 100%; height: 46px; padding: 0 14px 0 40px; border: 2px solid var(--field); border-radius: 14px; background: #FFFFFF; font-size: 15px; }
+.search input { width: 100%; height: 46px; padding: 0 14px 0 40px; border: 2px solid var(--field); border-radius: 14px; background: #FFFFFF; font-size: 16px; }
 .search input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(196, 47, 101, .25); }
 .search-lg { max-width: none; flex: none; }
 .search-lg input { height: 52px; font-size: 16px; }
@@ -656,18 +657,21 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   .only-m { display: revert !important; }
   span.only-m, b.only-m, small.only-m { display: inline !important; }
   .main { padding: 0 0 calc(88px + env(safe-area-inset-bottom)); }
+  /* Con una hoja, el editor o la introducción abiertos, la página de atrás no se mueve. */
+  body.in-editor, body:has(.overlay), body:has(.onb) { overflow: hidden; }
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; height: calc(72px + env(safe-area-inset-bottom)); padding: 6px 6px calc(10px + env(safe-area-inset-bottom)); background: #FFFFFF; border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(58, 34, 40, .06); }
   .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; justify-content: center; border: 0; border-radius: 12px; background: transparent; color: var(--ink2); font-size: 11.5px; font-weight: 700; -webkit-tap-highlight-color: transparent; }
   .tab-pill { width: 52px; height: 30px; border-radius: 999px; display: grid; place-items: center; transition: background-color .2s, transform .2s var(--pop); }
   .tab[aria-current="page"] { color: var(--accent); }
   .tab[aria-current="page"] .tab-pill { background: var(--pink); transform: scale(1.04); }
   body.in-editor .tabbar { display: none; }
+  body:has(.main :is(input:not([type=range]):not([type=checkbox]):not([type=radio]), textarea):focus) .tabbar { display: none; }
   body.in-editor .main { padding-bottom: 0; }
   .toast { bottom: calc(92px + env(safe-area-inset-bottom)); }
   body.in-editor .toast { bottom: calc(100px + env(safe-area-inset-bottom)); }
   .page { gap: 0; }
   .pbody { padding: 26px 16px 20px; gap: 22px; }
-  .phead { position: relative; z-index: 2; align-items: flex-start; gap: 12px; padding: 14px 16px 16px; background: var(--glaze); }
+  .phead { position: relative; z-index: 2; align-items: flex-start; gap: 12px; padding: calc(22px + env(safe-area-inset-top)) 16px 16px; background: var(--glaze); }
   .phead::after, .hero::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 12px; background: radial-gradient(circle at 10px 0, var(--glaze) 9.5px, transparent 10.5px) 0 0 / 20px 12px repeat-x; }
   .phead > div:first-child { flex: 1 1 0; }
   .phead h1 { font-size: 26px; }
@@ -684,7 +688,7 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   .s-price small.only-m { display: block !important; }
   .sec-head h2, .sec-title { font-size: 19px; }
 
-  .hero { padding: 12px 16px 4px; border-radius: 0; overflow: visible; z-index: 2; }
+  .hero { padding: calc(22px + env(safe-area-inset-top)) 16px 4px; border-radius: 0; overflow: visible; z-index: 2; }
   .hero-brand { display: flex !important; align-items: center; gap: 10px; justify-content: space-between; }
   .hero-brand .brand-word { font-size: 22px; }
   .hero-brand .save-ind { padding: 0; }
@@ -692,9 +696,9 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   .hero-main { flex: 1 1 auto; padding-bottom: 12px; gap: 0; }
   .hello { margin: 6px 0 6px; font-size: 17px; }
   .eyebrow { font-size: 12px; }
-  .big-num { font-size: 40px; line-height: 1.05; }
+  .big-num { font-size: clamp(30px, 10vw, 40px); line-height: 1.05; white-space: nowrap; }
   .hero-sub { font-size: 13px; }
-  .hero-art { width: 140px; margin: 0 -6px 0 0; }
+  .hero-art { width: clamp(100px, 34vw, 140px); margin: 0 -6px 0 0; }
   .m-actions { display: grid !important; }
   .m-actions .btn { min-height: 54px; padding: 0 12px; }
   .notices { gap: 10px; }
@@ -759,7 +763,8 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   .s-date small { margin: 0 !important; font-size: 10px !important; letter-spacing: .06em; text-transform: uppercase; color: var(--ink) !important; font-weight: 800 !important; }
   .s-cake { gap: 8px; }
   .s-thumb .cake-art { width: 40px; }
-  .s-name b { font-size: 14.5px; }
+  .s-name b { font-size: 14.5px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .s-name small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .s-price { text-align: right; line-height: 1.25; }
   .s-price small { font-weight: 800 !important; }
   .s-price small.pos { color: var(--green) !important; }
@@ -770,25 +775,28 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   .grid-3 { grid-template-columns: 1fr; }
 
   /* Editor a pantalla completa: la torta queda siempre a la vista. */
-  .ed { position: fixed; inset: 0; z-index: 20; max-width: none; gap: 0; background: #FFFFFF; animation: fade-in .2s ease both; }
-  .ed-top { position: absolute; left: 6px; top: 8px; z-index: 3; }
+  .ed { --stage-h: clamp(150px, 30vh, 248px); position: fixed; inset: 0; z-index: 20; max-width: none; gap: 0; background: #FFFFFF; animation: fade-in .2s ease both; }
+  @supports (height: 1dvh) { .ed { --stage-h: clamp(150px, 30dvh, 248px); } }
+  .ed-top { position: absolute; left: 6px; top: calc(8px + env(safe-area-inset-top)); z-index: 3; }
   .ed-top .save-ind { display: none; }
-  .ed-more { position: absolute; right: 8px; top: 8px; z-index: 3; width: 44px; height: 44px; display: grid !important; place-items: center; border: 0; border-radius: 12px; background: transparent; color: var(--ink); }
+  .ed-more { position: absolute; right: 8px; top: calc(8px + env(safe-area-inset-top)); z-index: 3; width: 44px; height: 44px; display: grid !important; place-items: center; border: 0; border-radius: 12px; background: transparent; color: var(--ink); }
   .ed-more:hover { background: var(--soft); }
   .back span { display: none; }
   .back { width: 44px; height: 44px; padding: 0; justify-content: center; color: var(--ink); }
   .back svg { width: 22px; height: 22px; }
   .ed-grid { flex: 1 1 auto; min-height: 0; flex-direction: column; flex-wrap: nowrap; gap: 0; }
   .ed-left { position: static; flex: none; max-width: none; width: 100%; gap: 0; }
-  .ed-title { min-height: 44px; margin: 8px 56px 6px 56px; width: auto; padding: 9px 4px 7px; font-size: 19px; line-height: 1.25; letter-spacing: -.01em; }
-  .stage { height: 248px; margin: 0 12px; border-radius: 24px; padding-bottom: 8px; }
-  .stage-art { width: 250px; }
+  .ed-title { min-height: 44px; margin: calc(8px + env(safe-area-inset-top)) 56px 6px 56px; width: auto; padding: 9px 4px 7px; font-size: 19px; line-height: 1.25; letter-spacing: -.01em; }
+  .stage { height: var(--stage-h); margin: 0 12px; border-radius: 24px; padding-bottom: 8px; }
+  .stage-art { width: min(250px, calc((var(--stage-h) - 24px) * 1.14)); }
+  /* Mientras se escribe en el panel, la torta se esconde y el campo queda arriba del teclado. */
+  .ed:has(.ed-panel :is(input:not([type=range]):not([type=checkbox]):not([type=radio]), textarea):focus) .stage { display: none; }
   .badge-ing { left: 12px; top: 12px; padding: 6px 12px; border-radius: 14px; }
   .badge-ing span { font-size: 11.5px; }
   .badge-ing b { font-size: 17px; }
   .badge-count { right: 12px; top: 12px; padding: 6px 10px; font-size: 12.5px; }
   .stage-float { top: 64px; font-size: 13.5px; padding: 6px 14px; }
-  .ed-right { flex: 1 1 auto; min-height: 0; gap: 0; }
+  .ed-right { flex: 1 1 auto; width: 100%; min-width: 0; min-height: 0; gap: 0; }
   .steps { margin: 10px 12px 0; padding: 4px; border-radius: 16px; }
   .step { min-height: 44px; gap: 5px; padding: 0 4px; font-size: 13px; border-radius: 12px; }
   .step-n { width: 20px; height: 20px; font-size: 11px; }
@@ -798,6 +806,8 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   .ed-bar .btn { min-height: 50px; padding: 0 20px; font-size: 16px; }
   .ed .card { padding: 0; border: 0; border-radius: 0; gap: 10px; }
   .ed .card h2 { font-size: 17px; }
+  .range { height: 44px; }
+  .link-sm { min-height: 40px; }
   .shelf-card .card-head { flex-wrap: nowrap; }
   .pills { gap: 6px; }
   .pill { min-height: 40px; padding: 0 11px; font-size: 13px; }
@@ -837,7 +847,7 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
   .sh-actions .left span { display: none; }
 
   .onb { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "top" "art" "content" "foot"; overflow-y: auto; }
-  .onb-top { padding: 14px 16px 8px; gap: 10px; }
+  .onb-top { padding: calc(14px + env(safe-area-inset-top)) 16px 8px; gap: 10px; }
   .onb-count { display: none; }
   .segs { flex: 1 1 auto; }
   .onb-back { width: 40px; height: 40px; background: none; }
@@ -885,6 +895,11 @@ body:has(.overlay) .toast { top: calc(16px + env(safe-area-inset-top)); bottom: 
 }
 @media (max-width: 380px) {
   .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hello { font-size: 15.5px; }
+  .ed-title { font-size: 17px; }
+  .step { flex-direction: column; gap: 2px; font-size: 11.5px; line-height: 1.1; }
+  .step-n { width: 18px; height: 18px; font-size: 10.5px; }
+  .shelf-card .card-head { flex-wrap: wrap; }
   .m-actions .btn { font-size: 15px; padding: 0 8px; }
   .itable tr { grid-template-columns: minmax(0, 1fr) 104px minmax(72px, .8fr); }
 }
@@ -1756,7 +1771,7 @@ views.recipes = () => `<div class="page">
   <header class="phead">
     <div><h1>Tus tortas</h1><p class="lead">Cada torta guarda su receta. Si cambia el precio de un ingrediente, el costo se actualiza solo.</p></div>
     <button type="button" class="btn btn-primary btn-sm" data-act="new-recipe">${I.plus}<span>Armar torta</span></button>
-    ${state.recipes.length ? `<div class="ctl"><label class="search"><span class="sr">Buscar torta</span>${I.search}<input type="search" id="recipe-search" data-in="search" placeholder="Buscar torta" value="${esc(ui.q)}"></label></div>` : ''}
+    ${state.recipes.length ? `<div class="ctl"><label class="search"><span class="sr">Buscar torta</span>${I.search}<input type="search" enterkeyhint="search" id="recipe-search" data-in="search" placeholder="Buscar torta" value="${esc(ui.q)}"></label></div>` : ''}
   </header>
   <div class="pbody"><div id="recipe-list">${recipeList()}</div></div>
 </div>`;
@@ -1782,7 +1797,7 @@ views.ingredients = () => {
         <p class="lead only-m">${stats.join(' · ')}</p></div>
       <button type="button" class="btn btn-primary btn-sm" data-act="new-ing">${I.plus}<span>Nuevo<span class="only-d"> ingrediente</span></span></button>
       <div class="ctl">
-        <label class="search"><span class="sr">Buscar ingrediente</span>${I.search}<input type="search" id="ing-search" data-in="isearch" placeholder="Buscar" value="${esc(ui.iq)}"></label>
+        <label class="search"><span class="sr">Buscar ingrediente</span>${I.search}<input type="search" enterkeyhint="search" id="ing-search" data-in="isearch" placeholder="Buscar" value="${esc(ui.iq)}"></label>
         <p class="ctl-stats only-d">${stats.join(' · ')}${old ? ` · ${old} sin actualizar hace más de un mes` : ''}</p>
         <div class="seg seg-dark" role="group" aria-label="Cómo ver la despensa">
           <button type="button" data-act="dview" data-v="estantes" aria-pressed="${ui.dview === 'estantes'}">${I.grid}Estantes</button>
@@ -2163,7 +2178,9 @@ function repaintPanel() {
   const r = cur();
   const p = $('#ed-panel');
   if (!r || !p) return;
+  const y = p.scrollTop;
   p.innerHTML = panelHTML(r, stepOf());
+  p.scrollTop = y;
   updateOut();
 }
 function refreshCake(r, floatText, animate = true) {
@@ -2315,7 +2332,7 @@ function qtySheet(r, spec) {
     const isNew = !l;
     if (l) { l.qty = num(st.qty); l.unit = st.unit; }
     else { l = { id: uid(), ingId: target.id, qty: num(st.qty), unit: st.unit }; r.items.push(l); }
-    if (CAT_KEYS.includes(ingCat(target))) ui.cat = ingCat(target);
+    if (isNew && CAT_KEYS.includes(ingCat(target))) ui.cat = ingCat(target);
     touch(r);
     m.close();
     const li = lineInfo(l);
@@ -3089,7 +3106,7 @@ document.addEventListener('click', (e) => {
   const fn = actions[t.dataset.act];
   if (fn) fn(t, e);
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'r-name') { e.preventDefault(); e.target.blur(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.target.id === 'r-name' || e.target.type === 'search')) { e.preventDefault(); e.target.blur(); } });
 document.addEventListener('input', (e) => {
   const t = e.target;
   if (t.dataset && t.dataset.in && inputs[t.dataset.in] && !t.closest('.overlay') && !t.closest('.onb')) inputs[t.dataset.in](t, e);
@@ -3099,6 +3116,20 @@ document.addEventListener('change', (e) => {
   if (t.dataset && t.dataset.ch && changes[t.dataset.ch] && !t.closest('.overlay') && !t.closest('.onb')) changes[t.dataset.ch](t, e);
 });
 window.addEventListener('resize', () => { if (route.view === 'recipe') fitTitle(); });
+
+/* Teclado del celular: iOS a veces deja la pantalla corrida al cerrarlo. Si había una hoja, el editor o la
+   introducción abiertos (la página de atrás no se mueve), la devolvemos a donde estaba. */
+const isField = (el) => !!el && el.matches('input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=file]), textarea');
+let kbY = null;
+document.addEventListener('focusin', (e) => { if (isField(e.target) && kbY === null) kbY = window.scrollY; });
+document.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (isField(document.activeElement)) return;
+    const y = kbY; kbY = null;
+    const locked = document.body.classList.contains('in-editor') || document.querySelector('.overlay, .onb');
+    if (y !== null && locked && isMobile() && Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+  }, 120);
+});
 
 /* ======================= Inicio ======================= */
 (function initRoute() {

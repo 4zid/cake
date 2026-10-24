@@ -34,7 +34,7 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: #FFFFFF; color: var(--ink); font: 17px/1.55 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0; overflow-x: clip; background: #FFFFFF; color: var(--ink); font: 17px/1.55 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
 h1, h2, h3, p { margin: 0; }
 a { color: inherit; }
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -55,6 +55,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .is-closed .btn-buy { background: #FFFFFF; color: var(--ink2); }
 .is-closed .price-chip { display: none; }
 .link { color: var(--accent); font-weight: 700; text-decoration: none; }
+a, button, summary, label { touch-action: manipulation; }
 .link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Barra superior */
@@ -62,7 +63,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .top .wrap { min-height: 68px; display: flex; align-items: center; gap: 16px; }
 .brand { font-family: var(--display); font-size: 26px; line-height: 1; color: var(--accent); text-decoration: none; }
 .top nav { margin-left: auto; display: flex; align-items: center; gap: 18px; }
-.top nav a:not(.btn) { font-size: 15px; font-weight: 700; text-decoration: none; color: var(--ink2); }
+.top nav a:not(.btn) { min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; font-size: 15px; font-weight: 700; text-decoration: none; color: var(--ink2); }
 .top nav a:not(.btn):hover { color: var(--ink); }
 
 /* Portada */
@@ -160,7 +161,7 @@ h2 { margin-top: 10px; font-size: clamp(32px, 4.2vw, 48px); font-weight: 800; li
 .price-card { position: relative; padding: 34px; border-radius: 32px; border: 2px solid var(--ink); background: #FFFFFF; box-shadow: 0 8px 0 var(--ink); }
 .price-card .tag { position: absolute; top: -16px; left: 30px; padding: 6px 14px; border-radius: 999px; background: var(--btn); color: #FFFFFF; font-size: 14px; font-weight: 800; border: 2px solid var(--ink); }
 .price-card h3 { font-size: 22px; font-weight: 800; }
-.big-price { display: flex; align-items: baseline; gap: 10px; margin: 6px 0 4px; }
+.big-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; margin: 6px 0 4px; }
 .big-price b { font-family: var(--display); font-weight: 400; font-size: clamp(52px, 7vw, 68px); line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
 .big-price span { font-size: 16px; font-weight: 700; color: var(--ink2); }
 .incl { list-style: none; margin: 22px 0 26px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -216,7 +217,8 @@ s[data-list] { text-decoration-thickness: 2px; color: var(--ink2); font-weight: 
 .final .cta-row { justify-content: center; }
 footer { padding: 34px 0 48px; border-top: 1px solid var(--line); font-size: 15px; color: var(--ink2); }
 footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-.legal { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.legal { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; }
+.legal a { min-height: 44px; display: inline-flex; align-items: center; }
 .legal a:not(.link) { color: var(--ink2); font-weight: 600; text-decoration: none; }
 .legal a:not(.link):hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
@@ -227,6 +229,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
 .buybar small { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink2); }
 .buybar b { font-family: var(--display); font-weight: 400; font-size: 24px; color: var(--accent); }
 .buybar .btn { min-height: 52px; padding: 0 22px; }
+.see-how { display: inline-flex; align-items: center; min-height: 44px; }
 
 /* Animaciones */
 .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
@@ -246,7 +249,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
   .wrap { padding: 0 16px; }
   .top .wrap { min-height: 60px; }
   .brand { font-size: 22px; }
-  .top nav .hide-m { display: none; }
+  .top nav .hide-m { display: none !important; }
   .hero { padding: 22px 0 56px; }
   .hero .wrap { grid-template-columns: 1fr; gap: 28px; }
   h1 { margin: 14px 0 14px; }
@@ -255,7 +258,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
   .sec-head { margin-bottom: 30px; }
   .grid3, .feats { grid-template-columns: 1fr; gap: 12px; }
   .card { padding: 22px; }
-  .example, .pricing { grid-template-columns: 1fr; gap: 26px; }
+  .example, .pricing { grid-template-columns: minmax(0, 1fr); gap: 26px; }
   .ex-art { height: 260px; }
   .price-card { padding: 28px 22px; }
   .pain .card { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 4px 14px; padding: 18px; }
@@ -318,7 +321,7 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
         <p class="lead">Cuánto Cobro calcula el costo de cada torta, a cuánto venderla y cuánto ganas de verdad. Desde el celular, en minutos y sin descargar nada.</p>
         <div class="cta-row" id="hero-cta">
           <a class="btn btn-lg btn-buy" href="/comprar" data-buy="hero">Quiero la app <span class="price-chip" data-price>Próximamente</span></a>
-          <a class="link" href="#como-funciona">Ver cómo funciona</a>
+          <a class="link see-how" href="#como-funciona">Ver cómo funciona</a>
         </div>
         <p class="launch-line launch"><span class="launch-flag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4M4 4h13l-2.5 4L17 12H4"/></svg>Precio de lanzamiento</span> <span class="launch-prices"><span class="sr">antes</span><s data-list></s> <span class="sr">ahora</span><b data-price>Próximamente</b> <span class="off" data-off></span></span></p>
         <div class="micro">
@@ -557,12 +560,16 @@ footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-cont
   const bar = document.getElementById('buybar');
   const cta = document.getElementById('hero-cta');
   if ('IntersectionObserver' in window && bar && cta) {
-    new IntersectionObserver(([en]) => {
-      const show = !en.isIntersecting && en.boundingClientRect.top < 0;
+    let past = false; const near = new Set();
+    const paint = () => {
+      const show = past && !near.size;
       bar.classList.toggle('show', show);
       bar.setAttribute('aria-hidden', String(!show));
       bar.querySelector('a').tabIndex = show ? 0 : -1;
-    }).observe(cta);
+    };
+    new IntersectionObserver(([en]) => { past = !en.isIntersecting && en.boundingClientRect.top < 0; paint(); }).observe(cta);
+    const other = new IntersectionObserver((es) => { es.forEach((en) => (en.isIntersecting ? near.add(en.target) : near.delete(en.target))); paint(); });
+    document.querySelectorAll('[data-buy="card"], [data-buy="final"]').forEach((el) => other.observe(el));
   }
 })();
 </script>

@@ -239,7 +239,7 @@ document.addEventListener('click', (e) => {
   const fn = actions[t.dataset.act];
   if (fn) fn(t, e);
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'r-name') { e.preventDefault(); e.target.blur(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.target.id === 'r-name' || e.target.type === 'search')) { e.preventDefault(); e.target.blur(); } });
 document.addEventListener('input', (e) => {
   const t = e.target;
   if (t.dataset && t.dataset.in && inputs[t.dataset.in] && !t.closest('.overlay') && !t.closest('.onb')) inputs[t.dataset.in](t, e);
@@ -249,6 +249,20 @@ document.addEventListener('change', (e) => {
   if (t.dataset && t.dataset.ch && changes[t.dataset.ch] && !t.closest('.overlay') && !t.closest('.onb')) changes[t.dataset.ch](t, e);
 });
 window.addEventListener('resize', () => { if (route.view === 'recipe') fitTitle(); });
+
+/* Teclado del celular: iOS a veces deja la pantalla corrida al cerrarlo. Si había una hoja, el editor o la
+   introducción abiertos (la página de atrás no se mueve), la devolvemos a donde estaba. */
+const isField = (el) => !!el && el.matches('input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=file]), textarea');
+let kbY = null;
+document.addEventListener('focusin', (e) => { if (isField(e.target) && kbY === null) kbY = window.scrollY; });
+document.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (isField(document.activeElement)) return;
+    const y = kbY; kbY = null;
+    const locked = document.body.classList.contains('in-editor') || document.querySelector('.overlay, .onb');
+    if (y !== null && locked && isMobile() && Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+  }, 120);
+});
 
 /* ======================= Inicio ======================= */
 (function initRoute() {

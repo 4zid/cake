@@ -103,7 +103,7 @@ function qtySheet(r, spec) {
     const isNew = !l;
     if (l) { l.qty = num(st.qty); l.unit = st.unit; }
     else { l = { id: uid(), ingId: target.id, qty: num(st.qty), unit: st.unit }; r.items.push(l); }
-    if (CAT_KEYS.includes(ingCat(target))) ui.cat = ingCat(target);
+    if (isNew && CAT_KEYS.includes(ingCat(target))) ui.cat = ingCat(target);
     touch(r);
     m.close();
     const li = lineInfo(l);

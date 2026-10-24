@@ -1,5 +1,5 @@
 // Cuánto Cobro: permite abrir la app sin conexión una vez activada en este dispositivo.
-const CACHE = 'cuanto-cobro-v6';
+const CACHE = 'cuanto-cobro-v7';
 const FILES = ['./', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (e) => {
